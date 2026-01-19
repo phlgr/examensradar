@@ -88,10 +88,6 @@ src/
 └── styles.css        # Global styles
 ```
 
-## Documentation
-
-- `DATABASE_SETUP.md` - Database architecture and patterns
-
 ## License
 
 Private
