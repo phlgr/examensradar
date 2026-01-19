@@ -1,5 +1,5 @@
 import { createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
-
+import { TRPCProvider } from "@/lib/trpc-provider";
 import Header from "../components/Header";
 
 import appCss from "../styles.css?url";
@@ -41,8 +41,10 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 				<HeadContent />
 			</head>
 			<body>
-				<Header />
-				{children}
+				<TRPCProvider>
+					<Header />
+					{children}
+				</TRPCProvider>
 				<Scripts />
 			</body>
 		</html>

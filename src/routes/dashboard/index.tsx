@@ -3,31 +3,35 @@ import { Bell, Check, Copy, ExternalLink, Smartphone } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Badge, Button, Card } from "@/components/ui";
 import { authClient } from "@/lib/auth-client";
+import { trpc } from "@/lib/trpc";
 
 export const Route = createFileRoute("/dashboard/")({
 	component: DashboardPage,
 });
 
-interface JPA {
-	id: string;
-	slug: string;
-	name: string;
-	websiteUrl: string | null;
-}
-
-interface Subscription {
-	id: string;
-	jpaId: string;
-	ntfyTopic: string;
-}
-
 function DashboardPage() {
 	const navigate = useNavigate();
 	const { data: session, isPending } = authClient.useSession();
-	const [jpas, setJpas] = useState<JPA[]>([]);
-	const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
-	const [loading, setLoading] = useState(true);
 	const [copiedTopic, setCopiedTopic] = useState<string | null>(null);
+
+	// tRPC queries
+	const jpasQuery = trpc.jpa.getAll.useQuery();
+	const subscriptionsQuery = trpc.subscription.getAll.useQuery(undefined, {
+		enabled: !!session?.user,
+	});
+
+	// tRPC mutations
+	const createSubscription = trpc.subscription.create.useMutation({
+		onSuccess: () => {
+			subscriptionsQuery.refetch();
+		},
+	});
+
+	const deleteSubscription = trpc.subscription.delete.useMutation({
+		onSuccess: () => {
+			subscriptionsQuery.refetch();
+		},
+	});
 
 	useEffect(() => {
 		if (!isPending && !session?.user) {
@@ -35,39 +39,9 @@ function DashboardPage() {
 		}
 	}, [session, isPending, navigate]);
 
-	useEffect(() => {
-		if (session?.user) {
-			fetchData();
-		}
-	}, [session]);
-
-	const fetchData = async () => {
-		try {
-			const [jpasRes, subsRes] = await Promise.all([
-				fetch("/api/jpas"),
-				fetch("/api/subscriptions"),
-			]);
-			const jpasData = await jpasRes.json();
-			const subsData = await subsRes.json();
-			setJpas(jpasData);
-			setSubscriptions(subsData);
-		} catch (error) {
-			console.error("Failed to fetch data:", error);
-		} finally {
-			setLoading(false);
-		}
-	};
-
 	const handleSubscribe = async (jpaId: string) => {
 		try {
-			const res = await fetch("/api/subscriptions", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ jpaId }),
-			});
-			if (res.ok) {
-				fetchData();
-			}
+			await createSubscription.mutateAsync({ jpaId });
 		} catch (error) {
 			console.error("Failed to subscribe:", error);
 		}
@@ -75,12 +49,7 @@ function DashboardPage() {
 
 	const handleUnsubscribe = async (subscriptionId: string) => {
 		try {
-			const res = await fetch(`/api/subscriptions/${subscriptionId}`, {
-				method: "DELETE",
-			});
-			if (res.ok) {
-				fetchData();
-			}
+			await deleteSubscription.mutateAsync({ id: subscriptionId });
 		} catch (error) {
 			console.error("Failed to unsubscribe:", error);
 		}
@@ -92,7 +61,10 @@ function DashboardPage() {
 		setTimeout(() => setCopiedTopic(null), 2000);
 	};
 
-	if (isPending || loading) {
+	const loading =
+		isPending || jpasQuery.isLoading || subscriptionsQuery.isLoading;
+
+	if (loading) {
 		return (
 			<div className="min-h-screen flex items-center justify-center bg-nb-cream">
 				<div className="w-12 h-12 border-4 border-nb-black border-t-nb-yellow animate-spin" />
@@ -103,6 +75,9 @@ function DashboardPage() {
 	if (!session?.user) {
 		return null;
 	}
+
+	const jpas = jpasQuery.data ?? [];
+	const subscriptions = subscriptionsQuery.data ?? [];
 
 	const userSubscriptions = new Map(
 		subscriptions.map((sub) => [sub.jpaId, sub]),
@@ -242,8 +217,8 @@ function DashboardPage() {
 
 											<Button
 												onClick={() =>
-													isSubscribed
-														? handleUnsubscribe(subscription!.id)
+													isSubscribed && subscription
+														? handleUnsubscribe(subscription.id)
 														: handleSubscribe(jpa.id)
 												}
 												variant={isSubscribed ? "destructive" : "default"}
