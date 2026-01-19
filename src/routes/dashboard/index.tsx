@@ -1,7 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Bell, Check, Copy, ExternalLink, Smartphone } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Badge, Button, Card } from "@/components/ui";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/lib/trpc";
 
