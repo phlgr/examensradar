@@ -5,9 +5,17 @@ dist-ssr
 *.local
 count.txt
 .env
+.env.local
+.env.production
+.env.development
 .nitro
 .tanstack
 .wrangler
 .output
 .vinxi
 todos.json
+
+# Secrets
+*.pem
+*.key
+secrets.json

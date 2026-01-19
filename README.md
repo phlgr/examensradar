@@ -26,22 +26,28 @@ npm install
 
 ### Environment Variables
 
-Create a `.env.local` file:
+Copy `.env.example` to `.env.local` and fill in your values:
 
 ```bash
-# Better Auth
-BETTER_AUTH_SECRET=your-secret-here  # Generate with: npx @better-auth/cli secret
-BETTER_AUTH_URL=http://localhost:3000
+cp .env.example .env.local
+```
 
-# Google OAuth
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
+Generate secrets:
+```bash
+# Generate Better Auth secret
+npx @better-auth/cli secret
 
-# Webhooks
-WEBHOOK_SECRET=your-webhook-secret
+# Generate webhook secret (or use any random string)
+openssl rand -hex 32
+```
 
-# Optional
-NTFY_BASE_URL=https://ntfy.sh
+For production deployment to Cloudflare, set secrets using:
+```bash
+wrangler secret put BETTER_AUTH_SECRET
+wrangler secret put BETTER_AUTH_URL
+wrangler secret put GOOGLE_CLIENT_ID
+wrangler secret put GOOGLE_CLIENT_SECRET
+wrangler secret put WEBHOOK_SECRET
 ```
 
 ### Database Setup
