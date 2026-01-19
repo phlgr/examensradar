@@ -11,11 +11,3 @@ binding = "DB"
 database_name = "examensradar-db"
 database_id = "f8fb4359-4690-4244-9d4e-34ad69bbeb4f"
 migrations_dir = "drizzle/migrations"
-
-# NOTE: Set secrets using: wrangler secret put <KEY_NAME>
-# Required secrets for production:
-# - BETTER_AUTH_SECRET
-# - BETTER_AUTH_URL
-# - GOOGLE_CLIENT_ID
-# - GOOGLE_CLIENT_SECRET
-# - WEBHOOK_SECRET
