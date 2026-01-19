@@ -14,7 +14,7 @@ const cardVariants = cva("border-4 border-nb-black", {
 			muted: "bg-nb-cream shadow-[var(--nb-shadow)]",
 		},
 		hover: {
-			true: "transition-all hover:shadow-none hover:translate-x-1.5 hover:translate-y-1.5",
+			true: "transition-all cursor-pointer hover:shadow-none hover:translate-x-1.5 hover:translate-y-1.5",
 			false: "",
 		},
 	},

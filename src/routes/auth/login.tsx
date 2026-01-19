@@ -70,7 +70,7 @@ function LoginPage() {
 					Mit der Anmeldung akzeptierst du unsere{" "}
 					<a
 						href="/datenschutz"
-						className="underline decoration-2 decoration-nb-coral hover:bg-nb-coral transition-colors"
+						className="underline decoration-2 decoration-nb-coral hover:bg-nb-coral transition-colors cursor-pointer"
 					>
 						Datenschutzerklärung
 					</a>

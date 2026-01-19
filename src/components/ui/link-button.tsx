@@ -14,7 +14,11 @@ const LinkButton = React.forwardRef<HTMLAnchorElement, LinkButtonProps>(
 		return (
 			<Link
 				ref={ref}
-				className={cn(buttonVariants({ variant, size, className }))}
+				className={cn(
+					buttonVariants({ variant, size }),
+					"cursor-pointer select-none focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-nb-black focus-visible:ring-offset-2",
+					className,
+				)}
 				{...props}
 			/>
 		);

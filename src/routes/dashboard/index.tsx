@@ -115,7 +115,7 @@ function DashboardPage() {
 										href="https://play.google.com/store/apps/details?id=io.heckel.ntfy"
 										target="_blank"
 										rel="noopener noreferrer"
-										className="inline-flex items-center gap-2 px-4 py-2 bg-nb-white border-3 border-nb-black font-bold uppercase text-sm shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all"
+										className="inline-flex items-center gap-2 px-4 py-2 bg-nb-white border-3 border-nb-black font-bold uppercase text-sm shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all cursor-pointer"
 									>
 										<ExternalLink className="w-4 h-4" />
 										Android
@@ -124,7 +124,7 @@ function DashboardPage() {
 										href="https://apps.apple.com/app/ntfy/id1625396347"
 										target="_blank"
 										rel="noopener noreferrer"
-										className="inline-flex items-center gap-2 px-4 py-2 bg-nb-white border-3 border-nb-black font-bold uppercase text-sm shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all"
+										className="inline-flex items-center gap-2 px-4 py-2 bg-nb-white border-3 border-nb-black font-bold uppercase text-sm shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all cursor-pointer"
 									>
 										<ExternalLink className="w-4 h-4" />
 										iOS
@@ -133,7 +133,7 @@ function DashboardPage() {
 										href="https://ntfy.sh"
 										target="_blank"
 										rel="noopener noreferrer"
-										className="inline-flex items-center gap-2 px-4 py-2 bg-nb-white border-3 border-nb-black font-bold uppercase text-sm shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all"
+										className="inline-flex items-center gap-2 px-4 py-2 bg-nb-white border-3 border-nb-black font-bold uppercase text-sm shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all cursor-pointer"
 									>
 										<ExternalLink className="w-4 h-4" />
 										Web
@@ -182,7 +182,7 @@ function DashboardPage() {
 														href={jpa.websiteUrl}
 														target="_blank"
 														rel="noopener noreferrer"
-														className="text-sm font-bold inline-flex items-center gap-1 underline decoration-2 hover:bg-nb-yellow transition-colors"
+														className="text-sm font-bold inline-flex items-center gap-1 underline decoration-2 hover:bg-nb-yellow transition-colors cursor-pointer"
 													>
 														Zur Website
 														<ExternalLink className="w-3 h-3" />

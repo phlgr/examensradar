@@ -114,13 +114,13 @@ function LandingPage() {
 					<div className="flex gap-6 font-bold">
 						<Link
 							to="/impressum"
-							className="hover:text-nb-yellow transition-colors uppercase"
+							className="hover:text-nb-yellow transition-colors uppercase cursor-pointer"
 						>
 							Impressum
 						</Link>
 						<Link
 							to="/datenschutz"
-							className="hover:text-nb-yellow transition-colors uppercase"
+							className="hover:text-nb-yellow transition-colors uppercase cursor-pointer"
 						>
 							Datenschutz
 						</Link>
