@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Bell, Smartphone, Zap } from "lucide-react";
+import { UserPlus, Smartphone, Zap } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { LinkButton } from "@/components/ui/link-button";
 
@@ -8,20 +8,20 @@ export const Route = createFileRoute("/")({ component: LandingPage });
 function LandingPage() {
 	const steps = [
 		{
-			icon: <Bell className="w-8 h-8" />,
+			icon: <UserPlus className="w-6 h-6 sm:w-8 sm:h-8" />,
 			title: "1. Anmelden",
 			description: "Erstelle ein Konto mit deinem Google-Account.",
 			color: "bg-nb-coral",
 		},
 		{
-			icon: <Smartphone className="w-8 h-8" />,
+			icon: <Smartphone className="w-6 h-6 sm:w-8 sm:h-8" />,
 			title: "2. ntfy einrichten",
 			description:
 				"Installiere die ntfy App und abonniere deinen persönlichen Kanal.",
 			color: "bg-nb-teal",
 		},
 		{
-			icon: <Zap className="w-8 h-8" />,
+			icon: <Zap className="w-6 h-6 sm:w-8 sm:h-8" />,
 			title: "3. Benachrichtigt werden",
 			description:
 				"Erhalte sofort eine Push-Nachricht, wenn neue Ergebnisse da sind.",
@@ -32,26 +32,26 @@ function LandingPage() {
 	return (
 		<div className="min-h-screen">
 			{/* Hero Section */}
-			<section className="py-20 px-6 bg-nb-mint">
+			<section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 bg-nb-mint">
 				<div className="max-w-4xl mx-auto">
-					<Card className="p-8 md:p-12">
-						<h1 className="text-5xl md:text-7xl font-black text-nb-black mb-6 uppercase leading-tight">
+					<Card className="p-6 sm:p-8 md:p-12">
+						<h1 className="text-4xl sm:text-5xl md:text-7xl font-black text-nb-black mb-4 sm:mb-6 uppercase leading-tight">
 							Schluss mit
 							<br />
 							<span className="bg-nb-coral px-2 inline-block -rotate-1">
 								F5-Drücken
 							</span>
 						</h1>
-						<p className="text-xl md:text-2xl font-bold mb-8 max-w-2xl">
+						<p className="text-lg sm:text-xl md:text-2xl font-bold mb-6 sm:mb-8 max-w-2xl">
 							Wir benachrichtigen dich sofort, wenn das Justizprüfungsamt neue
 							Examensergebnisse veröffentlicht.
 						</p>
-						<div className="flex flex-col sm:flex-row gap-4">
-							<LinkButton to="/auth/login" size="lg">
+						<div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+							<LinkButton to="/auth/login" size="lg" className="w-full sm:w-auto">
 								Jetzt starten
 							</LinkButton>
-							<LinkButton to="/subscriptions" variant="secondary" size="lg">
-								Zu den Benachrichtigungen
+							<LinkButton to="/subscriptions" variant="secondary" size="lg" className="w-full sm:w-auto">
+								Deine Benachrichtigungen
 							</LinkButton>
 						</div>
 					</Card>
@@ -59,24 +59,24 @@ function LandingPage() {
 			</section>
 
 			{/* How it works */}
-			<section className="py-20 px-6 bg-nb-cream">
+			<section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 bg-nb-cream">
 				<div className="max-w-5xl mx-auto">
-					<h2 className="text-4xl md:text-5xl font-black text-center mb-16 uppercase">
+					<h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-center mb-8 sm:mb-12 md:mb-16 uppercase">
 						So funktioniert's
 					</h2>
-					<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+					<div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
 						{steps.map((step) => (
 							<Card key={step.title} hover>
-								<CardContent className="p-6">
+								<CardContent className="p-4 sm:p-6">
 									<div
-										className={`w-16 h-16 ${step.color} border-4 border-nb-black flex items-center justify-center mb-4 shadow-[var(--nb-shadow-sm)]`}
+										className={`w-12 h-12 sm:w-16 sm:h-16 ${step.color} border-3 sm:border-4 border-nb-black flex items-center justify-center mb-3 sm:mb-4 shadow-[var(--nb-shadow-sm)]`}
 									>
 										{step.icon}
 									</div>
-									<h3 className="text-xl font-black uppercase mb-3">
+									<h3 className="text-lg sm:text-xl font-black uppercase mb-2 sm:mb-3">
 										{step.title}
 									</h3>
-									<p className="font-medium">{step.description}</p>
+									<p className="font-medium text-sm sm:text-base">{step.description}</p>
 								</CardContent>
 							</Card>
 						))}
@@ -85,19 +85,19 @@ function LandingPage() {
 			</section>
 
 			{/* CTA Section */}
-			<section className="py-20 px-6 bg-nb-coral">
+			<section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 bg-nb-coral">
 				<div className="max-w-3xl mx-auto">
-					<Card variant="primary" className="p-8 md:p-12 text-center">
-						<h2 className="text-3xl md:text-4xl font-black uppercase mb-4">
+					<Card variant="primary" className="p-6 sm:p-8 md:p-12 text-center">
+						<h2 className="text-2xl sm:text-3xl md:text-4xl font-black uppercase mb-3 sm:mb-4">
 							Bereit für stressfreies Warten?
 						</h2>
-						<p className="text-lg font-bold mb-8">
+						<p className="text-base sm:text-lg font-bold mb-6 sm:mb-8">
 							Melde dich jetzt an und verpasse keine Ergebnisveröffentlichung
 							mehr.
 						</p>
 						<LinkButton
 							to="/auth/login"
-							className="bg-nb-black text-nb-white shadow-[6px_6px_0px_0px_rgba(255,255,255,1)] hover:shadow-none"
+							className="bg-nb-black text-nb-white shadow-[6px_6px_0px_0px_rgba(255,255,255,1)] hover:shadow-none w-full sm:w-auto"
 							size="lg"
 						>
 							Kostenlos starten

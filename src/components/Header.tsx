@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Bell, LogOut, Settings, User } from "lucide-react";
+import { Radar, LogOut, Settings, User } from "lucide-react";
 import { useState } from "react";
 import { Button, LinkButton } from "@/components/ui";
 import { authClient } from "@/lib/auth-client";
@@ -21,7 +21,7 @@ export default function Header() {
 				className="flex items-center gap-2 cursor-pointer hover:-translate-y-0.5 transition-transform"
 			>
 				<div className="bg-nb-yellow p-2 border-3 border-nb-black shadow-[var(--nb-shadow-sm)]">
-					<Bell className="w-6 h-6 text-nb-black" />
+					<Radar className="w-6 h-6 text-nb-black" />
 				</div>
 				<span className="text-2xl font-black text-nb-black uppercase tracking-tight">
 					Examensradar
@@ -65,7 +65,7 @@ export default function Header() {
 										onClick={() => setIsMenuOpen(false)}
 										className="w-full flex items-center gap-3 px-4 py-3 font-bold text-sm hover:bg-nb-yellow transition-colors cursor-pointer"
 									>
-										<Bell className="w-4 h-4 shrink-0" />
+										<Radar className="w-4 h-4 shrink-0" />
 										<span>Benachrichtigungen</span>
 									</Link>
 									<div className="border-t-2 border-nb-black" />

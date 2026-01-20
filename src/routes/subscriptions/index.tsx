@@ -1,8 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Bell, Check, Copy, ExternalLink, Smartphone } from "lucide-react";
+import { Radar, Check, Copy, ExternalLink, Smartphone } from "lucide-react";
 import { useEffect, useState } from "react";
 import { OnboardingModal } from "@/components/onboarding/OnboardingModal";
-import { OnboardingReminder } from "@/components/onboarding/OnboardingReminder";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -104,12 +103,6 @@ function SubscriptionsPage() {
 		subscriptions.map((sub) => [sub.jpaId, sub]),
 	)
 
-	// Show reminder if user has subscriptions without completed setup
-	const showReminder =
-		subscriptions.length > 0 &&
-		subscriptions.some((s) => !s.setupCompletedAt) &&
-		!showOnboarding;
-
 	return (
 		<div className="min-h-screen py-4 sm:py-8 px-4 bg-nb-cream">
 			<div className="max-w-4xl mx-auto">
@@ -121,30 +114,6 @@ function SubscriptionsPage() {
 						Verwalte deine Benachrichtigungen für Examensergebnisse.
 					</p>
 				</div>
-
-				{/* Onboarding Reminder Banner */}
-				{showReminder && (
-					<OnboardingReminder
-						onSetupClick={() => {
-							// Find first incomplete subscription
-							const incompleteSub = subscriptions.find(
-								(s) => !s.setupCompletedAt,
-							)
-							if (incompleteSub) {
-								const jpa = jpasQuery.data?.find(
-									(j) => j.id === incompleteSub.jpaId,
-								)
-								setOnboardingData({
-									ntfyTopic: incompleteSub.ntfyTopic,
-									subscriptionId: incompleteSub.id,
-									isFirstSubscription: true,
-									jpaName: jpa?.name || "JPA",
-								})
-								setShowOnboarding(true)
-							}
-						}}
-					/>
-				)}
 
 				{/* ntfy Setup Instructions - only show when at least one subscription has completed setup */}
 				{subscriptions.length > 0 &&
@@ -205,7 +174,7 @@ function SubscriptionsPage() {
 					{jpas.length === 0 ? (
 						<Card className="p-8 text-center">
 							<div className="w-16 h-16 bg-nb-yellow border-4 border-nb-black flex items-center justify-center mx-auto mb-4">
-								<Bell className="w-8 h-8" />
+								<Radar className="w-8 h-8" />
 							</div>
 							<p className="font-bold">
 								Noch keine Justizprüfungsämter verfügbar.
@@ -270,7 +239,7 @@ function SubscriptionsPage() {
 														<div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
 															<div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
 																<div className="bg-nb-white p-1.5 border-2 border-nb-black shrink-0">
-																	<Bell className="w-4 h-4" />
+																	<Radar className="w-4 h-4" />
 																</div>
 																<div className="flex-1 min-w-0">
 																	<p className="font-black text-xs sm:text-sm uppercase mb-0.5">
