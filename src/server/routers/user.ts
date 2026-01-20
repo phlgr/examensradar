@@ -1,13 +1,18 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { db } from "@/db";
+import {
+	completeSubscriptionSetup,
+	deleteUser,
+	getUserById,
+	updateUserOnboardingStatus,
+} from "@/db";
 import { sendNtfyNotification } from "@/lib/ntfy";
 import { createVerificationCode, verifyCode } from "@/lib/verification-codes";
 import { protectedProcedure, router } from "../trpc";
 
 export const userRouter = router({
 	getOnboardingStatus: protectedProcedure.query(async ({ ctx }) => {
-		const user = await db.getUserById(ctx.d1, ctx.user.id);
+		const user = await getUserById(ctx.user.id);
 		return {
 			hasCompletedOnboarding: !!user?.ntfyOnboardingCompletedAt,
 			completedAt: user?.ntfyOnboardingCompletedAt,
@@ -18,13 +23,9 @@ export const userRouter = router({
 		.input(z.object({ subscriptionId: z.string() }))
 		.mutation(async ({ ctx, input }) => {
 			// Complete setup for the specific subscription
-			await db.completeSubscriptionSetup(
-				ctx.d1,
-				input.subscriptionId,
-				ctx.user.id,
-			);
+			await completeSubscriptionSetup(input.subscriptionId, ctx.user.id);
 			// Also mark global onboarding as complete for backwards compatibility
-			await db.updateUserOnboardingStatus(ctx.d1, ctx.user.id, new Date());
+			await updateUserOnboardingStatus(ctx.user.id, new Date());
 			return { success: true };
 		}),
 
@@ -67,7 +68,7 @@ export const userRouter = router({
 		}),
 
 	deleteAccount: protectedProcedure.mutation(async ({ ctx }) => {
-		await db.deleteUser(ctx.d1, ctx.user.id);
+		await deleteUser(ctx.user.id);
 		return { success: true };
 	}),
 });

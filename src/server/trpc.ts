@@ -2,10 +2,8 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import type { FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
 import superjson from "superjson";
 import { type AuthEnv, createAuth } from "@/lib/auth";
-import { getD1 } from "@/lib/d1";
 
 interface Context {
-	d1: D1Database | null;
 	auth: ReturnType<typeof createAuth> | null;
 	request: Request;
 	env: AuthEnv;
@@ -16,7 +14,6 @@ export async function createContext(
 ): Promise<Context> {
 	const { req } = opts;
 	// Get D1 from context - pass the context from TanStack Router
-	const d1 = await getD1(opts.context);
 
 	// Validate required environment variables
 	if (!process.env.BETTER_AUTH_SECRET) {
@@ -35,10 +32,9 @@ export async function createContext(
 		GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
 	};
 
-	const auth = d1 ? createAuth(d1, env) : null;
+	const auth = createAuth(env);
 
 	return {
-		d1,
 		auth,
 		request: req,
 		env,
@@ -57,7 +53,7 @@ export const publicProcedure = t.procedure;
 
 // Protected procedure that requires authentication
 export const protectedProcedure = t.procedure.use(async ({ ctx, next }) => {
-	if (!ctx.auth || !ctx.d1) {
+	if (!ctx.auth) {
 		throw new TRPCError({
 			code: "INTERNAL_SERVER_ERROR",
 			message: "Database not configured",
@@ -75,7 +71,6 @@ export const protectedProcedure = t.procedure.use(async ({ ctx, next }) => {
 	return next({
 		ctx: {
 			...ctx,
-			d1: ctx.d1,
 			auth: ctx.auth,
 			session,
 			user: session.user,

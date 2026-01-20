@@ -1,7 +1,7 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { db } from "@/db";
 import * as schema from "@/db/schema";
-import { createDrizzleDB } from "./db";
 
 export interface AuthEnv {
 	BETTER_AUTH_SECRET: string;
@@ -10,9 +10,7 @@ export interface AuthEnv {
 	GOOGLE_CLIENT_SECRET: string;
 }
 
-export function createAuth(d1: D1Database, env: AuthEnv) {
-	const db = createDrizzleDB(d1);
-
+export function createAuth(env: AuthEnv) {
 	return betterAuth({
 		database: drizzleAdapter(db, {
 			provider: "sqlite",

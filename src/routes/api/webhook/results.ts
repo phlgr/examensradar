@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { db } from "@/db";
-import { getD1 } from "@/lib/d1";
+import { getJpaBySlug, getSubscriptionsByJpa, logNotification } from "@/db";
 import { sendBatchNotifications } from "@/lib/ntfy";
 
 interface WebhookPayload {
@@ -10,7 +9,7 @@ interface WebhookPayload {
 export const Route = createFileRoute("/api/webhook/results")({
 	server: {
 		handlers: {
-			POST: async ({ request, context }) => {
+			POST: async ({ request }) => {
 				// Verify webhook secret
 				const authHeader = request.headers.get("Authorization");
 				const expectedSecret = process.env.WEBHOOK_SECRET;
@@ -27,14 +26,6 @@ export const Route = createFileRoute("/api/webhook/results")({
 					return Response.json({ error: "Unauthorized" }, { status: 401 });
 				}
 
-				const d1 = await getD1(context);
-				if (!d1) {
-					return Response.json(
-						{ error: "Database not configured" },
-						{ status: 500 },
-					);
-				}
-
 				let body: WebhookPayload;
 				try {
 					body = (await request.json()) as WebhookPayload;
@@ -48,13 +39,13 @@ export const Route = createFileRoute("/api/webhook/results")({
 				}
 
 				// Find the JPA
-				const jpa = await db.getJpaBySlug(d1, jpa_slug);
+				const jpa = await getJpaBySlug(jpa_slug);
 				if (!jpa) {
 					return Response.json({ error: "JPA not found" }, { status: 404 });
 				}
 
 				// Get all subscriptions for this JPA
-				const subscriptions = await db.getSubscriptionsByJpa(d1, jpa.id);
+				const subscriptions = await getSubscriptionsByJpa(jpa.id);
 
 				if (subscriptions.length === 0) {
 					return Response.json({ message: "No subscribers", sent: 0 });
@@ -76,7 +67,7 @@ export const Route = createFileRoute("/api/webhook/results")({
 				);
 
 				// Log the notification
-				await db.logNotification(d1, jpa.id, sent);
+				await logNotification(jpa.id, sent);
 
 				return Response.json({
 					message: "Notifications sent",
