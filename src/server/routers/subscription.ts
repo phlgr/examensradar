@@ -20,7 +20,17 @@ export const subscriptionRouter = router({
 				});
 			}
 
-			return db.createSubscription(ctx.d1, ctx.user.id, input.jpaId);
+			const isFirstSubscription = existing.length === 0;
+			const subscription = await db.createSubscription(
+				ctx.d1,
+				ctx.user.id,
+				input.jpaId,
+			);
+
+			return {
+				...subscription,
+				isFirstSubscription,
+			};
 		}),
 
 	delete: protectedProcedure

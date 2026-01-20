@@ -21,6 +21,8 @@ const buttonVariants = cva(
 					"bg-transparent text-nb-black border-4 border-nb-black shadow-[var(--nb-shadow)] hover:shadow-none hover:translate-x-1.5 hover:translate-y-1.5 hover:bg-nb-yellow",
 				ghost:
 					"bg-transparent text-nb-black border-4 border-transparent hover:border-nb-black hover:bg-nb-yellow",
+				danger:
+					"bg-transparent text-nb-black/50 border-2 border-nb-black/20 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 hover:text-red-600 hover:border-red-600/50 font-bold normal-case",
 				link: "text-nb-black underline decoration-2 underline-offset-4 hover:bg-nb-yellow",
 				icon: "bg-nb-black text-nb-white border-3 border-nb-black hover:bg-nb-teal hover:text-nb-black",
 			},

@@ -1,6 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Bell, Check, Copy, ExternalLink, Smartphone } from "lucide-react";
 import { useEffect, useState } from "react";
+import { OnboardingModal } from "@/components/onboarding/OnboardingModal";
+import { OnboardingReminder } from "@/components/onboarding/OnboardingReminder";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -15,17 +17,38 @@ function DashboardPage() {
 	const navigate = useNavigate();
 	const { data: session, isPending } = authClient.useSession();
 	const [copiedTopic, setCopiedTopic] = useState<string | null>(null);
+	const [showOnboarding, setShowOnboarding] = useState(false);
+	const [onboardingData, setOnboardingData] = useState<{
+		ntfyTopic: string;
+		isFirstSubscription: boolean;
+		jpaName: string;
+	} | null>(null);
 
 	// tRPC queries
 	const jpasQuery = trpc.jpa.getAll.useQuery();
 	const subscriptionsQuery = trpc.subscription.getAll.useQuery(undefined, {
 		enabled: !!session?.user,
 	});
+	const onboardingStatusQuery = trpc.user.getOnboardingStatus.useQuery(
+		undefined,
+		{
+			enabled: !!session?.user,
+		},
+	);
 
 	// tRPC mutations
 	const createSubscription = trpc.subscription.create.useMutation({
-		onSuccess: () => {
+		onSuccess: (data, variables) => {
 			subscriptionsQuery.refetch();
+			// Find the JPA name for the subscription
+			const jpa = jpasQuery.data?.find((j) => j.id === variables.jpaId);
+			// Show onboarding/test modal after every subscription
+			setOnboardingData({
+				ntfyTopic: data.ntfyTopic,
+				isFirstSubscription: data.isFirstSubscription,
+				jpaName: jpa?.name || "JPA",
+			});
+			setShowOnboarding(true);
 		},
 	});
 
@@ -64,7 +87,10 @@ function DashboardPage() {
 	};
 
 	const loading =
-		isPending || jpasQuery.isLoading || subscriptionsQuery.isLoading;
+		isPending ||
+		jpasQuery.isLoading ||
+		subscriptionsQuery.isLoading ||
+		onboardingStatusQuery.isLoading;
 
 	if (loading) {
 		return (
@@ -80,10 +106,16 @@ function DashboardPage() {
 
 	const jpas = jpasQuery.data ?? [];
 	const subscriptions = subscriptionsQuery.data ?? [];
+	const hasCompletedOnboarding =
+		onboardingStatusQuery.data?.hasCompletedOnboarding ?? false;
 
 	const userSubscriptions = new Map(
 		subscriptions.map((sub) => [sub.jpaId, sub]),
 	);
+
+	// Show reminder if user has subscriptions but hasn't completed onboarding
+	const showReminder =
+		subscriptions.length > 0 && !hasCompletedOnboarding && !showOnboarding;
 
 	return (
 		<div className="min-h-screen py-8 px-4 bg-nb-cream">
@@ -95,8 +127,24 @@ function DashboardPage() {
 					</p>
 				</div>
 
-				{/* ntfy Setup Instructions */}
-				{subscriptions.length > 0 && (
+				{/* Onboarding Reminder Banner */}
+				{showReminder && (
+					<OnboardingReminder
+						onSetupClick={() => {
+							const firstSub = subscriptions[0];
+							const jpa = jpasQuery.data?.find((j) => j.id === firstSub?.jpaId);
+							setOnboardingData({
+								ntfyTopic: firstSub?.ntfyTopic || "",
+								isFirstSubscription: true,
+								jpaName: jpa?.name || "JPA",
+							});
+							setShowOnboarding(true);
+						}}
+					/>
+				)}
+
+				{/* ntfy Setup Instructions - only show when onboarding is completed */}
+				{subscriptions.length > 0 && hasCompletedOnboarding && (
 					<Card variant="accent" className="mb-8 p-6">
 						<div className="flex items-start gap-4">
 							<div className="bg-nb-white p-3 border-4 border-nb-black shadow-[var(--nb-shadow-sm)]">
@@ -234,6 +282,20 @@ function DashboardPage() {
 						</div>
 					)}
 				</div>
+
+				{/* Onboarding Modal */}
+				{onboardingData && (
+					<OnboardingModal
+						open={showOnboarding}
+						onClose={() => {
+							setShowOnboarding(false);
+							onboardingStatusQuery.refetch();
+						}}
+						ntfyTopic={onboardingData.ntfyTopic}
+						isFirstSubscription={onboardingData.isFirstSubscription}
+						jpaName={onboardingData.jpaName}
+					/>
+				)}
 			</div>
 		</div>
 	);

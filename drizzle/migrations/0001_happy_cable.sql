@@ -1,0 +1,1 @@
+ALTER TABLE `user` ADD `ntfy_onboarding_completed_at` integer;

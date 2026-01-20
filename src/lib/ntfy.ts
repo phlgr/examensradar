@@ -11,18 +11,19 @@ export async function sendNtfyNotification(
 	baseUrl = "https://ntfy.sh",
 ): Promise<boolean> {
 	try {
+		const headers: Record<string, string> = {
+			Title: notification.title,
+			Priority: notification.priority || "high",
+		};
+
+		if (notification.click) {
+			headers["Click"] = notification.click;
+		}
+
 		const response = await fetch(`${baseUrl}/${notification.topic}`, {
 			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				topic: notification.topic,
-				title: notification.title,
-				message: notification.message,
-				click: notification.click,
-				priority: notification.priority || "high",
-			}),
+			headers,
+			body: notification.message,
 		});
 
 		return response.ok;

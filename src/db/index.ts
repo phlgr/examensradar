@@ -4,6 +4,7 @@ import { nanoid } from "nanoid";
 import { createDrizzleDB } from "@/lib/db";
 import * as schema from "./schema";
 
+export type User = typeof schema.user.$inferSelect;
 export type JPA = typeof schema.jpa.$inferSelect;
 export type Subscription = typeof schema.subscription.$inferSelect;
 export type NotificationLog = typeof schema.notificationLog.$inferSelect;
@@ -97,6 +98,38 @@ export const db = {
 				sentAt: new Date(),
 				subscriberCount,
 			})
+			.run();
+	},
+
+	async getUserById(d1: D1Database, userId: string): Promise<User | null> {
+		const drizzle = createDrizzleDB(d1);
+		const result = await drizzle
+			.select()
+			.from(schema.user)
+			.where(eq(schema.user.id, userId))
+			.get();
+		return result || null;
+	},
+
+	async updateUserOnboardingStatus(
+		d1: D1Database,
+		userId: string,
+		completedAt: Date,
+	): Promise<void> {
+		const drizzle = createDrizzleDB(d1);
+		await drizzle
+			.update(schema.user)
+			.set({ ntfyOnboardingCompletedAt: completedAt })
+			.where(eq(schema.user.id, userId))
+			.run();
+	},
+
+	async deleteUser(d1: D1Database, userId: string): Promise<void> {
+		const drizzle = createDrizzleDB(d1);
+		// Subscriptions, sessions, and accounts will be cascade deleted due to foreign key constraints
+		await drizzle
+			.delete(schema.user)
+			.where(eq(schema.user.id, userId))
 			.run();
 	},
 };

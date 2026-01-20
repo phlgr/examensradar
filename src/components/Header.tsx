@@ -1,10 +1,18 @@
-import { Link } from "@tanstack/react-router";
-import { Bell, LogOut, User } from "lucide-react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { Bell, LogOut, Settings, User } from "lucide-react";
+import { useState } from "react";
 import { Button, LinkButton } from "@/components/ui";
 import { authClient } from "@/lib/auth-client";
 
 export default function Header() {
+	const navigate = useNavigate();
 	const { data: session } = authClient.useSession();
+	const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+	const handleSignOut = async () => {
+		await authClient.signOut();
+		navigate({ to: "/" });
+	};
 
 	return (
 		<header className="px-6 py-4 flex items-center justify-between bg-nb-coral border-b-4 border-nb-black">
@@ -26,29 +34,59 @@ export default function Header() {
 						<LinkButton to="/dashboard" variant="secondary" size="sm">
 							Dashboard
 						</LinkButton>
-						<div className="flex items-center gap-3">
-							<div className="flex items-center gap-2 bg-nb-white border-3 border-nb-black px-3 py-1.5 shadow-[var(--nb-shadow-sm)]">
+						<div className="relative">
+							<Button
+								variant="secondary"
+								size="sm"
+								onClick={() => setIsMenuOpen(!isMenuOpen)}
+							>
 								{session.user.image ? (
 									<img
 										src={session.user.image}
 										alt=""
-										className="w-7 h-7 border-2 border-nb-black"
+										className="w-6 h-6 border-2 border-nb-black"
 									/>
 								) : (
 									<User className="w-5 h-5" />
 								)}
-								<span className="text-sm font-bold hidden sm:inline">
+								<span className="hidden sm:inline">
 									{session.user.name || session.user.email}
 								</span>
-							</div>
-							<Button
-								variant="icon"
-								size="icon"
-								onClick={() => authClient.signOut()}
-								title="Abmelden"
-							>
-								<LogOut className="w-5 h-5" />
 							</Button>
+
+							{isMenuOpen && (
+								<>
+									<button
+										type="button"
+										className="fixed inset-0 z-40 cursor-default"
+										onClick={() => setIsMenuOpen(false)}
+										onKeyDown={(e) => e.key === "Escape" && setIsMenuOpen(false)}
+										aria-label="Menü schließen"
+									/>
+									<div className="absolute right-0 mt-2 w-48 bg-nb-white border-3 border-nb-black shadow-[var(--nb-shadow)] z-50">
+										<Link
+											to="/account"
+											onClick={() => setIsMenuOpen(false)}
+											className="w-full flex items-center gap-2 px-4 py-3 font-bold text-sm hover:bg-nb-yellow transition-colors cursor-pointer"
+										>
+											<Settings className="w-4 h-4" />
+											Konto
+										</Link>
+										<div className="border-t-2 border-nb-black" />
+										<button
+											type="button"
+											onClick={() => {
+												setIsMenuOpen(false);
+												handleSignOut();
+											}}
+											className="w-full flex items-center gap-2 px-4 py-3 font-bold text-sm hover:bg-nb-yellow transition-colors cursor-pointer"
+										>
+											<LogOut className="w-4 h-4" />
+											Abmelden
+										</button>
+									</div>
+								</>
+							)}
 						</div>
 					</>
 				) : (
