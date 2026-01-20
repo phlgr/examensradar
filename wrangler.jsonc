@@ -17,4 +17,7 @@
             "migrations_dir": "drizzle/migrations",
         }
 	],
+    "observability": {
+        "enabled": true
+    }
 }
