@@ -5,6 +5,8 @@ compatibility_flags = ["nodejs_compat"]
 
 [vars]
 NTFY_BASE_URL = "https://ntfy.sh"
+BETTER_AUTH_URL = "https://examensradar.philipps-account.workers.dev"
+GOOGLE_CLIENT_ID = "861664228050-5ipopet15ejt050vfpk31mubd71ilg25.apps.googleusercontent.com"
 
 [[d1_databases]]
 binding = "DB"
