@@ -60,6 +60,7 @@ export const db = {
 			userId,
 			jpaId,
 			ntfyTopic: `examensradar-${nanoid(10)}`,
+			setupCompletedAt: null,
 			createdAt: new Date(),
 		};
 
@@ -124,12 +125,46 @@ export const db = {
 			.run();
 	},
 
+	async completeSubscriptionSetup(
+		d1: D1Database,
+		subscriptionId: string,
+		userId: string,
+	): Promise<void> {
+		const drizzle = createDrizzleDB(d1);
+		await drizzle
+			.update(schema.subscription)
+			.set({ setupCompletedAt: new Date() })
+			.where(
+				and(
+					eq(schema.subscription.id, subscriptionId),
+					eq(schema.subscription.userId, userId),
+				),
+			)
+			.run();
+	},
+
+	async getSubscriptionById(
+		d1: D1Database,
+		id: string,
+		userId: string,
+	): Promise<Subscription | null> {
+		const drizzle = createDrizzleDB(d1);
+		const result = await drizzle
+			.select()
+			.from(schema.subscription)
+			.where(
+				and(
+					eq(schema.subscription.id, id),
+					eq(schema.subscription.userId, userId),
+				),
+			)
+			.get();
+		return result || null;
+	},
+
 	async deleteUser(d1: D1Database, userId: string): Promise<void> {
 		const drizzle = createDrizzleDB(d1);
 		// Subscriptions, sessions, and accounts will be cascade deleted due to foreign key constraints
-		await drizzle
-			.delete(schema.user)
-			.where(eq(schema.user.id, userId))
-			.run();
+		await drizzle.delete(schema.user).where(eq(schema.user.id, userId)).run();
 	},
 };

@@ -18,10 +18,19 @@ export const userRouter = router({
 		};
 	}),
 
-	completeOnboarding: protectedProcedure.mutation(async ({ ctx }) => {
-		await db.updateUserOnboardingStatus(ctx.d1, ctx.user.id, new Date());
-		return { success: true };
-	}),
+	completeOnboarding: protectedProcedure
+		.input(z.object({ subscriptionId: z.string() }))
+		.mutation(async ({ ctx, input }) => {
+			// Complete setup for the specific subscription
+			await db.completeSubscriptionSetup(
+				ctx.d1,
+				input.subscriptionId,
+				ctx.user.id,
+			);
+			// Also mark global onboarding as complete for backwards compatibility
+			await db.updateUserOnboardingStatus(ctx.d1, ctx.user.id, new Date());
+			return { success: true };
+		}),
 
 	sendTestNotification: protectedProcedure
 		.input(z.object({ ntfyTopic: z.string() }))

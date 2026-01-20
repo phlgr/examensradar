@@ -20,6 +20,7 @@ function DashboardPage() {
 	const [showOnboarding, setShowOnboarding] = useState(false);
 	const [onboardingData, setOnboardingData] = useState<{
 		ntfyTopic: string;
+		subscriptionId: string;
 		isFirstSubscription: boolean;
 		jpaName: string;
 	} | null>(null);
@@ -29,12 +30,6 @@ function DashboardPage() {
 	const subscriptionsQuery = trpc.subscription.getAll.useQuery(undefined, {
 		enabled: !!session?.user,
 	});
-	const onboardingStatusQuery = trpc.user.getOnboardingStatus.useQuery(
-		undefined,
-		{
-			enabled: !!session?.user,
-		},
-	);
 
 	// tRPC mutations
 	const createSubscription = trpc.subscription.create.useMutation({
@@ -45,6 +40,7 @@ function DashboardPage() {
 			// Show onboarding/test modal after every subscription
 			setOnboardingData({
 				ntfyTopic: data.ntfyTopic,
+				subscriptionId: data.id,
 				isFirstSubscription: data.isFirstSubscription,
 				jpaName: jpa?.name || "JPA",
 			});
@@ -87,10 +83,7 @@ function DashboardPage() {
 	};
 
 	const loading =
-		isPending ||
-		jpasQuery.isLoading ||
-		subscriptionsQuery.isLoading ||
-		onboardingStatusQuery.isLoading;
+		isPending || jpasQuery.isLoading || subscriptionsQuery.isLoading;
 
 	if (loading) {
 		return (
@@ -106,16 +99,16 @@ function DashboardPage() {
 
 	const jpas = jpasQuery.data ?? [];
 	const subscriptions = subscriptionsQuery.data ?? [];
-	const hasCompletedOnboarding =
-		onboardingStatusQuery.data?.hasCompletedOnboarding ?? false;
 
 	const userSubscriptions = new Map(
 		subscriptions.map((sub) => [sub.jpaId, sub]),
 	);
 
-	// Show reminder if user has subscriptions but hasn't completed onboarding
+	// Show reminder if user has subscriptions without completed setup
 	const showReminder =
-		subscriptions.length > 0 && !hasCompletedOnboarding && !showOnboarding;
+		subscriptions.length > 0 &&
+		subscriptions.some((s) => !s.setupCompletedAt) &&
+		!showOnboarding;
 
 	return (
 		<div className="min-h-screen py-8 px-4 bg-nb-cream">
@@ -131,20 +124,29 @@ function DashboardPage() {
 				{showReminder && (
 					<OnboardingReminder
 						onSetupClick={() => {
-							const firstSub = subscriptions[0];
-							const jpa = jpasQuery.data?.find((j) => j.id === firstSub?.jpaId);
-							setOnboardingData({
-								ntfyTopic: firstSub?.ntfyTopic || "",
-								isFirstSubscription: true,
-								jpaName: jpa?.name || "JPA",
-							});
-							setShowOnboarding(true);
+							// Find first incomplete subscription
+							const incompleteSub = subscriptions.find(
+								(s) => !s.setupCompletedAt,
+							);
+							if (incompleteSub) {
+								const jpa = jpasQuery.data?.find(
+									(j) => j.id === incompleteSub.jpaId,
+								);
+								setOnboardingData({
+									ntfyTopic: incompleteSub.ntfyTopic,
+									subscriptionId: incompleteSub.id,
+									isFirstSubscription: true,
+									jpaName: jpa?.name || "JPA",
+								});
+								setShowOnboarding(true);
+							}
 						}}
 					/>
 				)}
 
-				{/* ntfy Setup Instructions - only show when onboarding is completed */}
-				{subscriptions.length > 0 && hasCompletedOnboarding && (
+				{/* ntfy Setup Instructions - only show when at least one subscription has completed setup */}
+				{subscriptions.length > 0 &&
+					subscriptions.some((s) => s.setupCompletedAt) && (
 					<Card variant="accent" className="mb-8 p-6">
 						<div className="flex items-start gap-4">
 							<div className="bg-nb-white p-3 border-4 border-nb-black shadow-[var(--nb-shadow-sm)]">
@@ -215,67 +217,129 @@ function DashboardPage() {
 									<Card
 										key={jpa.id}
 										variant={isSubscribed ? "success" : "default"}
-										className="p-6"
+										className="overflow-hidden"
 									>
-										<div className="flex items-start justify-between gap-4">
-											<div className="flex-1">
-												<div className="flex items-center gap-3 mb-2">
-													<h3 className="text-xl font-black uppercase">
-														{jpa.name}
-													</h3>
-													{isSubscribed && <Badge>Abonniert</Badge>}
+										{/* Header Section */}
+										<div className="p-6 pb-4">
+											<div className="flex items-start justify-between gap-4 mb-3">
+												<div className="flex-1 min-w-0">
+													<div className="flex items-center gap-3 mb-2 flex-wrap">
+														<h3 className="text-xl font-black uppercase">
+															{jpa.name}
+														</h3>
+														{isSubscribed && <Badge>Abonniert</Badge>}
+													</div>
+													{jpa.websiteUrl && (
+														<a
+															href={jpa.websiteUrl}
+															target="_blank"
+															rel="noopener noreferrer"
+															className="text-sm font-bold inline-flex items-center gap-1 underline decoration-2 hover:bg-nb-yellow transition-colors cursor-pointer"
+														>
+															Zur Website
+															<ExternalLink className="w-3 h-3" />
+														</a>
+													)}
 												</div>
-												{jpa.websiteUrl && (
-													<a
-														href={jpa.websiteUrl}
-														target="_blank"
-														rel="noopener noreferrer"
-														className="text-sm font-bold inline-flex items-center gap-1 underline decoration-2 hover:bg-nb-yellow transition-colors cursor-pointer"
-													>
-														Zur Website
-														<ExternalLink className="w-3 h-3" />
-													</a>
-												)}
 
-												{subscription && (
-													<div className="mt-4 p-4 bg-nb-white border-3 border-nb-black">
-														<p className="text-xs font-bold uppercase mb-2">
-															Dein ntfy Kanal:
-														</p>
-														<div className="flex items-center gap-2">
-															<code className="flex-1 text-sm bg-nb-yellow px-2 py-1 border-2 border-nb-black font-bold">
-																{subscription.ntfyTopic}
-															</code>
+												<Button
+													onClick={() =>
+														isSubscribed && subscription
+															? handleUnsubscribe(subscription.id)
+															: handleSubscribe(jpa.id)
+													}
+													variant={isSubscribed ? "destructive" : "default"}
+													className="shrink-0"
+												>
+													{isSubscribed ? "Abbestellen" : "Abonnieren"}
+												</Button>
+											</div>
+										</div>
+
+										{/* Subscription Details Section */}
+										{subscription && (
+											<div className="px-6 pb-6 space-y-3">
+												{/* Incomplete Setup Warning */}
+												{!subscription.setupCompletedAt && (
+													<div className="p-4 bg-nb-yellow border-3 border-nb-black">
+														<div className="flex items-center justify-between gap-4 flex-wrap">
+															<div className="flex items-start gap-3">
+																<div className="bg-nb-white p-1.5 border-2 border-nb-black shrink-0">
+																	<Bell className="w-4 h-4" />
+																</div>
+																<div>
+																	<p className="font-black text-sm uppercase mb-0.5">
+																		Setup noch nicht abgeschlossen
+																	</p>
+																	<p className="text-xs font-medium">
+																		Schließe die Einrichtung ab, um Benachrichtigungen zu
+																		erhalten
+																	</p>
+																</div>
+															</div>
 															<Button
-																variant="icon"
-																size="icon"
-																onClick={() =>
-																	copyToClipboard(subscription.ntfyTopic)
-																}
-																title="Kopieren"
+																size="sm"
+																onClick={() => {
+																	const jpaData = jpasQuery.data?.find(
+																		(j) => j.id === subscription.jpaId,
+																	);
+																	setOnboardingData({
+																		ntfyTopic: subscription.ntfyTopic,
+																		subscriptionId: subscription.id,
+																		isFirstSubscription:
+																			subscriptions.every(
+																				(s) => s.setupCompletedAt === null,
+																			),
+																		jpaName: jpaData?.name || "JPA",
+																	});
+																	setShowOnboarding(true);
+																}}
+																className="shrink-0"
 															>
-																{copiedTopic === subscription.ntfyTopic ? (
-																	<Check className="w-4 h-4" />
-																) : (
-																	<Copy className="w-4 h-4" />
-																)}
+																Setup fortsetzen
 															</Button>
 														</div>
 													</div>
 												)}
-											</div>
 
-											<Button
-												onClick={() =>
-													isSubscribed && subscription
-														? handleUnsubscribe(subscription.id)
-														: handleSubscribe(jpa.id)
-												}
-												variant={isSubscribed ? "destructive" : "default"}
-											>
-												{isSubscribed ? "Abbestellen" : "Abonnieren"}
-											</Button>
-										</div>
+												{/* Channel Info */}
+												<div className="p-4 bg-nb-white border-3 border-nb-black">
+													<div className="flex items-start justify-between gap-3 mb-3">
+														<p className="text-xs font-bold uppercase text-nb-black/60">
+															Dein ntfy Kanal
+														</p>
+														{subscription.setupCompletedAt && (
+															<div className="flex items-center gap-1.5 text-nb-mint">
+																<Check className="w-3.5 h-3.5" />
+																<span className="text-xs font-bold uppercase">
+																	Eingerichtet
+																</span>
+															</div>
+														)}
+													</div>
+													<div className="flex items-center gap-2">
+														<code className="flex-1 text-sm bg-nb-yellow px-3 py-2 border-2 border-nb-black font-bold break-all">
+															{subscription.ntfyTopic}
+														</code>
+														<Button
+															variant="icon"
+															size="icon"
+															onClick={() =>
+																copyToClipboard(subscription.ntfyTopic)
+															}
+															title="Kopieren"
+															className="shrink-0"
+														>
+															{copiedTopic === subscription.ntfyTopic ? (
+																<Check className="w-4 h-4" />
+															) : (
+																<Copy className="w-4 h-4" />
+															)}
+														</Button>
+													</div>
+												</div>
+											</div>
+										)}
 									</Card>
 								);
 							})}
@@ -289,9 +353,10 @@ function DashboardPage() {
 						open={showOnboarding}
 						onClose={() => {
 							setShowOnboarding(false);
-							onboardingStatusQuery.refetch();
+							subscriptionsQuery.refetch();
 						}}
 						ntfyTopic={onboardingData.ntfyTopic}
+						subscriptionId={onboardingData.subscriptionId}
 						isFirstSubscription={onboardingData.isFirstSubscription}
 						jpaName={onboardingData.jpaName}
 					/>

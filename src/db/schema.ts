@@ -111,6 +111,9 @@ export const subscription = sqliteTable(
 			.notNull()
 			.references(() => jpa.id, { onDelete: "cascade" }),
 		ntfyTopic: text("ntfy_topic").notNull(),
+		setupCompletedAt: integer("setup_completed_at", {
+			mode: "timestamp_ms",
+		}),
 		createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
 	},
 	(table) => [

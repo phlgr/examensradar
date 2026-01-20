@@ -1,0 +1,1 @@
+ALTER TABLE `subscription` ADD `setup_completed_at` integer;

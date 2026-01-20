@@ -25,6 +25,7 @@ interface OnboardingModalProps {
 	open: boolean;
 	onClose: () => void;
 	ntfyTopic: string;
+	subscriptionId: string;
 	/** If true, shows full onboarding (first subscription). If false, shows simplified test flow. */
 	isFirstSubscription?: boolean;
 	/** Name of the JPA for display purposes */
@@ -38,6 +39,7 @@ export function OnboardingModal({
 	open,
 	onClose,
 	ntfyTopic,
+	subscriptionId,
 	isFirstSubscription = true,
 	jpaName,
 }: OnboardingModalProps) {
@@ -100,11 +102,7 @@ export function OnboardingModal({
 	};
 
 	const handleComplete = () => {
-		if (isFirstSubscription) {
-			completeOnboarding.mutate();
-		} else {
-			onClose();
-		}
+		completeOnboarding.mutate({ subscriptionId });
 	};
 
 	const handleSkip = () => {

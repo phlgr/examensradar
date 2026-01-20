@@ -20,7 +20,10 @@ export const subscriptionRouter = router({
 				});
 			}
 
-			const isFirstSubscription = existing.length === 0;
+			// Check if this is the first subscription without completed setup
+			const isFirstSubscription =
+				existing.length === 0 ||
+				existing.every((s) => s.setupCompletedAt !== null);
 			const subscription = await db.createSubscription(
 				ctx.d1,
 				ctx.user.id,
