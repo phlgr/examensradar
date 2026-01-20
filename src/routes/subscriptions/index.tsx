@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Radar, Check, Copy, ExternalLink, Smartphone } from "lucide-react";
+import { Check, Copy, ExternalLink, Radar, Smartphone } from "lucide-react";
 import { useEffect, useState } from "react";
 import { OnboardingModal } from "@/components/onboarding/OnboardingModal";
 import { Badge } from "@/components/ui/badge";
@@ -28,7 +28,7 @@ function SubscriptionsPage() {
 	const jpasQuery = trpc.jpa.getAll.useQuery();
 	const subscriptionsQuery = trpc.subscription.getAll.useQuery(undefined, {
 		enabled: !!session?.user,
-	})
+	});
 
 	// tRPC mutations
 	const createSubscription = trpc.subscription.create.useMutation({
@@ -42,16 +42,16 @@ function SubscriptionsPage() {
 				subscriptionId: data.id,
 				isFirstSubscription: data.isFirstSubscription,
 				jpaName: jpa?.name || "JPA",
-			})
+			});
 			setShowOnboarding(true);
 		},
-	})
+	});
 
 	const deleteSubscription = trpc.subscription.delete.useMutation({
 		onSuccess: () => {
 			subscriptionsQuery.refetch();
 		},
-	})
+	});
 
 	useEffect(() => {
 		if (!isPending && !session?.user) {
@@ -65,7 +65,7 @@ function SubscriptionsPage() {
 		} catch (error) {
 			console.error("Failed to subscribe:", error);
 		}
-	}
+	};
 
 	const handleUnsubscribe = async (subscriptionId: string) => {
 		try {
@@ -73,13 +73,13 @@ function SubscriptionsPage() {
 		} catch (error) {
 			console.error("Failed to unsubscribe:", error);
 		}
-	}
+	};
 
 	const copyToClipboard = async (topic: string) => {
 		await navigator.clipboard.writeText(topic);
 		setCopiedTopic(topic);
 		setTimeout(() => setCopiedTopic(null), 2000);
-	}
+	};
 
 	const loading =
 		isPending || jpasQuery.isLoading || subscriptionsQuery.isLoading;
@@ -89,7 +89,7 @@ function SubscriptionsPage() {
 			<div className="min-h-screen flex items-center justify-center bg-nb-cream">
 				<div className="w-12 h-12 border-4 border-nb-black border-t-nb-yellow animate-spin" />
 			</div>
-		)
+		);
 	}
 
 	if (!session?.user) {
@@ -101,7 +101,7 @@ function SubscriptionsPage() {
 
 	const userSubscriptions = new Map(
 		subscriptions.map((sub) => [sub.jpaId, sub]),
-	)
+	);
 
 	return (
 		<div className="min-h-screen py-4 sm:py-8 px-4 bg-nb-cream">
@@ -256,7 +256,7 @@ function SubscriptionsPage() {
 																onClick={() => {
 																	const jpaData = jpasQuery.data?.find(
 																		(j) => j.id === subscription.jpaId,
-																	)
+																	);
 																	setOnboardingData({
 																		ntfyTopic: subscription.ntfyTopic,
 																		subscriptionId: subscription.id,
@@ -264,8 +264,8 @@ function SubscriptionsPage() {
 																			(s) => s.setupCompletedAt === null,
 																		),
 																		jpaName: jpaData?.name || "JPA",
-																	})
-																	setShowOnboarding(true)
+																	});
+																	setShowOnboarding(true);
 																}}
 																className="shrink-0 w-full sm:w-auto"
 															>
@@ -314,7 +314,7 @@ function SubscriptionsPage() {
 											</div>
 										)}
 									</Card>
-								)
+								);
 							})}
 						</div>
 					)}
@@ -336,5 +336,5 @@ function SubscriptionsPage() {
 				)}
 			</div>
 		</div>
-	)
+	);
 }

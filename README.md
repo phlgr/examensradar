@@ -15,13 +15,13 @@ Push-Benachrichtigungen für Examensergebnisse deutscher Justizprüfungsämter.
 
 ### Prerequisites
 
-- Node.js 18+
+- Bun (via mise: `mise install`)
 - Cloudflare account (for production deployment)
 
 ### Installation
 
 ```bash
-npm install
+bun install
 ```
 
 ### Environment Variables
@@ -35,7 +35,7 @@ cp .env.example .env.local
 Generate secrets:
 ```bash
 # Generate Better Auth secret
-npx @better-auth/cli secret
+bunx @better-auth/cli secret
 
 # Generate webhook secret (or use any random string)
 openssl rand -hex 32
@@ -54,33 +54,33 @@ wrangler secret put WEBHOOK_SECRET
 
 ```bash
 # Generate migrations
-npm run db:generate
+bun run db:generate
 
 # Apply migrations locally
-npm run db:migrate:local
+bun run db:migrate:local
 
 # Seed database
-npm run db:seed:local
+bun run db:seed:local
 ```
 
 ### Development
 
 ```bash
-npm run dev
+bun run dev
 ```
 
 Visit http://localhost:3000
 
 ## Scripts
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run check` - Lint and format code
-- `npm run db:generate` - Generate database migrations
-- `npm run db:migrate:local` - Apply migrations locally
-- `npm run db:migrate:remote` - Apply migrations to production
-- `npm run deploy` - Deploy to Cloudflare
+- `bun run dev` - Start development server
+- `bun run build` - Build for production
+- `bun run preview` - Preview production build
+- `bun run check` - Lint and format code
+- `bun run db:generate` - Generate database migrations
+- `bun run db:migrate:local` - Apply migrations locally
+- `bun run db:migrate:remote` - Apply migrations to production
+- `bun run deploy` - Deploy to Cloudflare
 
 ## Project Structure
 

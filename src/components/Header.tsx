@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Radar, LogOut, Settings, User } from "lucide-react";
+import { LogOut, Radar, Settings, User } from "lucide-react";
 import { useState } from "react";
 import { Button, LinkButton } from "@/components/ui";
 import { authClient } from "@/lib/auth-client";

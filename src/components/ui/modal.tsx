@@ -121,7 +121,10 @@ export function ModalFooter({
 }: React.HTMLAttributes<HTMLDivElement>) {
 	return (
 		<div
-			className={cn("p-4 sm:p-6 pt-0 flex flex-col sm:flex-row gap-2 sm:gap-3", className)}
+			className={cn(
+				"p-4 sm:p-6 pt-0 flex flex-col sm:flex-row gap-2 sm:gap-3",
+				className,
+			)}
 			{...props}
 		/>
 	);

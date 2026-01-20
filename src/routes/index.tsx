@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { UserPlus, Smartphone, Zap } from "lucide-react";
+import { Smartphone, UserPlus, Zap } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { LinkButton } from "@/components/ui/link-button";
 
@@ -47,10 +47,19 @@ function LandingPage() {
 							Examensergebnisse veröffentlicht.
 						</p>
 						<div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-							<LinkButton to="/auth/login" size="lg" className="w-full sm:w-auto">
+							<LinkButton
+								to="/auth/login"
+								size="lg"
+								className="w-full sm:w-auto"
+							>
 								Jetzt starten
 							</LinkButton>
-							<LinkButton to="/subscriptions" variant="secondary" size="lg" className="w-full sm:w-auto">
+							<LinkButton
+								to="/subscriptions"
+								variant="secondary"
+								size="lg"
+								className="w-full sm:w-auto"
+							>
 								Deine Benachrichtigungen
 							</LinkButton>
 						</div>
@@ -76,7 +85,9 @@ function LandingPage() {
 									<h3 className="text-lg sm:text-xl font-black uppercase mb-2 sm:mb-3">
 										{step.title}
 									</h3>
-									<p className="font-medium text-sm sm:text-base">{step.description}</p>
+									<p className="font-medium text-sm sm:text-base">
+										{step.description}
+									</p>
 								</CardContent>
 							</Card>
 						))}

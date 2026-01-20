@@ -2,10 +2,7 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { db } from "@/db";
 import { sendNtfyNotification } from "@/lib/ntfy";
-import {
-	createVerificationCode,
-	verifyCode,
-} from "@/lib/verification-codes";
+import { createVerificationCode, verifyCode } from "@/lib/verification-codes";
 import { protectedProcedure, router } from "../trpc";
 
 export const userRouter = router({

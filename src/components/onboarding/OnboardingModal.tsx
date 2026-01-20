@@ -44,7 +44,7 @@ export function OnboardingModal({
 	const stepConfig: StepType[] = isFirstSubscription
 		? ["download", "subscribe", "test", "complete"]
 		: ["subscribe", "test", "complete"];
-	
+
 	const stepLabels = {
 		download: "Herunterladen",
 		subscribe: "Abonnieren",
@@ -144,7 +144,10 @@ export function OnboardingModal({
 
 	// Clear error when user changes code
 	useEffect(() => {
-		if (verificationCode.length > 0 && verificationCode !== lastSubmittedCode.current) {
+		if (
+			verificationCode.length > 0 &&
+			verificationCode !== lastSubmittedCode.current
+		) {
 			setCodeError(false);
 		}
 	}, [verificationCode]);
@@ -178,7 +181,12 @@ export function OnboardingModal({
 					/>
 				);
 			case "complete":
-				return <StepComplete isFirstSubscription={isFirstSubscription} jpaName={jpaName} />;
+				return (
+					<StepComplete
+						isFirstSubscription={isFirstSubscription}
+						jpaName={jpaName}
+					/>
+				);
 		}
 	};
 
@@ -251,8 +259,8 @@ function StepDownload() {
 						1. ntfy App herunterladen
 					</h3>
 					<p className="font-medium text-sm sm:text-base">
-						Die ntfy App ist kostenlos und ermöglicht dir, Push-Benachrichtigungen
-						auf all deinen Geräten zu empfangen.
+						Die ntfy App ist kostenlos und ermöglicht dir,
+						Push-Benachrichtigungen auf all deinen Geräten zu empfangen.
 					</p>
 				</div>
 			</div>
@@ -280,7 +288,9 @@ function StepDownload() {
 				>
 					<Card hover className="p-2 sm:p-4 text-center">
 						<Smartphone className="w-5 h-5 sm:w-8 sm:h-8 mx-auto mb-1 sm:mb-2" />
-						<span className="font-bold text-xs sm:text-sm uppercase block">iOS</span>
+						<span className="font-bold text-xs sm:text-sm uppercase block">
+							iOS
+						</span>
 						<ExternalLink className="w-2.5 h-2.5 sm:w-4 sm:h-4 mx-auto mt-1 sm:mt-2" />
 					</Card>
 				</a>
@@ -292,7 +302,9 @@ function StepDownload() {
 				>
 					<Card hover className="p-2 sm:p-4 text-center">
 						<Smartphone className="w-5 h-5 sm:w-8 sm:h-8 mx-auto mb-1 sm:mb-2" />
-						<span className="font-bold text-xs sm:text-sm uppercase block">Web</span>
+						<span className="font-bold text-xs sm:text-sm uppercase block">
+							Web
+						</span>
 						<ExternalLink className="w-2.5 h-2.5 sm:w-4 sm:h-4 mx-auto mt-1 sm:mt-2" />
 					</Card>
 				</a>
@@ -300,8 +312,8 @@ function StepDownload() {
 
 			<Card variant="muted" className="p-3 sm:p-4">
 				<p className="text-xs sm:text-sm font-medium">
-					<strong>Wichtig:</strong> Du musst die App auf jedem Gerät installieren,
-					auf dem du Benachrichtigungen erhalten möchtest.
+					<strong>Wichtig:</strong> Du musst die App auf jedem Gerät
+					installieren, auf dem du Benachrichtigungen erhalten möchtest.
 				</p>
 			</Card>
 		</div>
@@ -327,7 +339,9 @@ function StepSubscribe({
 				</div>
 				<div className="flex-1 min-w-0">
 					<h3 className="text-base sm:text-lg font-black uppercase mb-2">
-						{jpaName ? `Kanal für ${jpaName} abonnieren` : "Deinen Kanal abonnieren"}
+						{jpaName
+							? `Kanal für ${jpaName} abonnieren`
+							: "Deinen Kanal abonnieren"}
 					</h3>
 					<p className="font-medium text-sm sm:text-base">
 						Öffne die ntfy App und abonniere deinen persönlichen Kanal.
@@ -360,9 +374,16 @@ function StepSubscribe({
 			</Card>
 
 			<div className="space-y-3">
-				<h4 className="font-black uppercase text-sm sm:text-base">So geht's:</h4>
+				<h4 className="font-black uppercase text-sm sm:text-base">
+					So geht's:
+				</h4>
 				<ol className="space-y-2 font-medium text-sm sm:text-base">
-					{["Öffne die ntfy App", "Tippe auf das + Symbol", "Füge den kopierten Kanal-Namen ein", "Tippe auf \"Subscribe\""].map((step, i) => (
+					{[
+						"Öffne die ntfy App",
+						"Tippe auf das + Symbol",
+						"Füge den kopierten Kanal-Namen ein",
+						'Tippe auf "Subscribe"',
+					].map((step, i) => (
 						<li key={step} className="flex items-start gap-2 sm:gap-3">
 							<span className="bg-nb-yellow px-2 py-0.5 border-2 border-nb-black font-black text-xs sm:text-sm shrink-0">
 								{i + 1}
@@ -375,8 +396,8 @@ function StepSubscribe({
 
 			<Card variant="accent" className="p-3 sm:p-4">
 				<p className="text-xs sm:text-sm font-medium">
-					<strong>Tipp:</strong> Wiederhole diesen Schritt auf jedem Gerät, auf dem
-					du Benachrichtigungen erhalten möchtest.
+					<strong>Tipp:</strong> Wiederhole diesen Schritt auf jedem Gerät, auf
+					dem du Benachrichtigungen erhalten möchtest.
 				</p>
 			</Card>
 		</div>
@@ -523,9 +544,9 @@ function StepTest({
 
 			<Card variant="muted" className="p-3 sm:p-4">
 				<p className="text-xs sm:text-sm font-medium">
-					<strong>Keine Benachrichtigung erhalten?</strong> Stelle sicher, dass du
-					den Kanal in der ntfy App abonniert hast und Benachrichtigungen aktiviert
-					sind.
+					<strong>Keine Benachrichtigung erhalten?</strong> Stelle sicher, dass
+					du den Kanal in der ntfy App abonniert hast und Benachrichtigungen
+					aktiviert sind.
 				</p>
 			</Card>
 		</div>
