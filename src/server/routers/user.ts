@@ -4,7 +4,6 @@ import { db } from "@/db";
 import { sendNtfyNotification } from "@/lib/ntfy";
 import {
 	createVerificationCode,
-	hasActiveCode,
 	verifyCode,
 } from "@/lib/verification-codes";
 import { protectedProcedure, router } from "../trpc";
@@ -35,15 +34,7 @@ export const userRouter = router({
 	sendTestNotification: protectedProcedure
 		.input(z.object({ ntfyTopic: z.string() }))
 		.mutation(async ({ ctx, input }) => {
-			// Rate limit: only allow one active code at a time
-			if (hasActiveCode(ctx.user.id)) {
-				throw new TRPCError({
-					code: "TOO_MANY_REQUESTS",
-					message:
-						"Ein Testcode wurde bereits gesendet. Bitte warte 5 Minuten.",
-				});
-			}
-
+			// Get or create verification code (reuses existing code if still valid)
 			const code = createVerificationCode(ctx.user.id, input.ntfyTopic);
 
 			const sent = await sendNtfyNotification({

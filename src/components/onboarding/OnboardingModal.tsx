@@ -7,7 +7,7 @@ import {
 	Send,
 	Smartphone,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { CodeInput } from "@/components/ui/code-input";
@@ -26,14 +26,11 @@ interface OnboardingModalProps {
 	onClose: () => void;
 	ntfyTopic: string;
 	subscriptionId: string;
-	/** If true, shows full onboarding (first subscription). If false, shows simplified test flow. */
 	isFirstSubscription?: boolean;
-	/** Name of the JPA for display purposes */
 	jpaName?: string;
 }
 
-const FULL_STEPS = ["Herunterladen", "Abonnieren", "Testen", "Fertig"];
-const TEST_STEPS = ["Abonnieren", "Testen", "Fertig"];
+type StepType = "download" | "subscribe" | "test" | "complete";
 
 export function OnboardingModal({
 	open,
@@ -43,33 +40,55 @@ export function OnboardingModal({
 	isFirstSubscription = true,
 	jpaName,
 }: OnboardingModalProps) {
-	const steps = isFirstSubscription ? FULL_STEPS : TEST_STEPS;
-	const [currentStep, setCurrentStep] = useState(0);
+	// Define steps based on subscription type
+	const stepConfig: StepType[] = isFirstSubscription
+		? ["download", "subscribe", "test", "complete"]
+		: ["subscribe", "test", "complete"];
+	
+	const stepLabels = {
+		download: "Herunterladen",
+		subscribe: "Abonnieren",
+		test: "Testen",
+		complete: "Fertig",
+	};
+
+	// State
+	const [currentStepIndex, setCurrentStepIndex] = useState(0);
 	const [copied, setCopied] = useState(false);
 	const [verificationCode, setVerificationCode] = useState("");
 	const [codeVerified, setCodeVerified] = useState(false);
 	const [codeError, setCodeError] = useState(false);
+	const [sendError, setSendError] = useState<string | null>(null);
+	const lastSubmittedCode = useRef<string | null>(null);
+
+	const currentStep = stepConfig[currentStepIndex];
+	const isLastStep = currentStepIndex === stepConfig.length - 1;
 
 	// Reset state when modal opens
 	useEffect(() => {
 		if (open) {
-			setCurrentStep(0);
+			setCurrentStepIndex(0);
 			setCopied(false);
 			setVerificationCode("");
 			setCodeVerified(false);
 			setCodeError(false);
+			setSendError(null);
+			lastSubmittedCode.current = null;
 		}
 	}, [open]);
 
+	// Mutations
 	const completeOnboarding = trpc.user.completeOnboarding.useMutation({
-		onSuccess: () => {
-			onClose();
-		},
+		onSuccess: onClose,
 	});
 
 	const sendTestNotification = trpc.user.sendTestNotification.useMutation({
 		onSuccess: () => {
 			setCodeError(false);
+			setSendError(null);
+		},
+		onError: (error) => {
+			setSendError(error.message || "Fehler beim Senden der Benachrichtigung");
 		},
 	});
 
@@ -83,123 +102,90 @@ export function OnboardingModal({
 		},
 	});
 
-	const copyToClipboard = async () => {
+	// Handlers
+	const handleCopy = useCallback(async () => {
 		await navigator.clipboard.writeText(ntfyTopic);
 		setCopied(true);
 		setTimeout(() => setCopied(false), 2000);
-	};
+	}, [ntfyTopic]);
 
 	const handleNext = () => {
-		if (currentStep < steps.length - 1) {
-			setCurrentStep((prev) => prev + 1);
+		if (!isLastStep) {
+			setCurrentStepIndex((prev) => prev + 1);
 		}
 	};
 
 	const handleBack = () => {
-		if (currentStep > 0) {
-			setCurrentStep((prev) => prev - 1);
+		if (currentStepIndex > 0) {
+			setCurrentStepIndex((prev) => prev - 1);
 		}
-	};
-
-	const handleComplete = () => {
-		completeOnboarding.mutate({ subscriptionId });
-	};
-
-	const handleSkip = () => {
-		onClose();
 	};
 
 	const handleSendTest = () => {
 		setVerificationCode("");
 		setCodeVerified(false);
-		setCodeError(false);
+		lastSubmittedCode.current = null;
 		sendTestNotification.mutate({ ntfyTopic });
 	};
 
-	const handleVerifyCode = () => {
-		if (verificationCode.length === 6) {
+	// Auto-submit verification code when complete
+	useEffect(() => {
+		const shouldSubmit =
+			verificationCode.length === 6 &&
+			!verifyTestCode.isPending &&
+			!codeVerified &&
+			lastSubmittedCode.current !== verificationCode;
+
+		if (shouldSubmit) {
+			lastSubmittedCode.current = verificationCode;
 			verifyTestCode.mutate({ code: verificationCode });
 		}
-	};
+	}, [verificationCode, codeVerified, verifyTestCode]);
 
-	// Map current step to the appropriate component
-	const getStepContent = () => {
-		if (isFirstSubscription) {
-			// Full onboarding: Download -> Subscribe -> Test -> Complete
-			switch (currentStep) {
-				case 0:
-					return <StepDownload />;
-				case 1:
-					return (
-						<StepSubscribe
-							ntfyTopic={ntfyTopic}
-							copied={copied}
-							onCopy={copyToClipboard}
-						/>
-					);
-				case 2:
-					return (
-						<StepTest
-							onSendTest={handleSendTest}
-							onVerify={handleVerifyCode}
-							verificationCode={verificationCode}
-							setVerificationCode={setVerificationCode}
-							codeVerified={codeVerified}
-							codeError={codeError}
-							isSending={sendTestNotification.isPending}
-							isVerifying={verifyTestCode.isPending}
-							hasSentCode={sendTestNotification.isSuccess}
-						/>
-					);
-				case 3:
-					return <StepComplete isFirstSubscription={true} />;
-				default:
-					return null;
-			}
-		} else {
-			// Test only: Subscribe -> Test -> Complete
-			switch (currentStep) {
-				case 0:
-					return (
-						<StepSubscribe
-							ntfyTopic={ntfyTopic}
-							copied={copied}
-							onCopy={copyToClipboard}
-							jpaName={jpaName}
-						/>
-					);
-				case 1:
-					return (
-						<StepTest
-							onSendTest={handleSendTest}
-							onVerify={handleVerifyCode}
-							verificationCode={verificationCode}
-							setVerificationCode={setVerificationCode}
-							codeVerified={codeVerified}
-							codeError={codeError}
-							isSending={sendTestNotification.isPending}
-							isVerifying={verifyTestCode.isPending}
-							hasSentCode={sendTestNotification.isSuccess}
-						/>
-					);
-				case 2:
-					return <StepComplete isFirstSubscription={false} jpaName={jpaName} />;
-				default:
-					return null;
-			}
+	// Clear error when user changes code
+	useEffect(() => {
+		if (verificationCode.length > 0 && verificationCode !== lastSubmittedCode.current) {
+			setCodeError(false);
+		}
+	}, [verificationCode]);
+
+	// Render current step
+	const renderStep = () => {
+		switch (currentStep) {
+			case "download":
+				return <StepDownload />;
+			case "subscribe":
+				return (
+					<StepSubscribe
+						ntfyTopic={ntfyTopic}
+						copied={copied}
+						onCopy={handleCopy}
+						jpaName={jpaName}
+					/>
+				);
+			case "test":
+				return (
+					<StepTest
+						onSendTest={handleSendTest}
+						verificationCode={verificationCode}
+						setVerificationCode={setVerificationCode}
+						codeVerified={codeVerified}
+						codeError={codeError}
+						sendError={sendError}
+						isSending={sendTestNotification.isPending}
+						isVerifying={verifyTestCode.isPending}
+						hasSentCode={sendTestNotification.isSuccess}
+					/>
+				);
+			case "complete":
+				return <StepComplete isFirstSubscription={isFirstSubscription} jpaName={jpaName} />;
 		}
 	};
 
-	const isTestStep = isFirstSubscription ? currentStep === 2 : currentStep === 1;
-	const isLastStep = currentStep === steps.length - 1;
+	const canProceed = currentStep !== "test" || codeVerified;
 
 	return (
-		<Modal
-			open={open}
-			onClose={handleSkip}
-			size="lg"
-			closeOnOverlayClick={false}
-		>
+		<Modal open={open} onClose={onClose} size="lg" closeOnOverlayClick={false}>
 			<ModalHeader>
 				<ModalTitle>
 					{isFirstSubscription
@@ -211,36 +197,37 @@ export function OnboardingModal({
 						? "Folge diesen Schritten, um keine Ergebnisse mehr zu verpassen."
 						: `Richte Benachrichtigungen für ${jpaName || "dieses JPA"} ein.`}
 				</p>
-				<ProgressSteps steps={steps} currentStep={currentStep} className="mt-6" />
+				<ProgressSteps
+					steps={stepConfig.map((step) => stepLabels[step])}
+					currentStep={currentStepIndex}
+					className="mt-6"
+				/>
 			</ModalHeader>
 
-			<ModalBody>{getStepContent()}</ModalBody>
+			<ModalBody>{renderStep()}</ModalBody>
 
 			<ModalFooter>
-				{currentStep > 0 && (
+				{currentStepIndex > 0 && (
 					<Button variant="secondary" onClick={handleBack}>
 						Zurück
 					</Button>
 				)}
-				{currentStep === 0 && (
-					<Button variant="ghost" onClick={handleSkip}>
+				{currentStepIndex === 0 && (
+					<Button variant="ghost" onClick={onClose}>
 						{isFirstSubscription ? "Später einrichten" : "Überspringen"}
 					</Button>
 				)}
 				<div className="flex-1" />
-				{isTestStep && !codeVerified && (
-					<Button variant="ghost" onClick={handleNext}>
-						Überspringen
-					</Button>
-				)}
 				{!isLastStep ? (
-					<Button onClick={handleNext}>Weiter</Button>
+					<Button onClick={handleNext} disabled={!canProceed}>
+						Weiter
+					</Button>
 				) : (
 					<Button
-						onClick={handleComplete}
-						disabled={isFirstSubscription && completeOnboarding.isPending}
+						onClick={() => completeOnboarding.mutate({ subscriptionId })}
+						disabled={completeOnboarding.isPending}
 					>
-						{isFirstSubscription && completeOnboarding.isPending ? (
+						{completeOnboarding.isPending ? (
 							<Loader2 className="w-4 h-4 animate-spin" />
 						) : (
 							"Fertig"
@@ -279,7 +266,9 @@ function StepDownload() {
 				>
 					<Card hover className="p-2 sm:p-4 text-center">
 						<Smartphone className="w-5 h-5 sm:w-8 sm:h-8 mx-auto mb-1 sm:mb-2" />
-						<span className="font-bold text-xs sm:text-sm uppercase block">Android</span>
+						<span className="font-bold text-xs sm:text-sm uppercase block">
+							Android
+						</span>
 						<ExternalLink className="w-2.5 h-2.5 sm:w-4 sm:h-4 mx-auto mt-1 sm:mt-2" />
 					</Card>
 				</a>
@@ -347,13 +336,25 @@ function StepSubscribe({
 			</div>
 
 			<Card variant="primary" className="p-4 sm:p-6">
-				<p className="text-xs sm:text-sm font-bold uppercase mb-3">Dein ntfy Kanal:</p>
+				<p className="text-xs sm:text-sm font-bold uppercase mb-3">
+					Dein ntfy Kanal:
+				</p>
 				<div className="flex items-center gap-2 sm:gap-3">
 					<code className="flex-1 bg-nb-white px-3 sm:px-4 py-2 sm:py-3 border-2 sm:border-3 border-nb-black font-bold text-sm sm:text-lg break-all">
 						{ntfyTopic}
 					</code>
-					<Button variant="icon" size="icon" onClick={onCopy} title="Kopieren" className="shrink-0">
-						{copied ? <Check className="w-4 h-4 sm:w-5 sm:h-5" /> : <Copy className="w-4 h-4 sm:w-5 sm:h-5" />}
+					<Button
+						variant="icon"
+						size="icon"
+						onClick={onCopy}
+						title="Kopieren"
+						className="shrink-0"
+					>
+						{copied ? (
+							<Check className="w-4 h-4 sm:w-5 sm:h-5" />
+						) : (
+							<Copy className="w-4 h-4 sm:w-5 sm:h-5" />
+						)}
 					</Button>
 				</div>
 			</Card>
@@ -361,30 +362,14 @@ function StepSubscribe({
 			<div className="space-y-3">
 				<h4 className="font-black uppercase text-sm sm:text-base">So geht's:</h4>
 				<ol className="space-y-2 font-medium text-sm sm:text-base">
-					<li className="flex items-start gap-2 sm:gap-3">
-						<span className="bg-nb-yellow px-2 py-0.5 border-2 border-nb-black font-black text-xs sm:text-sm shrink-0">
-							1
-						</span>
-						<span>Öffne die ntfy App</span>
-					</li>
-					<li className="flex items-start gap-2 sm:gap-3">
-						<span className="bg-nb-yellow px-2 py-0.5 border-2 border-nb-black font-black text-xs sm:text-sm shrink-0">
-							2
-						</span>
-						<span>Tippe auf das + Symbol</span>
-					</li>
-					<li className="flex items-start gap-2 sm:gap-3">
-						<span className="bg-nb-yellow px-2 py-0.5 border-2 border-nb-black font-black text-xs sm:text-sm shrink-0">
-							3
-						</span>
-						<span>Füge den kopierten Kanal-Namen ein</span>
-					</li>
-					<li className="flex items-start gap-2 sm:gap-3">
-						<span className="bg-nb-yellow px-2 py-0.5 border-2 border-nb-black font-black text-xs sm:text-sm shrink-0">
-							4
-						</span>
-						<span>Tippe auf "Subscribe"</span>
-					</li>
+					{["Öffne die ntfy App", "Tippe auf das + Symbol", "Füge den kopierten Kanal-Namen ein", "Tippe auf \"Subscribe\""].map((step, i) => (
+						<li key={step} className="flex items-start gap-2 sm:gap-3">
+							<span className="bg-nb-yellow px-2 py-0.5 border-2 border-nb-black font-black text-xs sm:text-sm shrink-0">
+								{i + 1}
+							</span>
+							<span>{step}</span>
+						</li>
+					))}
 				</ol>
 			</div>
 
@@ -400,25 +385,58 @@ function StepSubscribe({
 
 function StepTest({
 	onSendTest,
-	onVerify,
 	verificationCode,
 	setVerificationCode,
 	codeVerified,
 	codeError,
+	sendError,
 	isSending,
 	isVerifying,
 	hasSentCode,
 }: {
 	onSendTest: () => void;
-	onVerify: () => void;
 	verificationCode: string;
 	setVerificationCode: (code: string) => void;
 	codeVerified: boolean;
 	codeError: boolean;
+	sendError: string | null;
 	isSending: boolean;
 	isVerifying: boolean;
 	hasSentCode: boolean;
 }) {
+	if (codeVerified) {
+		return (
+			<div className="space-y-4 sm:space-y-6">
+				<div className="flex items-start gap-3 sm:gap-4">
+					<div className="bg-nb-coral p-2 sm:p-3 border-3 sm:border-4 border-nb-black shadow-[var(--nb-shadow-sm)] shrink-0">
+						<Send className="w-6 h-6 sm:w-8 sm:h-8" />
+					</div>
+					<div className="flex-1 min-w-0">
+						<h3 className="text-base sm:text-lg font-black uppercase mb-2">
+							Einrichtung testen
+						</h3>
+						<p className="font-medium text-sm sm:text-base">
+							Lass uns prüfen, ob alles funktioniert. Wir senden dir eine
+							Testbenachrichtigung mit einem Code.
+						</p>
+					</div>
+				</div>
+
+				<Card variant="success" className="p-4 sm:p-6 text-center">
+					<div className="bg-nb-white w-12 h-12 sm:w-16 sm:h-16 border-3 sm:border-4 border-nb-black mx-auto flex items-center justify-center mb-3 sm:mb-4">
+						<Check className="w-6 h-6 sm:w-8 sm:h-8" />
+					</div>
+					<h4 className="font-black uppercase text-base sm:text-lg mb-2">
+						Code bestätigt!
+					</h4>
+					<p className="font-medium text-sm sm:text-base">
+						Deine Push-Benachrichtigungen sind eingerichtet.
+					</p>
+				</Card>
+			</div>
+		);
+	}
+
 	return (
 		<div className="space-y-4 sm:space-y-6">
 			<div className="flex items-start gap-3 sm:gap-4">
@@ -436,90 +454,78 @@ function StepTest({
 				</div>
 			</div>
 
-			{codeVerified ? (
-				<Card variant="success" className="p-4 sm:p-6 text-center">
-					<div className="bg-nb-white w-12 h-12 sm:w-16 sm:h-16 border-3 sm:border-4 border-nb-black mx-auto flex items-center justify-center mb-3 sm:mb-4">
-						<Check className="w-6 h-6 sm:w-8 sm:h-8" />
-					</div>
-					<h4 className="font-black uppercase text-base sm:text-lg mb-2">
-						Code bestätigt!
-					</h4>
-					<p className="font-medium text-sm sm:text-base">
-						Deine Push-Benachrichtigungen sind eingerichtet.
-					</p>
-				</Card>
-			) : (
-				<>
-					<div className="text-center">
-						<Button
-							onClick={onSendTest}
-							disabled={isSending}
-							variant="default"
-							size="default"
-							className="w-full sm:w-auto"
-						>
-							{isSending ? (
-								<>
-									<Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
-									Sende...
-								</>
-							) : hasSentCode ? (
-								<>
-									<Send className="w-4 h-4 sm:w-5 sm:h-5" />
-									Erneut senden
-								</>
-							) : (
-								<>
-									<Send className="w-4 h-4 sm:w-5 sm:h-5" />
-									Test-Benachrichtigung senden
-								</>
-							)}
-						</Button>
-					</div>
+			<div className="text-center space-y-3">
+				<Button
+					onClick={onSendTest}
+					disabled={isSending}
+					variant="default"
+					size="default"
+					className="w-full sm:w-auto"
+				>
+					{isSending ? (
+						<>
+							<Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
+							Sende...
+						</>
+					) : hasSentCode ? (
+						<>
+							<Send className="w-4 h-4 sm:w-5 sm:h-5" />
+							Erneut senden
+						</>
+					) : (
+						<>
+							<Send className="w-4 h-4 sm:w-5 sm:h-5" />
+							Test-Benachrichtigung senden
+						</>
+					)}
+				</Button>
 
-					{hasSentCode && (
-						<div className="space-y-4">
-							<p className="text-center font-medium text-sm sm:text-base">
-								Gib den 6-stelligen Code aus deiner Push-Benachrichtigung ein:
-							</p>
-							<CodeInput
-								value={verificationCode}
-								onChange={setVerificationCode}
-								error={codeError}
-								disabled={isVerifying}
-							/>
-							{codeError && (
-								<p className="text-center text-xs sm:text-sm font-bold text-nb-coral">
-									Ungültiger oder abgelaufener Code. Bitte versuche es erneut.
-								</p>
-							)}
-							<div className="text-center">
-								<Button
-									onClick={onVerify}
-									disabled={verificationCode.length !== 6 || isVerifying}
-									variant="success"
-									className="w-full sm:w-auto"
-								>
-									{isVerifying ? (
-										<>
-											<Loader2 className="w-4 h-4 animate-spin" />
-											Prüfe...
-										</>
-									) : (
-										"Code bestätigen"
-									)}
-								</Button>
-							</div>
+				{sendError && (
+					<Card variant="muted" className="p-3 text-left">
+						<p className="text-xs sm:text-sm font-bold text-nb-coral">
+							{sendError}
+						</p>
+					</Card>
+				)}
+
+				{hasSentCode && !sendError && (
+					<p className="text-xs sm:text-sm font-medium text-nb-black/60">
+						Code kommt nicht an? Du kannst die Benachrichtigung jederzeit erneut
+						senden.
+					</p>
+				)}
+			</div>
+
+			{hasSentCode && (
+				<div className="space-y-4">
+					<p className="text-center font-medium text-sm sm:text-base">
+						Gib den 6-stelligen Code aus deiner Push-Benachrichtigung ein:
+					</p>
+					<CodeInput
+						value={verificationCode}
+						onChange={setVerificationCode}
+						error={codeError}
+						disabled={isVerifying}
+					/>
+					{isVerifying && (
+						<div className="flex items-center justify-center gap-2 text-sm font-bold">
+							<Loader2 className="w-4 h-4 animate-spin" />
+							<span>Prüfe Code...</span>
 						</div>
 					)}
-				</>
+					{codeError && !isVerifying && (
+						<p className="text-center text-xs sm:text-sm font-bold text-nb-coral">
+							Ungültiger oder abgelaufener Code. Bitte versuche es erneut.
+						</p>
+					)}
+				</div>
 			)}
 
 			<Card variant="muted" className="p-3 sm:p-4">
 				<p className="text-xs sm:text-sm font-medium">
 					<strong>Keine Benachrichtigung erhalten?</strong> Stelle sicher, dass du
-					den Kanal in der ntfy App abonniert hast und Benachrichtigungen
-					aktiviert sind.
+					den Kanal in der ntfy App abonniert hast und Benachrichtigungen aktiviert
+					sind.
 				</p>
 			</Card>
 		</div>

@@ -30,6 +30,14 @@ export function createVerificationCode(
 ): string {
 	cleanupExpired();
 
+	// Check if there's an existing valid code
+	const existing = verificationCodes.get(userId);
+	if (existing && existing.expiresAt > Date.now()) {
+		// Reuse the same code
+		return existing.code;
+	}
+
+	// Generate new code if none exists or expired
 	const code = generateCode();
 	verificationCodes.set(userId, {
 		code,
