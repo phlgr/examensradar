@@ -147,52 +147,52 @@ function DashboardPage() {
 				{/* ntfy Setup Instructions - only show when at least one subscription has completed setup */}
 				{subscriptions.length > 0 &&
 					subscriptions.some((s) => s.setupCompletedAt) && (
-					<Card variant="accent" className="mb-8 p-6">
-						<div className="flex items-start gap-4">
-							<div className="bg-nb-white p-3 border-4 border-nb-black shadow-[var(--nb-shadow-sm)]">
-								<Smartphone className="w-8 h-8" />
-							</div>
-							<div>
-								<h2 className="text-xl font-black uppercase mb-2">
-									ntfy App einrichten
-								</h2>
-								<p className="font-medium mb-4">
-									Um Push-Benachrichtigungen zu erhalten, installiere die ntfy
-									App und abonniere deinen persönlichen Kanal:
-								</p>
-								<div className="flex flex-wrap gap-3">
-									<a
-										href="https://play.google.com/store/apps/details?id=io.heckel.ntfy"
-										target="_blank"
-										rel="noopener noreferrer"
-										className="inline-flex items-center gap-2 px-4 py-2 bg-nb-white border-3 border-nb-black font-bold uppercase text-sm shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all cursor-pointer"
-									>
-										<ExternalLink className="w-4 h-4" />
-										Android
-									</a>
-									<a
-										href="https://apps.apple.com/app/ntfy/id1625396347"
-										target="_blank"
-										rel="noopener noreferrer"
-										className="inline-flex items-center gap-2 px-4 py-2 bg-nb-white border-3 border-nb-black font-bold uppercase text-sm shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all cursor-pointer"
-									>
-										<ExternalLink className="w-4 h-4" />
-										iOS
-									</a>
-									<a
-										href="https://ntfy.sh"
-										target="_blank"
-										rel="noopener noreferrer"
-										className="inline-flex items-center gap-2 px-4 py-2 bg-nb-white border-3 border-nb-black font-bold uppercase text-sm shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all cursor-pointer"
-									>
-										<ExternalLink className="w-4 h-4" />
-										Web
-									</a>
+						<Card variant="accent" className="mb-8 p-6">
+							<div className="flex items-start gap-4">
+								<div className="bg-nb-white p-3 border-4 border-nb-black shadow-[var(--nb-shadow-sm)]">
+									<Smartphone className="w-8 h-8" />
+								</div>
+								<div>
+									<h2 className="text-xl font-black uppercase mb-2">
+										ntfy App einrichten
+									</h2>
+									<p className="font-medium mb-4">
+										Um Push-Benachrichtigungen zu erhalten, installiere die ntfy
+										App und abonniere deinen persönlichen Kanal:
+									</p>
+									<div className="flex flex-wrap gap-3">
+										<a
+											href="https://play.google.com/store/apps/details?id=io.heckel.ntfy"
+											target="_blank"
+											rel="noopener noreferrer"
+											className="inline-flex items-center gap-2 px-4 py-2 bg-nb-white border-3 border-nb-black font-bold uppercase text-sm shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all cursor-pointer"
+										>
+											<ExternalLink className="w-4 h-4" />
+											Android
+										</a>
+										<a
+											href="https://apps.apple.com/app/ntfy/id1625396347"
+											target="_blank"
+											rel="noopener noreferrer"
+											className="inline-flex items-center gap-2 px-4 py-2 bg-nb-white border-3 border-nb-black font-bold uppercase text-sm shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all cursor-pointer"
+										>
+											<ExternalLink className="w-4 h-4" />
+											iOS
+										</a>
+										<a
+											href="https://ntfy.sh"
+											target="_blank"
+											rel="noopener noreferrer"
+											className="inline-flex items-center gap-2 px-4 py-2 bg-nb-white border-3 border-nb-black font-bold uppercase text-sm shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all cursor-pointer"
+										>
+											<ExternalLink className="w-4 h-4" />
+											Web
+										</a>
+									</div>
 								</div>
 							</div>
-						</div>
-					</Card>
-				)}
+						</Card>
+					)}
 
 				{/* JPA List */}
 				<div className="space-y-4">
@@ -272,8 +272,8 @@ function DashboardPage() {
 																		Setup noch nicht abgeschlossen
 																	</p>
 																	<p className="text-xs font-medium">
-																		Schließe die Einrichtung ab, um Benachrichtigungen zu
-																		erhalten
+																		Schließe die Einrichtung ab, um
+																		Benachrichtigungen zu erhalten
 																	</p>
 																</div>
 															</div>
@@ -286,10 +286,9 @@ function DashboardPage() {
 																	setOnboardingData({
 																		ntfyTopic: subscription.ntfyTopic,
 																		subscriptionId: subscription.id,
-																		isFirstSubscription:
-																			subscriptions.every(
-																				(s) => s.setupCompletedAt === null,
-																			),
+																		isFirstSubscription: subscriptions.every(
+																			(s) => s.setupCompletedAt === null,
+																		),
 																		jpaName: jpaData?.name || "JPA",
 																	});
 																	setShowOnboarding(true);

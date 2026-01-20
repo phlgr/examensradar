@@ -33,7 +33,7 @@ export function OnboardingReminder({ onSetupClick }: OnboardingReminderProps) {
 						Einrichten
 					</Button>
 					<Button
-						variant="icon"
+						variant="link"
 						size="icon"
 						onClick={() => setDismissed(true)}
 						title="Ausblenden"
