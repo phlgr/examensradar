@@ -7,9 +7,6 @@ export default defineNitroConfig({
       routes: {
         exclude: ['/assets/*', '/_build/*'],
       },
-    },
-      wrangler: {
-        configPath: './wrangler.toml',
-      },
+    }
   },
 })

@@ -1,9 +1,4 @@
-import type { PlatformProxy } from "wrangler";
-
-let devProxy: PlatformProxy<{ DB: D1Database }> | null = null;
-
-export async function getD1(context: unknown): Promise<D1Database | null> {
-	// Try production context paths
+export async function getD1(context: unknown): Promise<D1Database> {
 	const ctx = context as Record<string, unknown>;
 
 	const env =
@@ -13,13 +8,14 @@ export async function getD1(context: unknown): Promise<D1Database | null> {
 
 	if (env?.DB) return env.DB;
 
-	// Development: use wrangler proxy
-	if (!devProxy) {
+	// Development only: use wrangler proxy
+	if (import.meta.env.DEV) {
 		const { getPlatformProxy } = await import("wrangler");
-		devProxy = await getPlatformProxy<{ DB: D1Database }>({
+		const proxy = await getPlatformProxy<{ DB: D1Database }>({
 			configPath: "./wrangler.toml",
 		});
+		return proxy.env.DB;
 	}
 
-	return devProxy.env.DB;
+	throw new Error("D1 database not available in context");
 }
