@@ -10,7 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
+import { Route as SubscriptionsIndexRouteImport } from './routes/subscriptions/index'
 import { Route as AccountIndexRouteImport } from './routes/account/index'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as ApiWebhookResultsRouteImport } from './routes/api/webhook/results'
@@ -22,9 +22,9 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DashboardIndexRoute = DashboardIndexRouteImport.update({
-  id: '/dashboard/',
-  path: '/dashboard/',
+const SubscriptionsIndexRoute = SubscriptionsIndexRouteImport.update({
+  id: '/subscriptions/',
+  path: '/subscriptions/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AccountIndexRoute = AccountIndexRouteImport.update({
@@ -57,7 +57,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth/login': typeof AuthLoginRoute
   '/account/': typeof AccountIndexRoute
-  '/dashboard/': typeof DashboardIndexRoute
+  '/subscriptions/': typeof SubscriptionsIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/api/webhook/results': typeof ApiWebhookResultsRoute
@@ -66,7 +66,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth/login': typeof AuthLoginRoute
   '/account': typeof AccountIndexRoute
-  '/dashboard': typeof DashboardIndexRoute
+  '/subscriptions': typeof SubscriptionsIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/api/webhook/results': typeof ApiWebhookResultsRoute
@@ -76,7 +76,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/auth/login': typeof AuthLoginRoute
   '/account/': typeof AccountIndexRoute
-  '/dashboard/': typeof DashboardIndexRoute
+  '/subscriptions/': typeof SubscriptionsIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/api/webhook/results': typeof ApiWebhookResultsRoute
@@ -87,7 +87,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth/login'
     | '/account/'
-    | '/dashboard/'
+    | '/subscriptions/'
     | '/api/auth/$'
     | '/api/trpc/$'
     | '/api/webhook/results'
@@ -96,7 +96,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth/login'
     | '/account'
-    | '/dashboard'
+    | '/subscriptions'
     | '/api/auth/$'
     | '/api/trpc/$'
     | '/api/webhook/results'
@@ -105,7 +105,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth/login'
     | '/account/'
-    | '/dashboard/'
+    | '/subscriptions/'
     | '/api/auth/$'
     | '/api/trpc/$'
     | '/api/webhook/results'
@@ -115,7 +115,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthLoginRoute: typeof AuthLoginRoute
   AccountIndexRoute: typeof AccountIndexRoute
-  DashboardIndexRoute: typeof DashboardIndexRoute
+  SubscriptionsIndexRoute: typeof SubscriptionsIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiTrpcSplatRoute: typeof ApiTrpcSplatRoute
   ApiWebhookResultsRoute: typeof ApiWebhookResultsRoute
@@ -130,11 +130,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/dashboard/': {
-      id: '/dashboard/'
-      path: '/dashboard'
-      fullPath: '/dashboard/'
-      preLoaderRoute: typeof DashboardIndexRouteImport
+    '/subscriptions/': {
+      id: '/subscriptions/'
+      path: '/subscriptions'
+      fullPath: '/subscriptions/'
+      preLoaderRoute: typeof SubscriptionsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/account/': {
@@ -179,7 +179,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthLoginRoute: AuthLoginRoute,
   AccountIndexRoute: AccountIndexRoute,
-  DashboardIndexRoute: DashboardIndexRoute,
+  SubscriptionsIndexRoute: SubscriptionsIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiTrpcSplatRoute: ApiTrpcSplatRoute,
   ApiWebhookResultsRoute: ApiWebhookResultsRoute,

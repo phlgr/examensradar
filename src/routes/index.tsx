@@ -50,8 +50,8 @@ function LandingPage() {
 							<LinkButton to="/auth/login" size="lg">
 								Jetzt starten
 							</LinkButton>
-							<LinkButton to="/dashboard" variant="secondary" size="lg">
-								Zum Dashboard
+							<LinkButton to="/subscriptions" variant="secondary" size="lg">
+								Zu den Benachrichtigungen
 							</LinkButton>
 						</div>
 					</Card>

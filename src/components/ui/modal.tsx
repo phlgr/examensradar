@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "./button";
 
 const modalContentVariants = cva(
-	"relative w-full bg-nb-white border-4 border-nb-black shadow-[var(--nb-shadow)] max-h-[90vh] overflow-y-auto",
+	"relative w-full bg-nb-white border-4 border-nb-black shadow-[var(--nb-shadow)] max-h-[90vh] overflow-y-auto mx-2 sm:mx-0",
 	{
 		variants: {
 			size: {
@@ -53,22 +53,30 @@ export function Modal({
 
 	if (!open) return null;
 
+	const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
+		if (closeOnOverlayClick && e.target === e.currentTarget) {
+			onClose();
+		}
+	};
+
 	return (
 		<div
 			className="fixed inset-0 z-50 bg-nb-black/60 flex items-center justify-center p-4"
-			onClick={closeOnOverlayClick ? onClose : undefined}
+			onClick={handleOverlayClick}
+			onKeyDown={(e) => {
+				if (e.key === "Enter" || e.key === " ") {
+					handleOverlayClick(e as unknown as React.MouseEvent<HTMLDivElement>);
+				}
+			}}
 			role="dialog"
 			aria-modal="true"
 		>
-			<div
-				className={cn(modalContentVariants({ size }))}
-				onClick={(e) => e.stopPropagation()}
-			>
+			<div className={cn(modalContentVariants({ size }))}>
 				{showCloseButton && (
 					<Button
 						variant="icon"
 						size="icon"
-						className="absolute top-4 right-4 z-10"
+						className="absolute top-2 right-2 sm:top-4 sm:right-4 z-10"
 						onClick={onClose}
 						aria-label="Schließen"
 					>
@@ -85,7 +93,7 @@ export function ModalHeader({
 	className,
 	...props
 }: React.HTMLAttributes<HTMLDivElement>) {
-	return <div className={cn("p-6 pb-0", className)} {...props} />;
+	return <div className={cn("p-4 sm:p-6 pb-0", className)} {...props} />;
 }
 
 export function ModalTitle({
@@ -94,7 +102,7 @@ export function ModalTitle({
 }: React.HTMLAttributes<HTMLHeadingElement>) {
 	return (
 		<h2
-			className={cn("text-2xl font-black uppercase", className)}
+			className={cn("text-xl sm:text-2xl font-black uppercase", className)}
 			{...props}
 		/>
 	);
@@ -104,7 +112,7 @@ export function ModalBody({
 	className,
 	...props
 }: React.HTMLAttributes<HTMLDivElement>) {
-	return <div className={cn("p-6", className)} {...props} />;
+	return <div className={cn("p-4 sm:p-6", className)} {...props} />;
 }
 
 export function ModalFooter({
@@ -113,7 +121,7 @@ export function ModalFooter({
 }: React.HTMLAttributes<HTMLDivElement>) {
 	return (
 		<div
-			className={cn("p-6 pt-0 flex flex-col sm:flex-row gap-3", className)}
+			className={cn("p-4 sm:p-6 pt-0 flex flex-col sm:flex-row gap-2 sm:gap-3", className)}
 			{...props}
 		/>
 	);

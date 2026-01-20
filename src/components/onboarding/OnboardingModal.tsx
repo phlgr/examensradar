@@ -254,33 +254,33 @@ export function OnboardingModal({
 
 function StepDownload() {
 	return (
-		<div className="space-y-6">
-			<div className="flex items-start gap-4">
-				<div className="bg-nb-yellow p-3 border-4 border-nb-black shadow-[var(--nb-shadow-sm)] shrink-0">
-					<Download className="w-8 h-8" />
+		<div className="space-y-4 sm:space-y-6">
+			<div className="flex items-start gap-3 sm:gap-4">
+				<div className="bg-nb-yellow p-2 sm:p-3 border-3 sm:border-4 border-nb-black shadow-[var(--nb-shadow-sm)] shrink-0">
+					<Download className="w-6 h-6 sm:w-8 sm:h-8" />
 				</div>
-				<div>
-					<h3 className="text-lg font-black uppercase mb-2">
+				<div className="flex-1 min-w-0">
+					<h3 className="text-base sm:text-lg font-black uppercase mb-2">
 						1. ntfy App herunterladen
 					</h3>
-					<p className="font-medium">
+					<p className="font-medium text-sm sm:text-base">
 						Die ntfy App ist kostenlos und ermöglicht dir, Push-Benachrichtigungen
 						auf all deinen Geräten zu empfangen.
 					</p>
 				</div>
 			</div>
 
-			<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+			<div className="grid grid-cols-3 gap-2 sm:gap-4">
 				<a
 					href="https://play.google.com/store/apps/details?id=io.heckel.ntfy"
 					target="_blank"
 					rel="noopener noreferrer"
 					className="block"
 				>
-					<Card hover className="p-4 text-center">
-						<Smartphone className="w-8 h-8 mx-auto mb-2" />
-						<span className="font-bold text-sm uppercase">Android</span>
-						<ExternalLink className="w-4 h-4 mx-auto mt-2" />
+					<Card hover className="p-2 sm:p-4 text-center">
+						<Smartphone className="w-5 h-5 sm:w-8 sm:h-8 mx-auto mb-1 sm:mb-2" />
+						<span className="font-bold text-xs sm:text-sm uppercase block">Android</span>
+						<ExternalLink className="w-2.5 h-2.5 sm:w-4 sm:h-4 mx-auto mt-1 sm:mt-2" />
 					</Card>
 				</a>
 				<a
@@ -289,10 +289,10 @@ function StepDownload() {
 					rel="noopener noreferrer"
 					className="block"
 				>
-					<Card hover className="p-4 text-center">
-						<Smartphone className="w-8 h-8 mx-auto mb-2" />
-						<span className="font-bold text-sm uppercase">iOS</span>
-						<ExternalLink className="w-4 h-4 mx-auto mt-2" />
+					<Card hover className="p-2 sm:p-4 text-center">
+						<Smartphone className="w-5 h-5 sm:w-8 sm:h-8 mx-auto mb-1 sm:mb-2" />
+						<span className="font-bold text-xs sm:text-sm uppercase block">iOS</span>
+						<ExternalLink className="w-2.5 h-2.5 sm:w-4 sm:h-4 mx-auto mt-1 sm:mt-2" />
 					</Card>
 				</a>
 				<a
@@ -301,16 +301,16 @@ function StepDownload() {
 					rel="noopener noreferrer"
 					className="block"
 				>
-					<Card hover className="p-4 text-center">
-						<Smartphone className="w-8 h-8 mx-auto mb-2" />
-						<span className="font-bold text-sm uppercase">Web</span>
-						<ExternalLink className="w-4 h-4 mx-auto mt-2" />
+					<Card hover className="p-2 sm:p-4 text-center">
+						<Smartphone className="w-5 h-5 sm:w-8 sm:h-8 mx-auto mb-1 sm:mb-2" />
+						<span className="font-bold text-xs sm:text-sm uppercase block">Web</span>
+						<ExternalLink className="w-2.5 h-2.5 sm:w-4 sm:h-4 mx-auto mt-1 sm:mt-2" />
 					</Card>
 				</a>
 			</div>
 
-			<Card variant="muted" className="p-4">
-				<p className="text-sm font-medium">
+			<Card variant="muted" className="p-3 sm:p-4">
+				<p className="text-xs sm:text-sm font-medium">
 					<strong>Wichtig:</strong> Du musst die App auf jedem Gerät installieren,
 					auf dem du Benachrichtigungen erhalten möchtest.
 				</p>
@@ -331,56 +331,56 @@ function StepSubscribe({
 	jpaName?: string;
 }) {
 	return (
-		<div className="space-y-6">
-			<div className="flex items-start gap-4">
-				<div className="bg-nb-teal p-3 border-4 border-nb-black shadow-[var(--nb-shadow-sm)] shrink-0">
-					<Smartphone className="w-8 h-8" />
+		<div className="space-y-4 sm:space-y-6">
+			<div className="flex items-start gap-3 sm:gap-4">
+				<div className="bg-nb-teal p-2 sm:p-3 border-3 sm:border-4 border-nb-black shadow-[var(--nb-shadow-sm)] shrink-0">
+					<Smartphone className="w-6 h-6 sm:w-8 sm:h-8" />
 				</div>
-				<div>
-					<h3 className="text-lg font-black uppercase mb-2">
+				<div className="flex-1 min-w-0">
+					<h3 className="text-base sm:text-lg font-black uppercase mb-2">
 						{jpaName ? `Kanal für ${jpaName} abonnieren` : "Deinen Kanal abonnieren"}
 					</h3>
-					<p className="font-medium">
+					<p className="font-medium text-sm sm:text-base">
 						Öffne die ntfy App und abonniere deinen persönlichen Kanal.
 					</p>
 				</div>
 			</div>
 
-			<Card variant="primary" className="p-6">
-				<p className="text-sm font-bold uppercase mb-3">Dein ntfy Kanal:</p>
-				<div className="flex items-center gap-3">
-					<code className="flex-1 bg-nb-white px-4 py-3 border-3 border-nb-black font-bold text-lg break-all">
+			<Card variant="primary" className="p-4 sm:p-6">
+				<p className="text-xs sm:text-sm font-bold uppercase mb-3">Dein ntfy Kanal:</p>
+				<div className="flex items-center gap-2 sm:gap-3">
+					<code className="flex-1 bg-nb-white px-3 sm:px-4 py-2 sm:py-3 border-2 sm:border-3 border-nb-black font-bold text-sm sm:text-lg break-all">
 						{ntfyTopic}
 					</code>
-					<Button variant="icon" size="icon" onClick={onCopy} title="Kopieren">
-						{copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+					<Button variant="icon" size="icon" onClick={onCopy} title="Kopieren" className="shrink-0">
+						{copied ? <Check className="w-4 h-4 sm:w-5 sm:h-5" /> : <Copy className="w-4 h-4 sm:w-5 sm:h-5" />}
 					</Button>
 				</div>
 			</Card>
 
 			<div className="space-y-3">
-				<h4 className="font-black uppercase">So geht's:</h4>
-				<ol className="space-y-2 font-medium">
-					<li className="flex items-start gap-3">
-						<span className="bg-nb-yellow px-2 py-0.5 border-2 border-nb-black font-black text-sm shrink-0">
+				<h4 className="font-black uppercase text-sm sm:text-base">So geht's:</h4>
+				<ol className="space-y-2 font-medium text-sm sm:text-base">
+					<li className="flex items-start gap-2 sm:gap-3">
+						<span className="bg-nb-yellow px-2 py-0.5 border-2 border-nb-black font-black text-xs sm:text-sm shrink-0">
 							1
 						</span>
 						<span>Öffne die ntfy App</span>
 					</li>
-					<li className="flex items-start gap-3">
-						<span className="bg-nb-yellow px-2 py-0.5 border-2 border-nb-black font-black text-sm shrink-0">
+					<li className="flex items-start gap-2 sm:gap-3">
+						<span className="bg-nb-yellow px-2 py-0.5 border-2 border-nb-black font-black text-xs sm:text-sm shrink-0">
 							2
 						</span>
 						<span>Tippe auf das + Symbol</span>
 					</li>
-					<li className="flex items-start gap-3">
-						<span className="bg-nb-yellow px-2 py-0.5 border-2 border-nb-black font-black text-sm shrink-0">
+					<li className="flex items-start gap-2 sm:gap-3">
+						<span className="bg-nb-yellow px-2 py-0.5 border-2 border-nb-black font-black text-xs sm:text-sm shrink-0">
 							3
 						</span>
 						<span>Füge den kopierten Kanal-Namen ein</span>
 					</li>
-					<li className="flex items-start gap-3">
-						<span className="bg-nb-yellow px-2 py-0.5 border-2 border-nb-black font-black text-sm shrink-0">
+					<li className="flex items-start gap-2 sm:gap-3">
+						<span className="bg-nb-yellow px-2 py-0.5 border-2 border-nb-black font-black text-xs sm:text-sm shrink-0">
 							4
 						</span>
 						<span>Tippe auf "Subscribe"</span>
@@ -388,8 +388,8 @@ function StepSubscribe({
 				</ol>
 			</div>
 
-			<Card variant="accent" className="p-4">
-				<p className="text-sm font-medium">
+			<Card variant="accent" className="p-3 sm:p-4">
+				<p className="text-xs sm:text-sm font-medium">
 					<strong>Tipp:</strong> Wiederhole diesen Schritt auf jedem Gerät, auf dem
 					du Benachrichtigungen erhalten möchtest.
 				</p>
@@ -420,16 +420,16 @@ function StepTest({
 	hasSentCode: boolean;
 }) {
 	return (
-		<div className="space-y-6">
-			<div className="flex items-start gap-4">
-				<div className="bg-nb-coral p-3 border-4 border-nb-black shadow-[var(--nb-shadow-sm)] shrink-0">
-					<Send className="w-8 h-8" />
+		<div className="space-y-4 sm:space-y-6">
+			<div className="flex items-start gap-3 sm:gap-4">
+				<div className="bg-nb-coral p-2 sm:p-3 border-3 sm:border-4 border-nb-black shadow-[var(--nb-shadow-sm)] shrink-0">
+					<Send className="w-6 h-6 sm:w-8 sm:h-8" />
 				</div>
-				<div>
-					<h3 className="text-lg font-black uppercase mb-2">
+				<div className="flex-1 min-w-0">
+					<h3 className="text-base sm:text-lg font-black uppercase mb-2">
 						Einrichtung testen
 					</h3>
-					<p className="font-medium">
+					<p className="font-medium text-sm sm:text-base">
 						Lass uns prüfen, ob alles funktioniert. Wir senden dir eine
 						Testbenachrichtigung mit einem Code.
 					</p>
@@ -437,12 +437,14 @@ function StepTest({
 			</div>
 
 			{codeVerified ? (
-				<Card variant="success" className="p-6 text-center">
-					<div className="bg-nb-white w-16 h-16 border-4 border-nb-black mx-auto flex items-center justify-center mb-4">
-						<Check className="w-8 h-8" />
+				<Card variant="success" className="p-4 sm:p-6 text-center">
+					<div className="bg-nb-white w-12 h-12 sm:w-16 sm:h-16 border-3 sm:border-4 border-nb-black mx-auto flex items-center justify-center mb-3 sm:mb-4">
+						<Check className="w-6 h-6 sm:w-8 sm:h-8" />
 					</div>
-					<h4 className="font-black uppercase text-lg mb-2">Code bestätigt!</h4>
-					<p className="font-medium">
+					<h4 className="font-black uppercase text-base sm:text-lg mb-2">
+						Code bestätigt!
+					</h4>
+					<p className="font-medium text-sm sm:text-base">
 						Deine Push-Benachrichtigungen sind eingerichtet.
 					</p>
 				</Card>
@@ -453,21 +455,22 @@ function StepTest({
 							onClick={onSendTest}
 							disabled={isSending}
 							variant="default"
-							size="lg"
+							size="default"
+							className="w-full sm:w-auto"
 						>
 							{isSending ? (
 								<>
-									<Loader2 className="w-5 h-5 animate-spin" />
+									<Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
 									Sende...
 								</>
 							) : hasSentCode ? (
 								<>
-									<Send className="w-5 h-5" />
+									<Send className="w-4 h-4 sm:w-5 sm:h-5" />
 									Erneut senden
 								</>
 							) : (
 								<>
-									<Send className="w-5 h-5" />
+									<Send className="w-4 h-4 sm:w-5 sm:h-5" />
 									Test-Benachrichtigung senden
 								</>
 							)}
@@ -476,7 +479,7 @@ function StepTest({
 
 					{hasSentCode && (
 						<div className="space-y-4">
-							<p className="text-center font-medium">
+							<p className="text-center font-medium text-sm sm:text-base">
 								Gib den 6-stelligen Code aus deiner Push-Benachrichtigung ein:
 							</p>
 							<CodeInput
@@ -486,7 +489,7 @@ function StepTest({
 								disabled={isVerifying}
 							/>
 							{codeError && (
-								<p className="text-center text-sm font-bold text-nb-coral">
+								<p className="text-center text-xs sm:text-sm font-bold text-nb-coral">
 									Ungültiger oder abgelaufener Code. Bitte versuche es erneut.
 								</p>
 							)}
@@ -495,6 +498,7 @@ function StepTest({
 									onClick={onVerify}
 									disabled={verificationCode.length !== 6 || isVerifying}
 									variant="success"
+									className="w-full sm:w-auto"
 								>
 									{isVerifying ? (
 										<>
@@ -511,8 +515,8 @@ function StepTest({
 				</>
 			)}
 
-			<Card variant="muted" className="p-4">
-				<p className="text-sm font-medium">
+			<Card variant="muted" className="p-3 sm:p-4">
+				<p className="text-xs sm:text-sm font-medium">
 					<strong>Keine Benachrichtigung erhalten?</strong> Stelle sicher, dass du
 					den Kanal in der ntfy App abonniert hast und Benachrichtigungen
 					aktiviert sind.
@@ -530,24 +534,24 @@ function StepComplete({
 	jpaName?: string;
 }) {
 	return (
-		<div className="text-center space-y-6">
-			<div className="bg-nb-mint w-20 h-20 border-4 border-nb-black shadow-[var(--nb-shadow)] mx-auto flex items-center justify-center">
-				<Check className="w-10 h-10" />
+		<div className="text-center space-y-4 sm:space-y-6">
+			<div className="bg-nb-mint w-16 h-16 sm:w-20 sm:h-20 border-3 sm:border-4 border-nb-black shadow-[var(--nb-shadow)] mx-auto flex items-center justify-center">
+				<Check className="w-8 h-8 sm:w-10 sm:h-10" />
 			</div>
 			<div>
-				<h3 className="text-2xl font-black uppercase mb-2">
+				<h3 className="text-xl sm:text-2xl font-black uppercase mb-2">
 					{isFirstSubscription ? "Alles eingerichtet!" : "Abonnement aktiv!"}
 				</h3>
-				<p className="font-medium max-w-md mx-auto">
+				<p className="font-medium text-sm sm:text-base max-w-md mx-auto px-2">
 					{isFirstSubscription
 						? "Du erhältst jetzt Push-Benachrichtigungen, sobald neue Examensergebnisse veröffentlicht werden."
 						: `Du erhältst jetzt Benachrichtigungen für ${jpaName || "dieses JPA"}.`}
 				</p>
 			</div>
-			<Card variant="muted" className="p-4 text-left">
-				<p className="text-sm font-medium">
-					<strong>Hinweis:</strong> Du kannst deine ntfy Kanäle jederzeit im
-					Dashboard einsehen und auf weiteren Geräten einrichten.
+			<Card variant="muted" className="p-3 sm:p-4 text-left">
+				<p className="text-xs sm:text-sm font-medium">
+					<strong>Hinweis:</strong> Du kannst deine ntfy Kanäle jederzeit unter
+					Benachrichtigungen einsehen und auf weiteren Geräten einrichten.
 				</p>
 			</Card>
 		</div>

@@ -13,14 +13,14 @@ function LoginPage() {
 
 	useEffect(() => {
 		if (session?.user) {
-			navigate({ to: "/dashboard" });
+			navigate({ to: "/subscriptions" });
 		}
 	}, [session, navigate]);
 
 	const handleGoogleLogin = async () => {
 		await authClient.signIn.social({
 			provider: "google",
-			callbackURL: "/dashboard",
+			callbackURL: "/subscriptions",
 		});
 	};
 
