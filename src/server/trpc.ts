@@ -16,7 +16,7 @@ export async function createContext(
 ): Promise<Context> {
 	const { req } = opts;
 	// Get D1 from context - pass the context from TanStack Router
-	const d1 = await getD1((opts as any).context);
+	const d1 = await getD1(opts.context);
 
 	// Validate required environment variables
 	if (!process.env.BETTER_AUTH_SECRET) {

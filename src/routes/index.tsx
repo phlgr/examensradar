@@ -1,6 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { Bell, Smartphone, Zap } from "lucide-react";
-import { Card, CardContent, LinkButton } from "@/components/ui";
+import { Card, CardContent } from "@/components/ui/card";
+import { LinkButton } from "@/components/ui/link-button";
 
 export const Route = createFileRoute("/")({ component: LandingPage });
 
@@ -111,20 +112,6 @@ function LandingPage() {
 					<p className="font-bold">
 						&copy; {new Date().getFullYear()} EXAMENSRADAR
 					</p>
-					<div className="flex gap-6 font-bold">
-						<Link
-							to="/impressum"
-							className="hover:text-nb-yellow transition-colors uppercase cursor-pointer"
-						>
-							Impressum
-						</Link>
-						<Link
-							to="/datenschutz"
-							className="hover:text-nb-yellow transition-colors uppercase cursor-pointer"
-						>
-							Datenschutz
-						</Link>
-					</div>
 				</div>
 			</footer>
 		</div>

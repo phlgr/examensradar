@@ -8,8 +8,7 @@ async function handleTRPC(request: Request, routerContext: unknown) {
 		endpoint: "/api/trpc",
 		req: request,
 		router: appRouter,
-		createContext: (opts) =>
-			createContext({ ...opts, context: routerContext } as any),
+		createContext: (opts) => createContext({ ...opts, context: routerContext }),
 	});
 }
 
