@@ -1,4 +1,6 @@
+import { TanStackDevtools } from "@tanstack/react-devtools";
 import { createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
+import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { TRPCProvider } from "@/lib/trpc-provider";
 import Header from "../components/Header";
 
@@ -51,6 +53,17 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 					{children}
 				</TRPCProvider>
 				<Scripts />
+				<TanStackDevtools
+					config={{
+						position: "bottom-right",
+					}}
+					plugins={[
+						{
+							name: "Tanstack Router",
+							render: <TanStackRouterDevtoolsPanel />,
+						},
+					]}
+				/>
 			</body>
 		</html>
 	);
