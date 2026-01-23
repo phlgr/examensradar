@@ -4,10 +4,9 @@ import { drizzle } from "drizzle-orm/bun-sqlite";
 import { nanoid } from "nanoid";
 import * as schema from "./schema.ts";
 
-export type User = typeof schema.user.$inferSelect;
-export type JPA = typeof schema.jpa.$inferSelect;
-export type Subscription = typeof schema.subscription.$inferSelect;
-export type NotificationLog = typeof schema.notificationLog.$inferSelect;
+type User = typeof schema.user.$inferSelect;
+type JPA = typeof schema.jpa.$inferSelect;
+type Subscription = typeof schema.subscription.$inferSelect;
 
 const DATABASE_PATH = process.env.DATABASE_PATH || "./data/examensradar.db";
 
@@ -128,24 +127,6 @@ export const completeSubscriptionSetup = async (
 				eq(schema.subscription.userId, userId),
 			),
 		);
-};
-
-export const getSubscriptionById = async (
-	id: string,
-	userId: string,
-): Promise<Subscription | null> => {
-	return (
-		(await db
-			.select()
-			.from(schema.subscription)
-			.where(
-				and(
-					eq(schema.subscription.id, id),
-					eq(schema.subscription.userId, userId),
-				),
-			)
-			.get()) || null
-	);
 };
 
 export const deleteUser = async (userId: string): Promise<void> => {

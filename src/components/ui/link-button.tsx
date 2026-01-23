@@ -3,7 +3,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 import { type ButtonProps, buttonVariants } from "./button";
 
-export interface LinkButtonProps
+interface LinkButtonProps
 	extends Omit<LinkProps, "className">,
 		Pick<ButtonProps, "variant" | "size"> {
 	className?: string;

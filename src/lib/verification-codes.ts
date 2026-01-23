@@ -72,9 +72,3 @@ export function verifyCode(
 	verificationCodes.delete(userId);
 	return { valid: true, ntfyTopic: stored.ntfyTopic };
 }
-
-export function hasActiveCode(userId: string): boolean {
-	cleanupExpired();
-	const stored = verificationCodes.get(userId);
-	return !!stored && stored.expiresAt > Date.now();
-}
