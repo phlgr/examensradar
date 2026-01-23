@@ -17,7 +17,7 @@ export async function sendNtfyNotification(
 		};
 
 		if (notification.click) {
-			headers["Click"] = notification.click;
+			headers.Click = notification.click;
 		}
 
 		const response = await fetch(`${baseUrl}/${notification.topic}`, {

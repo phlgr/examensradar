@@ -63,6 +63,7 @@ export function CodeInput({
 		<div className={cn("flex gap-2 justify-center", className)}>
 			{Array.from({ length }).map((_, index) => (
 				<input
+					// biome-ignore lint/suspicious/noArrayIndexKey: array index key
 					key={index}
 					ref={(el) => {
 						inputRefs.current[index] = el;
