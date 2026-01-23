@@ -1,6 +1,6 @@
-import { env } from "cloudflare:workers";
+import { Database } from "bun:sqlite";
 import { and, eq } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/d1";
+import { drizzle } from "drizzle-orm/bun-sqlite";
 import { nanoid } from "nanoid";
 import * as schema from "./schema.ts";
 
@@ -9,7 +9,12 @@ export type JPA = typeof schema.jpa.$inferSelect;
 export type Subscription = typeof schema.subscription.$inferSelect;
 export type NotificationLog = typeof schema.notificationLog.$inferSelect;
 
-export const db = drizzle(env.DB, { schema });
+const DATABASE_PATH = process.env.DATABASE_PATH || "./data/examensradar.db";
+
+const sqlite = new Database(DATABASE_PATH);
+sqlite.run("PRAGMA journal_mode = WAL");
+
+export const db = drizzle(sqlite, { schema });
 
 export const getJpas = async (): Promise<JPA[]> => {
 	return db.select().from(schema.jpa).all();
