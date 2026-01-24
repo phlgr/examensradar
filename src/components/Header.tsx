@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { LogOut, Radar, Settings, User } from "lucide-react";
+import { LogOut, Radar, Settings, Shield, User } from "lucide-react";
 import { useState } from "react";
 import { Button, LinkButton } from "@/components/ui";
 import { authClient } from "@/lib/auth-client";
@@ -77,6 +77,19 @@ export default function Header() {
 										<Settings className="w-4 h-4 shrink-0" />
 										<span>Konto</span>
 									</Link>
+									{session.user.role === "admin" && (
+										<>
+											<div className="border-t-2 border-nb-black" />
+											<Link
+												to="/admin"
+												onClick={() => setIsMenuOpen(false)}
+												className="w-full flex items-center gap-3 px-4 py-3 font-bold text-sm hover:bg-nb-yellow transition-colors cursor-pointer"
+											>
+												<Shield className="w-4 h-4 shrink-0" />
+												<span>Admin</span>
+											</Link>
+										</>
+									)}
 									<div className="border-t-2 border-nb-black" />
 									<button
 										type="button"

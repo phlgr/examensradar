@@ -77,3 +77,15 @@ export const protectedProcedure = t.procedure.use(async ({ ctx, next }) => {
 		},
 	});
 });
+
+// Admin procedure that requires admin role
+export const adminProcedure = protectedProcedure.use(async ({ ctx, next }) => {
+	if (ctx.user.role !== "admin") {
+		throw new TRPCError({
+			code: "FORBIDDEN",
+			message: "Admin access required",
+		});
+	}
+
+	return next({ ctx });
+});

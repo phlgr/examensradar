@@ -28,6 +28,42 @@ export const getJpaBySlug = async (slug: string): Promise<JPA | null> => {
 	return result || null;
 };
 
+export const getJpaById = async (id: string): Promise<JPA | null> => {
+	const result = await db
+		.select()
+		.from(schema.jpa)
+		.where(eq(schema.jpa.id, id))
+		.get();
+	return result || null;
+};
+
+export const createJpa = async (data: {
+	name: string;
+	slug: string;
+	websiteUrl?: string | null;
+}): Promise<JPA> => {
+	const jpa = {
+		id: nanoid(),
+		name: data.name,
+		slug: data.slug,
+		websiteUrl: data.websiteUrl ?? null,
+		createdAt: new Date(),
+	};
+	await db.insert(schema.jpa).values(jpa);
+	return jpa;
+};
+
+export const updateJpa = async (
+	id: string,
+	data: { name?: string; slug?: string; websiteUrl?: string | null },
+): Promise<void> => {
+	await db.update(schema.jpa).set(data).where(eq(schema.jpa.id, id));
+};
+
+export const deleteJpa = async (id: string): Promise<void> => {
+	await db.delete(schema.jpa).where(eq(schema.jpa.id, id));
+};
+
 export const getUserSubscriptions = async (
 	userId: string,
 ): Promise<Subscription[]> => {
