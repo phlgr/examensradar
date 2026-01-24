@@ -9,9 +9,16 @@ export interface AuthEnv {
 	BETTER_AUTH_URL: string;
 	GOOGLE_CLIENT_ID: string;
 	GOOGLE_CLIENT_SECRET: string;
+	ADMIN_USER_IDS?: string;
 }
 
 export function createAuth(env: AuthEnv) {
+	// Parse admin user IDs from environment (comma-separated)
+	const adminUserIds =
+		env.ADMIN_USER_IDS?.split(",")
+			.map((id) => id.trim())
+			.filter(Boolean) ?? [];
+
 	return betterAuth({
 		database: drizzleAdapter(db, {
 			provider: "sqlite",
@@ -22,7 +29,12 @@ export function createAuth(env: AuthEnv) {
 				verification: schema.verification,
 			},
 		}),
-		plugins: [haveIBeenPwned(), admin()],
+		plugins: [
+			haveIBeenPwned(),
+			admin({
+				adminUserIds,
+			}),
+		],
 		emailAndPassword: {
 			enabled: true,
 		},

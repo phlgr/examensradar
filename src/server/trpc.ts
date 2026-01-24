@@ -30,6 +30,7 @@ export async function createContext(
 		BETTER_AUTH_URL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
 		GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
 		GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+		ADMIN_USER_IDS: process.env.ADMIN_USER_IDS,
 	};
 
 	const auth = createAuth(env);
@@ -79,8 +80,19 @@ export const protectedProcedure = t.procedure.use(async ({ ctx, next }) => {
 });
 
 // Admin procedure that requires admin role
+// Uses better-auth's permission system for secure server-side validation
 export const adminProcedure = protectedProcedure.use(async ({ ctx, next }) => {
-	if (ctx.user.role !== "admin") {
+	// Check if user has admin permissions using better-auth's API
+	const hasPermission = await ctx.auth.api.userHasPermission({
+		body: {
+			userId: ctx.user.id,
+			permission: {
+				user: ["list"],
+			},
+		},
+	});
+
+	if (!hasPermission.success) {
 		throw new TRPCError({
 			code: "FORBIDDEN",
 			message: "Admin access required",
