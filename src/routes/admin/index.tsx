@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Edit2, Plus, Trash2 } from "lucide-react";
+import { Edit2, Plus, Trash2, Users } from "lucide-react";
 import { useEffect, useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -17,6 +17,7 @@ function AdminPage() {
 	const [showCreateForm, setShowCreateForm] = useState(false);
 
 	const jpasQuery = trpc.jpa.getAll.useQuery();
+	const subscriptionCountsQuery = trpc.jpa.getSubscriptionCounts.useQuery();
 
 	const createJpa = trpc.jpa.create.useMutation({
 		onSuccess: () => {
@@ -60,6 +61,7 @@ function AdminPage() {
 	}
 
 	const jpas = jpasQuery.data ?? [];
+	const subscriptionCounts = subscriptionCountsQuery.data ?? {};
 
 	return (
 		<div className="min-h-screen py-4 sm:py-8 px-4 bg-nb-cream">
@@ -106,9 +108,15 @@ function AdminPage() {
 								<Card key={jpa.id} className="p-4 sm:p-6">
 									<div className="flex items-start justify-between gap-4">
 										<div className="flex-1 min-w-0">
-											<h3 className="text-lg font-black uppercase mb-1">
-												{jpa.name}
-											</h3>
+											<div className="flex items-center gap-3 mb-1">
+												<h3 className="text-lg font-black uppercase">
+													{jpa.name}
+												</h3>
+												<div className="flex items-center gap-1 px-2 py-0.5 bg-nb-yellow border-2 border-nb-black text-xs font-bold">
+													<Users className="w-3 h-3" />
+													{subscriptionCounts[jpa.id] ?? 0}
+												</div>
+											</div>
 											<p className="text-sm font-medium text-nb-black/60 mb-1">
 												Slug: {jpa.slug}
 											</p>

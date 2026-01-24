@@ -5,6 +5,7 @@ import {
 	getJpaById,
 	getJpaBySlug,
 	getJpas,
+	getSubscriptionCountsByJpa,
 	updateJpa,
 } from "@/db";
 import { adminProcedure, publicProcedure, router } from "../trpc";
@@ -59,4 +60,9 @@ export const jpaRouter = router({
 			await deleteJpa(input.id);
 			return { success: true };
 		}),
+
+	getSubscriptionCounts: adminProcedure.query(async () => {
+		const counts = await getSubscriptionCountsByJpa();
+		return Object.fromEntries(counts);
+	}),
 });

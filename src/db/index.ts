@@ -84,6 +84,17 @@ export const getSubscriptionsByJpa = async (
 		.all();
 };
 
+export const getSubscriptionCountsByJpa = async (): Promise<
+	Map<string, number>
+> => {
+	const subscriptions = await db.select().from(schema.subscription).all();
+	const counts = new Map<string, number>();
+	for (const sub of subscriptions) {
+		counts.set(sub.jpaId, (counts.get(sub.jpaId) ?? 0) + 1);
+	}
+	return counts;
+};
+
 export const createSubscription = async (
 	userId: string,
 	jpaId: string,
