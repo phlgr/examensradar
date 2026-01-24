@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useId, useState } from "react";
 import { Button, Card } from "@/components/ui";
 import { authClient } from "@/lib/auth-client";
 
@@ -10,18 +10,66 @@ export const Route = createFileRoute("/auth/login")({
 function LoginPage() {
 	const navigate = useNavigate();
 	const { data: session, isPending } = authClient.useSession();
+	const id = useId();
+	const nameId = `${id}-name`;
+	const emailId = `${id}-email`;
+	const passwordId = `${id}-password`;
+	const confirmPasswordId = `${id}-confirm-password`;
+	const [name, setName] = useState("");
+	const [email, setEmail] = useState("");
+	const [password, setPassword] = useState("");
+	const [confirmPassword, setConfirmPassword] = useState("");
+	const [error, setError] = useState<string | null>(null);
+	const [isLoading, setIsLoading] = useState(false);
+	const [isRegister, setIsRegister] = useState(false);
 
-	useEffect(() => {
-		if (session?.user) {
-			navigate({ to: "/subscriptions" });
-		}
-	}, [session, navigate]);
+	if (session?.user) {
+		navigate({ to: "/subscriptions" });
+		return null;
+	}
 
 	const handleGoogleLogin = async () => {
 		await authClient.signIn.social({
 			provider: "google",
 			callbackURL: "/subscriptions",
 		});
+	};
+
+	const handleEmailSubmit = async (e: React.FormEvent) => {
+		e.preventDefault();
+		setError(null);
+		setIsLoading(true);
+
+		if (isRegister) {
+			if (password !== confirmPassword) {
+				setError("Passwörter stimmen nicht überein");
+				setIsLoading(false);
+				return;
+			}
+
+			const { error } = await authClient.signUp.email({
+				email,
+				password,
+				name,
+				callbackURL: "/subscriptions",
+			});
+
+			if (error) {
+				setError(error.message ?? "Registrierung fehlgeschlagen");
+				setIsLoading(false);
+			}
+		} else {
+			const { error } = await authClient.signIn.email({
+				email,
+				password,
+				callbackURL: "/subscriptions",
+			});
+
+			if (error) {
+				setError(error.message ?? "Anmeldung fehlgeschlagen");
+				setIsLoading(false);
+			}
+		}
 	};
 
 	return (
@@ -34,10 +82,118 @@ function LoginPage() {
 					</p>
 				</div>
 
+				<form onSubmit={handleEmailSubmit} className="space-y-4 mb-6">
+					{isRegister && (
+						<div>
+							<label htmlFor={nameId} className="block text-sm font-bold mb-1">
+								Name
+							</label>
+							<input
+								id={nameId}
+								type="text"
+								value={name}
+								onChange={(e) => setName(e.target.value)}
+								required
+								className="w-full px-4 py-2 border-2 border-black font-medium focus:outline-none focus:ring-2 focus:ring-nb-coral"
+								placeholder="Max Mustermann"
+							/>
+						</div>
+					)}
+					<div>
+						<label htmlFor={emailId} className="block text-sm font-bold mb-1">
+							E-Mail
+						</label>
+						<input
+							id={emailId}
+							type="email"
+							value={email}
+							onChange={(e) => setEmail(e.target.value)}
+							required
+							className="w-full px-4 py-2 border-2 border-black font-medium focus:outline-none focus:ring-2 focus:ring-nb-coral"
+							placeholder="deine@email.de"
+						/>
+					</div>
+					<div>
+						<label
+							htmlFor={passwordId}
+							className="block text-sm font-bold mb-1"
+						>
+							Passwort
+						</label>
+						<input
+							id={passwordId}
+							type="password"
+							value={password}
+							onChange={(e) => setPassword(e.target.value)}
+							required
+							className="w-full px-4 py-2 border-2 border-black font-medium focus:outline-none focus:ring-2 focus:ring-nb-coral"
+							placeholder="••••••••"
+						/>
+					</div>
+					{isRegister && (
+						<div>
+							<label
+								htmlFor={confirmPasswordId}
+								className="block text-sm font-bold mb-1"
+							>
+								Passwort bestätigen
+							</label>
+							<input
+								id={confirmPasswordId}
+								type="password"
+								value={confirmPassword}
+								onChange={(e) => setConfirmPassword(e.target.value)}
+								required
+								className="w-full px-4 py-2 border-2 border-black font-medium focus:outline-none focus:ring-2 focus:ring-nb-coral"
+								placeholder="••••••••"
+							/>
+						</div>
+					)}
+
+					{error && <p className="text-sm font-medium text-red-600">{error}</p>}
+
+					<Button
+						type="submit"
+						disabled={isPending || isLoading}
+						className="w-full"
+					>
+						{isLoading
+							? isRegister
+								? "Wird registriert..."
+								: "Wird angemeldet..."
+							: isRegister
+								? "Registrieren"
+								: "Anmelden"}
+					</Button>
+
+					<p className="text-center text-sm font-medium">
+						{isRegister ? "Bereits ein Konto?" : "Noch kein Konto?"}{" "}
+						<button
+							type="button"
+							onClick={() => {
+								setIsRegister(!isRegister);
+								setError(null);
+							}}
+							className="underline decoration-2 decoration-nb-coral hover:bg-nb-coral transition-colors cursor-pointer"
+						>
+							{isRegister ? "Anmelden" : "Registrieren"}
+						</button>
+					</p>
+				</form>
+
+				<div className="relative mb-6">
+					<div className="absolute inset-0 flex items-center">
+						<div className="w-full border-t-2 border-black" />
+					</div>
+					<div className="relative flex justify-center text-sm">
+						<span className="px-2 bg-white font-bold">oder</span>
+					</div>
+				</div>
+
 				<Button
 					type="button"
 					onClick={handleGoogleLogin}
-					disabled={isPending}
+					disabled={isPending || isLoading}
 					className="w-full"
 				>
 					<svg

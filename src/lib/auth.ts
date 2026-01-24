@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { admin, haveIBeenPwned } from "better-auth/plugins";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
 
@@ -14,11 +15,6 @@ export function createAuth(env: AuthEnv) {
 	return betterAuth({
 		database: drizzleAdapter(db, {
 			provider: "sqlite",
-			// Our schema uses camelCase properties in TypeScript
-			// but snake_case columns in the database
-			// Drizzle handles the mapping, but we tell Better Auth
-			// to use camelCase when accessing the Drizzle schema
-			camelCase: true,
 			schema: {
 				user: schema.user,
 				session: schema.session,
@@ -26,6 +22,10 @@ export function createAuth(env: AuthEnv) {
 				verification: schema.verification,
 			},
 		}),
+		plugins: [haveIBeenPwned(), admin()],
+		emailAndPassword: {
+			enabled: true,
+		},
 		socialProviders: {
 			google: {
 				clientId: env.GOOGLE_CLIENT_ID,

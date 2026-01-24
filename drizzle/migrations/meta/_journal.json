@@ -22,6 +22,13 @@
       "when": 1768901610785,
       "tag": "0002_lucky_red_skull",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1769261249981,
+      "tag": "0003_sharp_veda",
+      "breakpoints": true
     }
   ]
 }
