@@ -6,7 +6,7 @@
     "dev": "bunx --bun vite dev --port 3000",
     "build": "bunx --bun vite build",
     "start": "bun .output/server/index.mjs",
-    "prepare": "lefthook install",
+    "prepare": "[ -d .git ] && lefthook install || true",
     "lint": "bun run lint:types && bun run lint:fix",
     "lint:types": "tsgo",
     "lint:fix": "biome check --fix --no-errors-on-unmatched",
