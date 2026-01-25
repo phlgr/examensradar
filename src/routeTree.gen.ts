@@ -12,11 +12,12 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SubscriptionsIndexRouteImport } from './routes/subscriptions/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
-import { Route as AccountIndexRouteImport } from './routes/account/index'
-import { Route as AuthLoginRouteImport } from './routes/auth/login'
+import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as ApiWebhookResultsRouteImport } from './routes/api/webhook/results'
 import { Route as ApiTrpcSplatRouteImport } from './routes/api/trpc/$'
-import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ApiAdminLogoutRouteImport } from './routes/api/admin/logout'
+import { Route as ApiAdminLoginRouteImport } from './routes/api/admin/login'
+import { Route as ApiAdminCheckRouteImport } from './routes/api/admin/check'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -33,14 +34,9 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/admin/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AccountIndexRoute = AccountIndexRouteImport.update({
-  id: '/account/',
-  path: '/account/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthLoginRoute = AuthLoginRouteImport.update({
-  id: '/auth/login',
-  path: '/auth/login',
+const AdminLoginRoute = AdminLoginRouteImport.update({
+  id: '/admin/login',
+  path: '/admin/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiWebhookResultsRoute = ApiWebhookResultsRouteImport.update({
@@ -53,40 +49,53 @@ const ApiTrpcSplatRoute = ApiTrpcSplatRouteImport.update({
   path: '/api/trpc/$',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
-  id: '/api/auth/$',
-  path: '/api/auth/$',
+const ApiAdminLogoutRoute = ApiAdminLogoutRouteImport.update({
+  id: '/api/admin/logout',
+  path: '/api/admin/logout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminLoginRoute = ApiAdminLoginRouteImport.update({
+  id: '/api/admin/login',
+  path: '/api/admin/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminCheckRoute = ApiAdminCheckRouteImport.update({
+  id: '/api/admin/check',
+  path: '/api/admin/check',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/auth/login': typeof AuthLoginRoute
-  '/account/': typeof AccountIndexRoute
+  '/admin/login': typeof AdminLoginRoute
   '/admin/': typeof AdminIndexRoute
   '/subscriptions/': typeof SubscriptionsIndexRoute
-  '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/admin/check': typeof ApiAdminCheckRoute
+  '/api/admin/login': typeof ApiAdminLoginRoute
+  '/api/admin/logout': typeof ApiAdminLogoutRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/api/webhook/results': typeof ApiWebhookResultsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/auth/login': typeof AuthLoginRoute
-  '/account': typeof AccountIndexRoute
+  '/admin/login': typeof AdminLoginRoute
   '/admin': typeof AdminIndexRoute
   '/subscriptions': typeof SubscriptionsIndexRoute
-  '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/admin/check': typeof ApiAdminCheckRoute
+  '/api/admin/login': typeof ApiAdminLoginRoute
+  '/api/admin/logout': typeof ApiAdminLogoutRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/api/webhook/results': typeof ApiWebhookResultsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/auth/login': typeof AuthLoginRoute
-  '/account/': typeof AccountIndexRoute
+  '/admin/login': typeof AdminLoginRoute
   '/admin/': typeof AdminIndexRoute
   '/subscriptions/': typeof SubscriptionsIndexRoute
-  '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/admin/check': typeof ApiAdminCheckRoute
+  '/api/admin/login': typeof ApiAdminLoginRoute
+  '/api/admin/logout': typeof ApiAdminLogoutRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/api/webhook/results': typeof ApiWebhookResultsRoute
 }
@@ -94,42 +103,46 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/auth/login'
-    | '/account/'
+    | '/admin/login'
     | '/admin/'
     | '/subscriptions/'
-    | '/api/auth/$'
+    | '/api/admin/check'
+    | '/api/admin/login'
+    | '/api/admin/logout'
     | '/api/trpc/$'
     | '/api/webhook/results'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/auth/login'
-    | '/account'
+    | '/admin/login'
     | '/admin'
     | '/subscriptions'
-    | '/api/auth/$'
+    | '/api/admin/check'
+    | '/api/admin/login'
+    | '/api/admin/logout'
     | '/api/trpc/$'
     | '/api/webhook/results'
   id:
     | '__root__'
     | '/'
-    | '/auth/login'
-    | '/account/'
+    | '/admin/login'
     | '/admin/'
     | '/subscriptions/'
-    | '/api/auth/$'
+    | '/api/admin/check'
+    | '/api/admin/login'
+    | '/api/admin/logout'
     | '/api/trpc/$'
     | '/api/webhook/results'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AuthLoginRoute: typeof AuthLoginRoute
-  AccountIndexRoute: typeof AccountIndexRoute
+  AdminLoginRoute: typeof AdminLoginRoute
   AdminIndexRoute: typeof AdminIndexRoute
   SubscriptionsIndexRoute: typeof SubscriptionsIndexRoute
-  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiAdminCheckRoute: typeof ApiAdminCheckRoute
+  ApiAdminLoginRoute: typeof ApiAdminLoginRoute
+  ApiAdminLogoutRoute: typeof ApiAdminLogoutRoute
   ApiTrpcSplatRoute: typeof ApiTrpcSplatRoute
   ApiWebhookResultsRoute: typeof ApiWebhookResultsRoute
 }
@@ -157,18 +170,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/account/': {
-      id: '/account/'
-      path: '/account'
-      fullPath: '/account/'
-      preLoaderRoute: typeof AccountIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth/login': {
-      id: '/auth/login'
-      path: '/auth/login'
-      fullPath: '/auth/login'
-      preLoaderRoute: typeof AuthLoginRouteImport
+    '/admin/login': {
+      id: '/admin/login'
+      path: '/admin/login'
+      fullPath: '/admin/login'
+      preLoaderRoute: typeof AdminLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/webhook/results': {
@@ -185,11 +191,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiTrpcSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/auth/$': {
-      id: '/api/auth/$'
-      path: '/api/auth/$'
-      fullPath: '/api/auth/$'
-      preLoaderRoute: typeof ApiAuthSplatRouteImport
+    '/api/admin/logout': {
+      id: '/api/admin/logout'
+      path: '/api/admin/logout'
+      fullPath: '/api/admin/logout'
+      preLoaderRoute: typeof ApiAdminLogoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/login': {
+      id: '/api/admin/login'
+      path: '/api/admin/login'
+      fullPath: '/api/admin/login'
+      preLoaderRoute: typeof ApiAdminLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/check': {
+      id: '/api/admin/check'
+      path: '/api/admin/check'
+      fullPath: '/api/admin/check'
+      preLoaderRoute: typeof ApiAdminCheckRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -197,11 +217,12 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AuthLoginRoute: AuthLoginRoute,
-  AccountIndexRoute: AccountIndexRoute,
+  AdminLoginRoute: AdminLoginRoute,
   AdminIndexRoute: AdminIndexRoute,
   SubscriptionsIndexRoute: SubscriptionsIndexRoute,
-  ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiAdminCheckRoute: ApiAdminCheckRoute,
+  ApiAdminLoginRoute: ApiAdminLoginRoute,
+  ApiAdminLogoutRoute: ApiAdminLogoutRoute,
   ApiTrpcSplatRoute: ApiTrpcSplatRoute,
   ApiWebhookResultsRoute: ApiWebhookResultsRoute,
 }

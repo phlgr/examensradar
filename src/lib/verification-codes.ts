@@ -17,21 +17,21 @@ function generateCode(): string {
 
 function cleanupExpired(): void {
 	const now = Date.now();
-	for (const [userId, stored] of verificationCodes) {
+	for (const [deviceId, stored] of verificationCodes) {
 		if (stored.expiresAt < now) {
-			verificationCodes.delete(userId);
+			verificationCodes.delete(deviceId);
 		}
 	}
 }
 
 export function createVerificationCode(
-	userId: string,
+	deviceId: string,
 	ntfyTopic: string,
 ): string {
 	cleanupExpired();
 
 	// Check if there's an existing valid code
-	const existing = verificationCodes.get(userId);
+	const existing = verificationCodes.get(deviceId);
 	if (existing && existing.expiresAt > Date.now()) {
 		// Reuse the same code
 		return existing.code;
@@ -39,7 +39,7 @@ export function createVerificationCode(
 
 	// Generate new code if none exists or expired
 	const code = generateCode();
-	verificationCodes.set(userId, {
+	verificationCodes.set(deviceId, {
 		code,
 		ntfyTopic,
 		expiresAt: Date.now() + CODE_TTL_MS,
@@ -49,18 +49,18 @@ export function createVerificationCode(
 }
 
 export function verifyCode(
-	userId: string,
+	deviceId: string,
 	code: string,
 ): { valid: boolean; ntfyTopic?: string } {
 	cleanupExpired();
 
-	const stored = verificationCodes.get(userId);
+	const stored = verificationCodes.get(deviceId);
 	if (!stored) {
 		return { valid: false };
 	}
 
 	if (stored.expiresAt < Date.now()) {
-		verificationCodes.delete(userId);
+		verificationCodes.delete(deviceId);
 		return { valid: false };
 	}
 
@@ -69,6 +69,6 @@ export function verifyCode(
 	}
 
 	// Code is valid - delete it so it can't be reused
-	verificationCodes.delete(userId);
+	verificationCodes.delete(deviceId);
 	return { valid: true, ntfyTopic: stored.ntfyTopic };
 }

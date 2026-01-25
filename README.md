@@ -9,6 +9,7 @@ Push notifications for exam results from German judicial examination offices (Ju
 - Subscribe to notifications for any JPA (Justizprüfungsamt)
 - Push notifications via [ntfy](https://ntfy.sh) to all your devices
 - No app installation required - works with the ntfy app or in the browser
+- No account needed - anonymous device IDs with recovery via ntfy
 - Admin dashboard for managing JPAs with webhook documentation
 
 ## Tech Stack
@@ -16,7 +17,6 @@ Push notifications for exam results from German judicial examination offices (Ju
 - **Frontend**: React 19 + TanStack Start
 - **API**: tRPC + React Query
 - **Database**: Bun SQLite + Drizzle ORM
-- **Auth**: Better Auth with Google OAuth
 - **Styling**: Tailwind CSS v4 (Neobrutalism theme)
 - **Runtime**: Bun
 - **Deployment**: Railpack + Dokploy
@@ -41,14 +41,9 @@ Copy `.env.example` to `.env.local` and fill in your values:
 cp .env.example .env.local
 ```
 
-Generate secrets:
-```bash
-# Generate Better Auth secret
-bunx @better-auth/cli secret
-
-# Generate webhook secret (or use any random string)
-openssl rand -hex 32
-```
+Required variables:
+- `ADMIN_PASSWORD` - Password for admin dashboard access
+- `WEBHOOK_SECRET` - Secret for authenticating webhook requests
 
 ### Database Setup
 
@@ -88,7 +83,7 @@ Visit http://localhost:3000
 src/
 ├── components/        # React components
 ├── db/               # Database schema and queries (Drizzle)
-├── lib/              # Utilities (auth, tRPC, etc.)
+├── lib/              # Utilities (device ID, admin auth, tRPC, etc.)
 ├── routes/           # File-based routing
 ├── server/           # tRPC routers and procedures
 └── styles.css        # Global styles

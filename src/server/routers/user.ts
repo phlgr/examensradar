@@ -1,39 +1,23 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import {
-	completeSubscriptionSetup,
-	deleteUser,
-	getUserById,
-	updateUserOnboardingStatus,
-} from "@/db";
+import { completeSubscriptionSetup } from "@/db";
 import { sendNtfyNotification } from "@/lib/ntfy";
 import { createVerificationCode, verifyCode } from "@/lib/verification-codes";
-import { protectedProcedure, router } from "../trpc";
+import { deviceProcedure, router } from "../trpc";
 
 export const userRouter = router({
-	getOnboardingStatus: protectedProcedure.query(async ({ ctx }) => {
-		const user = await getUserById(ctx.user.id);
-		return {
-			hasCompletedOnboarding: !!user?.ntfyOnboardingCompletedAt,
-			completedAt: user?.ntfyOnboardingCompletedAt,
-		};
-	}),
-
-	completeOnboarding: protectedProcedure
+	completeOnboarding: deviceProcedure
 		.input(z.object({ subscriptionId: z.string() }))
 		.mutation(async ({ ctx, input }) => {
-			// Complete setup for the specific subscription
-			await completeSubscriptionSetup(input.subscriptionId, ctx.user.id);
-			// Also mark global onboarding as complete for backwards compatibility
-			await updateUserOnboardingStatus(ctx.user.id, new Date());
+			await completeSubscriptionSetup(input.subscriptionId, ctx.deviceId);
 			return { success: true };
 		}),
 
-	sendTestNotification: protectedProcedure
+	sendTestNotification: deviceProcedure
 		.input(z.object({ ntfyTopic: z.string() }))
 		.mutation(async ({ ctx, input }) => {
 			// Get or create verification code (reuses existing code if still valid)
-			const code = createVerificationCode(ctx.user.id, input.ntfyTopic);
+			const code = createVerificationCode(ctx.deviceId, input.ntfyTopic);
 
 			const sent = await sendNtfyNotification({
 				topic: input.ntfyTopic,
@@ -52,10 +36,10 @@ export const userRouter = router({
 			return { success: true };
 		}),
 
-	verifyTestCode: protectedProcedure
+	verifyTestCode: deviceProcedure
 		.input(z.object({ code: z.string().length(6) }))
 		.mutation(async ({ ctx, input }) => {
-			const result = verifyCode(ctx.user.id, input.code);
+			const result = verifyCode(ctx.deviceId, input.code);
 
 			if (!result.valid) {
 				throw new TRPCError({
@@ -66,9 +50,4 @@ export const userRouter = router({
 
 			return { success: true };
 		}),
-
-	deleteAccount: protectedProcedure.mutation(async ({ ctx }) => {
-		await deleteUser(ctx.user.id);
-		return { success: true };
-	}),
 });

@@ -4,17 +4,18 @@ import { drizzle } from "drizzle-orm/bun-sqlite";
 import { nanoid } from "nanoid";
 import * as schema from "./schema.ts";
 
-type User = typeof schema.user.$inferSelect;
 type JPA = typeof schema.jpa.$inferSelect;
 type Subscription = typeof schema.subscription.$inferSelect;
+type AdminSession = typeof schema.adminSession.$inferSelect;
 
 const DATABASE_PATH = process.env.DATABASE_PATH || "./data/examensradar.db";
 
 const sqlite = new Database(DATABASE_PATH);
 sqlite.run("PRAGMA journal_mode = WAL");
 
-export const db = drizzle(sqlite, { schema });
+const db = drizzle(sqlite, { schema });
 
+// JPA functions
 export const getJpas = async (): Promise<JPA[]> => {
 	return db.select().from(schema.jpa).all();
 };
@@ -64,13 +65,14 @@ export const deleteJpa = async (id: string): Promise<void> => {
 	await db.delete(schema.jpa).where(eq(schema.jpa.id, id));
 };
 
-export const getUserSubscriptions = async (
-	userId: string,
+// Subscription functions (now using deviceId instead of userId)
+export const getDeviceSubscriptions = async (
+	deviceId: string,
 ): Promise<Subscription[]> => {
 	return db
 		.select()
 		.from(schema.subscription)
-		.where(eq(schema.subscription.userId, userId))
+		.where(eq(schema.subscription.deviceId, deviceId))
 		.all();
 };
 
@@ -96,12 +98,12 @@ export const getSubscriptionCountsByJpa = async (): Promise<
 };
 
 export const createSubscription = async (
-	userId: string,
+	deviceId: string,
 	jpaId: string,
 ): Promise<Subscription> => {
 	const subscription = {
 		id: nanoid(),
-		userId,
+		deviceId,
 		jpaId,
 		ntfyTopic: `examensradar-${nanoid(10)}`,
 		setupCompletedAt: null,
@@ -114,18 +116,34 @@ export const createSubscription = async (
 
 export const deleteSubscription = async (
 	id: string,
-	userId: string,
+	deviceId: string,
 ): Promise<void> => {
 	await db
 		.delete(schema.subscription)
 		.where(
 			and(
 				eq(schema.subscription.id, id),
-				eq(schema.subscription.userId, userId),
+				eq(schema.subscription.deviceId, deviceId),
 			),
 		);
 };
 
+export const completeSubscriptionSetup = async (
+	subscriptionId: string,
+	deviceId: string,
+): Promise<void> => {
+	await db
+		.update(schema.subscription)
+		.set({ setupCompletedAt: new Date() })
+		.where(
+			and(
+				eq(schema.subscription.id, subscriptionId),
+				eq(schema.subscription.deviceId, deviceId),
+			),
+		);
+};
+
+// Notification log functions
 export const logNotification = async (
 	jpaId: string,
 	subscriberCount: number,
@@ -141,42 +159,34 @@ export const logNotification = async (
 		.run();
 };
 
-export const getUserById = async (userId: string): Promise<User | null> => {
-	return (
-		(await db
-			.select()
-			.from(schema.user)
-			.where(eq(schema.user.id, userId))
-			.get()) || null
-	);
+// Admin session functions
+export const createAdminSession = async (
+	token: string,
+	expiresAt: Date,
+): Promise<AdminSession> => {
+	const session = {
+		id: nanoid(),
+		token,
+		expiresAt,
+		createdAt: new Date(),
+	};
+	await db.insert(schema.adminSession).values(session);
+	return session;
 };
 
-export const updateUserOnboardingStatus = async (
-	userId: string,
-	completedAt: Date,
-): Promise<void> => {
+export const getAdminSessionByToken = async (
+	token: string,
+): Promise<AdminSession | null> => {
+	const result = await db
+		.select()
+		.from(schema.adminSession)
+		.where(eq(schema.adminSession.token, token))
+		.get();
+	return result || null;
+};
+
+export const deleteAdminSession = async (token: string): Promise<void> => {
 	await db
-		.update(schema.user)
-		.set({ ntfyOnboardingCompletedAt: completedAt })
-		.where(eq(schema.user.id, userId));
-};
-
-export const completeSubscriptionSetup = async (
-	subscriptionId: string,
-	userId: string,
-): Promise<void> => {
-	await db
-		.update(schema.subscription)
-		.set({ setupCompletedAt: new Date() })
-		.where(
-			and(
-				eq(schema.subscription.id, subscriptionId),
-				eq(schema.subscription.userId, userId),
-			),
-		);
-};
-
-export const deleteUser = async (userId: string): Promise<void> => {
-	// Subscriptions, sessions, and accounts will be cascade deleted due to foreign key constraints
-	await db.delete(schema.user).where(eq(schema.user.id, userId));
+		.delete(schema.adminSession)
+		.where(eq(schema.adminSession.token, token));
 };

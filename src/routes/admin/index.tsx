@@ -1,19 +1,44 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Check, Copy, Edit2, Plus, Trash2, Users } from "lucide-react";
+import { Check, Copy, Edit2, LogOut, Plus, Trash2, Users } from "lucide-react";
 import { useEffect, useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useClipboard } from "@/hooks/use-clipboard";
-import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/lib/trpc";
 
 export const Route = createFileRoute("/admin/")({
 	component: AdminPage,
 });
 
-function AdminPage() {
+function useAdminAuth() {
+	const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 	const navigate = useNavigate();
-	const { data: session, isPending } = authClient.useSession();
+
+	useEffect(() => {
+		fetch("/api/admin/check")
+			.then((res) => res.json())
+			.then((data) => {
+				setIsAuthenticated(data.authenticated);
+				if (!data.authenticated) {
+					navigate({ to: "/admin/login" });
+				}
+			})
+			.catch(() => {
+				setIsAuthenticated(false);
+				navigate({ to: "/admin/login" });
+			});
+	}, [navigate]);
+
+	const logout = async () => {
+		await fetch("/api/admin/logout", { method: "POST" });
+		navigate({ to: "/admin/login" });
+	};
+
+	return { isAuthenticated, logout };
+}
+
+function AdminPage() {
+	const { isAuthenticated, logout } = useAdminAuth();
 	const [editingJpa, setEditingJpa] = useState<string | null>(null);
 	const [showCreateForm, setShowCreateForm] = useState(false);
 	const { copy, isCopied } = useClipboard();
@@ -25,7 +50,9 @@ function AdminPage() {
 
 	const jpasQuery = trpc.jpa.getAll.useQuery();
 	const subscriptionCountsQuery = trpc.jpa.getSubscriptionCounts.useQuery();
-	const webhookSecretQuery = trpc.admin.getWebhookSecret.useQuery();
+	const webhookSecretQuery = trpc.admin.getWebhookSecret.useQuery(undefined, {
+		enabled: isAuthenticated === true,
+	});
 
 	const createJpa = trpc.jpa.create.useMutation({
 		onSuccess: () => {
@@ -47,16 +74,7 @@ function AdminPage() {
 		},
 	});
 
-	useEffect(() => {
-		if (!isPending && !session?.user) {
-			navigate({ to: "/auth/login" });
-		}
-		if (!isPending && session?.user && session.user.role !== "admin") {
-			navigate({ to: "/subscriptions" });
-		}
-	}, [session, isPending, navigate]);
-
-	if (isPending || jpasQuery.isLoading) {
+	if (isAuthenticated === null || jpasQuery.isLoading) {
 		return (
 			<div className="min-h-screen flex items-center justify-center bg-nb-cream">
 				<div className="w-12 h-12 border-4 border-nb-black border-t-nb-yellow animate-spin" />
@@ -64,7 +82,7 @@ function AdminPage() {
 		);
 	}
 
-	if (!session?.user || session.user.role !== "admin") {
+	if (!isAuthenticated) {
 		return null;
 	}
 
@@ -74,13 +92,19 @@ function AdminPage() {
 	return (
 		<div className="min-h-screen py-4 sm:py-8 px-4 bg-nb-cream">
 			<div className="max-w-4xl mx-auto">
-				<div className="mb-6 sm:mb-8">
-					<h1 className="text-3xl sm:text-4xl font-black uppercase mb-2">
-						Admin Dashboard
-					</h1>
-					<p className="font-medium text-sm sm:text-base">
-						Verwalte Justizprüfungsämter und Einstellungen.
-					</p>
+				<div className="mb-6 sm:mb-8 flex items-start justify-between gap-4">
+					<div>
+						<h1 className="text-3xl sm:text-4xl font-black uppercase mb-2">
+							Admin Dashboard
+						</h1>
+						<p className="font-medium text-sm sm:text-base">
+							Verwalte Justizprüfungsämter und Einstellungen.
+						</p>
+					</div>
+					<Button variant="secondary" size="sm" onClick={logout}>
+						<LogOut className="w-4 h-4" />
+						Abmelden
+					</Button>
 				</div>
 
 				<div className="space-y-6">

@@ -1,12 +1,11 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { Check, Copy, ExternalLink, Radar, Smartphone } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { OnboardingModal } from "@/components/onboarding/OnboardingModal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useClipboard } from "@/hooks/use-clipboard";
-import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/lib/trpc";
 
 export const Route = createFileRoute("/subscriptions/")({
@@ -14,8 +13,6 @@ export const Route = createFileRoute("/subscriptions/")({
 });
 
 function SubscriptionsPage() {
-	const navigate = useNavigate();
-	const { data: session, isPending } = authClient.useSession();
 	const { copy, isCopied } = useClipboard();
 	const [showOnboarding, setShowOnboarding] = useState(false);
 	const [onboardingData, setOnboardingData] = useState<{
@@ -27,9 +24,7 @@ function SubscriptionsPage() {
 
 	// tRPC queries
 	const jpasQuery = trpc.jpa.getAll.useQuery();
-	const subscriptionsQuery = trpc.subscription.getAll.useQuery(undefined, {
-		enabled: !!session?.user,
-	});
+	const subscriptionsQuery = trpc.subscription.getAll.useQuery();
 
 	// tRPC mutations
 	const createSubscription = trpc.subscription.create.useMutation({
@@ -54,12 +49,6 @@ function SubscriptionsPage() {
 		},
 	});
 
-	useEffect(() => {
-		if (!isPending && !session?.user) {
-			navigate({ to: "/auth/login" });
-		}
-	}, [session, isPending, navigate]);
-
 	const handleSubscribe = async (jpaId: string) => {
 		try {
 			await createSubscription.mutateAsync({ jpaId });
@@ -76,8 +65,7 @@ function SubscriptionsPage() {
 		}
 	};
 
-	const loading =
-		isPending || jpasQuery.isLoading || subscriptionsQuery.isLoading;
+	const loading = jpasQuery.isLoading || subscriptionsQuery.isLoading;
 
 	if (loading) {
 		return (
@@ -85,10 +73,6 @@ function SubscriptionsPage() {
 				<div className="w-12 h-12 border-4 border-nb-black border-t-nb-yellow animate-spin" />
 			</div>
 		);
-	}
-
-	if (!session?.user) {
-		return null;
 	}
 
 	const jpas = jpasQuery.data ?? [];

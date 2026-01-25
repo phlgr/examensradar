@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Smartphone, UserPlus, Zap } from "lucide-react";
+import { Plus, Smartphone, Zap } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { LinkButton } from "@/components/ui/link-button";
 
@@ -8,16 +8,15 @@ export const Route = createFileRoute("/")({ component: LandingPage });
 function LandingPage() {
 	const steps = [
 		{
-			icon: <UserPlus className="w-6 h-6 sm:w-8 sm:h-8" />,
-			title: "1. Anmelden",
-			description: "Erstelle ein Konto mit deinem Google-Account.",
+			icon: <Smartphone className="w-6 h-6 sm:w-8 sm:h-8" />,
+			title: "1. ntfy einrichten",
+			description: "Installiere die ntfy App auf deinem Smartphone.",
 			color: "bg-nb-coral",
 		},
 		{
-			icon: <Smartphone className="w-6 h-6 sm:w-8 sm:h-8" />,
-			title: "2. ntfy einrichten",
-			description:
-				"Installiere die ntfy App und abonniere deinen persönlichen Kanal.",
+			icon: <Plus className="w-6 h-6 sm:w-8 sm:h-8" />,
+			title: "2. JPA auswählen",
+			description: "Wähle dein Justizprüfungsamt und abonniere den Kanal.",
 			color: "bg-nb-teal",
 		},
 		{
@@ -46,23 +45,13 @@ function LandingPage() {
 							Wir benachrichtigen dich sofort, wenn das Justizprüfungsamt neue
 							Examensergebnisse veröffentlicht.
 						</p>
-						<div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-							<LinkButton
-								to="/auth/login"
-								size="lg"
-								className="w-full sm:w-auto"
-							>
-								Jetzt starten
-							</LinkButton>
-							<LinkButton
-								to="/subscriptions"
-								variant="secondary"
-								size="lg"
-								className="w-full sm:w-auto"
-							>
-								Deine Benachrichtigungen
-							</LinkButton>
-						</div>
+						<LinkButton
+							to="/subscriptions"
+							size="lg"
+							className="w-full sm:w-auto"
+						>
+							Jetzt starten
+						</LinkButton>
 					</Card>
 				</div>
 			</section>
@@ -103,11 +92,10 @@ function LandingPage() {
 							Bereit für stressfreies Warten?
 						</h2>
 						<p className="text-base sm:text-lg font-bold mb-6 sm:mb-8">
-							Melde dich jetzt an und verpasse keine Ergebnisveröffentlichung
-							mehr.
+							Starte jetzt und verpasse keine Ergebnisveröffentlichung mehr.
 						</p>
 						<LinkButton
-							to="/auth/login"
+							to="/subscriptions"
 							className="bg-nb-black text-nb-white shadow-[6px_6px_0px_0px_rgba(255,255,255,1)] hover:shadow-none w-full sm:w-auto"
 							size="lg"
 						>

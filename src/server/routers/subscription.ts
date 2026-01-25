@@ -3,20 +3,20 @@ import { z } from "zod";
 import {
 	createSubscription,
 	deleteSubscription,
-	getUserSubscriptions,
+	getDeviceSubscriptions,
 } from "@/db";
-import { protectedProcedure, router } from "../trpc";
+import { deviceProcedure, router } from "../trpc";
 
 export const subscriptionRouter = router({
-	getAll: protectedProcedure.query(async ({ ctx }) => {
-		return getUserSubscriptions(ctx.user.id);
+	getAll: deviceProcedure.query(async ({ ctx }) => {
+		return getDeviceSubscriptions(ctx.deviceId);
 	}),
 
-	create: protectedProcedure
+	create: deviceProcedure
 		.input(z.object({ jpaId: z.string() }))
 		.mutation(async ({ ctx, input }) => {
 			// Check if already subscribed
-			const existing = await getUserSubscriptions(ctx.user.id);
+			const existing = await getDeviceSubscriptions(ctx.deviceId);
 			if (existing.some((s) => s.jpaId === input.jpaId)) {
 				throw new TRPCError({
 					code: "BAD_REQUEST",
@@ -28,7 +28,7 @@ export const subscriptionRouter = router({
 			const isFirstSubscription =
 				existing.length === 0 ||
 				existing.every((s) => s.setupCompletedAt !== null);
-			const subscription = await createSubscription(ctx.user.id, input.jpaId);
+			const subscription = await createSubscription(ctx.deviceId, input.jpaId);
 
 			return {
 				...subscription,
@@ -36,10 +36,10 @@ export const subscriptionRouter = router({
 			};
 		}),
 
-	delete: protectedProcedure
+	delete: deviceProcedure
 		.input(z.object({ id: z.string() }))
 		.mutation(async ({ ctx, input }) => {
-			await deleteSubscription(input.id, ctx.user.id);
+			await deleteSubscription(input.id, ctx.deviceId);
 			return { success: true };
 		}),
 });
