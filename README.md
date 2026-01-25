@@ -1,22 +1,31 @@
 # Examensradar
 
-Push-Benachrichtigungen für Examensergebnisse deutscher Justizprüfungsämter.
+**Dein Examen ist durch. Wir sagen dir, wann die Noten da sind.**
+
+Push notifications for exam results from German judicial examination offices (Justizprüfungsämter).
+
+## Features
+
+- Subscribe to notifications for any JPA (Justizprüfungsamt)
+- Push notifications via [ntfy](https://ntfy.sh) to all your devices
+- No app installation required - works with the ntfy app or in the browser
+- Admin dashboard for managing JPAs with webhook documentation
 
 ## Tech Stack
 
-- **Frontend**: React 19 + TanStack Router
+- **Frontend**: React 19 + TanStack Start
 - **API**: tRPC + React Query
-- **Database**: Cloudflare D1 (SQLite) + Drizzle ORM
+- **Database**: Bun SQLite + Drizzle ORM
 - **Auth**: Better Auth with Google OAuth
 - **Styling**: Tailwind CSS v4 (Neobrutalism theme)
-- **Deployment**: Cloudflare Workers/Pages
+- **Runtime**: Bun
+- **Deployment**: Railpack + Dokploy
 
 ## Getting Started
 
 ### Prerequisites
 
 - Bun (via mise: `mise install`)
-- Cloudflare account (for production deployment)
 
 ### Installation
 
@@ -41,26 +50,17 @@ bunx @better-auth/cli secret
 openssl rand -hex 32
 ```
 
-For production deployment to Cloudflare, set secrets using:
-```bash
-wrangler secret put BETTER_AUTH_SECRET
-wrangler secret put BETTER_AUTH_URL
-wrangler secret put GOOGLE_CLIENT_ID
-wrangler secret put GOOGLE_CLIENT_SECRET
-wrangler secret put WEBHOOK_SECRET
-```
-
 ### Database Setup
 
 ```bash
 # Generate migrations
 bun run db:generate
 
-# Apply migrations locally
-bun run db:migrate:local
+# Apply migrations
+bun run db:migrate
 
 # Seed database
-bun run db:seed:local
+bun run db:seed
 ```
 
 ### Development
@@ -78,9 +78,9 @@ Visit http://localhost:3000
 - `bun run preview` - Preview production build
 - `bun run check` - Lint and format code
 - `bun run db:generate` - Generate database migrations
-- `bun run db:migrate:local` - Apply migrations locally
-- `bun run db:migrate:remote` - Apply migrations to production
-- `bun run deploy` - Deploy to Cloudflare
+- `bun run db:migrate` - Apply migrations
+- `bun run db:seed` - Seed database
+- `bun run db:studio` - Open Drizzle Studio
 
 ## Project Structure
 
