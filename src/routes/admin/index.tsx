@@ -1,8 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Edit2, Plus, Trash2, Users } from "lucide-react";
+import { Check, Copy, Edit2, Plus, Trash2, Users } from "lucide-react";
 import { useEffect, useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useClipboard } from "@/hooks/use-clipboard";
 import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/lib/trpc";
 
@@ -15,9 +16,16 @@ function AdminPage() {
 	const { data: session, isPending } = authClient.useSession();
 	const [editingJpa, setEditingJpa] = useState<string | null>(null);
 	const [showCreateForm, setShowCreateForm] = useState(false);
+	const { copy, isCopied } = useClipboard();
+
+	const webhookBaseUrl =
+		typeof window !== "undefined"
+			? `${window.location.origin}/api/webhook/results`
+			: "/api/webhook/results";
 
 	const jpasQuery = trpc.jpa.getAll.useQuery();
 	const subscriptionCountsQuery = trpc.jpa.getSubscriptionCounts.useQuery();
+	const webhookSecretQuery = trpc.admin.getWebhookSecret.useQuery();
 
 	const createJpa = trpc.jpa.create.useMutation({
 		onSuccess: () => {
@@ -130,6 +138,80 @@ function AdminPage() {
 													{jpa.websiteUrl}
 												</a>
 											)}
+											<div className="mt-3 pt-3 border-t-2 border-nb-black/10">
+												<p className="text-xs font-bold uppercase mb-2 text-nb-black/60">
+													Webhook
+												</p>
+												<p className="text-xs font-bold mb-1">URL:</p>
+												<div className="flex items-center gap-2 mb-2">
+													<code className="flex-1 text-xs bg-nb-black/5 px-2 py-1 font-mono border border-nb-black/20 truncate">
+														{webhookBaseUrl}
+													</code>
+													<Button
+														variant="icon"
+														size="icon"
+														onClick={() =>
+															copy(webhookBaseUrl, `${jpa.slug}-url`)
+														}
+														title="URL kopieren"
+														className="shrink-0"
+													>
+														{isCopied(`${jpa.slug}-url`) ? (
+															<Check className="w-4 h-4 text-green-600" />
+														) : (
+															<Copy className="w-4 h-4" />
+														)}
+													</Button>
+												</div>
+												<p className="text-xs font-bold mb-1">Authorization:</p>
+												<div className="flex items-center gap-2 mb-2">
+													<code className="flex-1 text-xs bg-nb-black/5 px-2 py-1 font-mono border border-nb-black/20 truncate">
+														Bearer {webhookSecretQuery.data ?? "***"}
+													</code>
+													<Button
+														variant="icon"
+														size="icon"
+														onClick={() =>
+															copy(
+																`Bearer ${webhookSecretQuery.data ?? ""}`,
+																`${jpa.slug}-auth`,
+															)
+														}
+														title="Authorization kopieren"
+														className="shrink-0"
+													>
+														{isCopied(`${jpa.slug}-auth`) ? (
+															<Check className="w-4 h-4 text-green-600" />
+														) : (
+															<Copy className="w-4 h-4" />
+														)}
+													</Button>
+												</div>
+												<p className="text-xs font-bold mb-1">Body:</p>
+												<div className="flex items-center gap-2">
+													<code className="flex-1 text-xs bg-nb-black/5 px-2 py-1 font-mono border border-nb-black/20">
+														{`{"jpa_slug": "${jpa.slug}"}`}
+													</code>
+													<Button
+														variant="icon"
+														size="icon"
+														onClick={() =>
+															copy(
+																JSON.stringify({ jpa_slug: jpa.slug }),
+																`${jpa.slug}-body`,
+															)
+														}
+														title="Body kopieren"
+														className="shrink-0"
+													>
+														{isCopied(`${jpa.slug}-body`) ? (
+															<Check className="w-4 h-4 text-green-600" />
+														) : (
+															<Copy className="w-4 h-4" />
+														)}
+													</Button>
+												</div>
+											</div>
 										</div>
 										<div className="flex gap-2">
 											<Button

@@ -5,6 +5,7 @@ import { OnboardingModal } from "@/components/onboarding/OnboardingModal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useClipboard } from "@/hooks/use-clipboard";
 import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/lib/trpc";
 
@@ -15,7 +16,7 @@ export const Route = createFileRoute("/subscriptions/")({
 function SubscriptionsPage() {
 	const navigate = useNavigate();
 	const { data: session, isPending } = authClient.useSession();
-	const [copiedTopic, setCopiedTopic] = useState<string | null>(null);
+	const { copy, isCopied } = useClipboard();
 	const [showOnboarding, setShowOnboarding] = useState(false);
 	const [onboardingData, setOnboardingData] = useState<{
 		ntfyTopic: string;
@@ -73,12 +74,6 @@ function SubscriptionsPage() {
 		} catch (error) {
 			console.error("Failed to unsubscribe:", error);
 		}
-	};
-
-	const copyToClipboard = async (topic: string) => {
-		await navigator.clipboard.writeText(topic);
-		setCopiedTopic(topic);
-		setTimeout(() => setCopiedTopic(null), 2000);
 	};
 
 	const loading =
@@ -297,13 +292,11 @@ function SubscriptionsPage() {
 														<Button
 															variant="icon"
 															size="icon"
-															onClick={() =>
-																copyToClipboard(subscription.ntfyTopic)
-															}
+															onClick={() => copy(subscription.ntfyTopic)}
 															title="Kopieren"
 															className="shrink-0"
 														>
-															{copiedTopic === subscription.ntfyTopic ? (
+															{isCopied(subscription.ntfyTopic) ? (
 																<Check className="w-4 h-4" />
 															) : (
 																<Copy className="w-4 h-4" />
