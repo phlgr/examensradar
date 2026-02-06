@@ -44,7 +44,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.3.13",
+    "@biomejs/biome": "2.3.14",
     "@tanstack/devtools-vite": "0.5.0",
     "@tanstack/react-devtools": "0.9.4",
     "@tanstack/react-router-devtools": "1.158.0",
