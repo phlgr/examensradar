@@ -75,7 +75,7 @@ export const Route = createFileRoute("/api/webhook/results")({
 						title: "Neue Ergebnisse verfügbar",
 						message: `Das ${jpa.name} hat neue Examensergebnisse veröffentlicht.`,
 						click: jpa.websiteUrl || undefined,
-						priority: "high" as const,
+						priority: "max" as const,
 						actions,
 					};
 				});
