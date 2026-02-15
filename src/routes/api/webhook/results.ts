@@ -53,20 +53,32 @@ export const Route = createFileRoute("/api/webhook/results")({
 
 				// Send notifications
 				const appUrl = process.env.APP_URL || "https://examensradar.de";
-				const notifications = subscriptions.map((sub) => ({
-					topic: sub.ntfyTopic,
-					title: "Neue Ergebnisse verfügbar",
-					message: `Das ${jpa.name} hat neue Examensergebnisse veröffentlicht.`,
-					click: jpa.websiteUrl || undefined,
-					priority: "high" as const,
-					actions: [
-						{
+				const notifications = subscriptions.map((sub) => {
+					const actions = [];
+
+					if (jpa.websiteUrl) {
+						actions.push({
 							action: "view" as const,
-							label: "Abonnements verwalten",
-							url: `${appUrl}/subscriptions?restore=${sub.deviceId}`,
-						},
-					],
-				}));
+							label: "Ergebnisse ansehen",
+							url: jpa.websiteUrl,
+						});
+					}
+
+					actions.push({
+						action: "view" as const,
+						label: "Abonnements verwalten",
+						url: `${appUrl}/subscriptions?restore=${sub.deviceId}`,
+					});
+
+					return {
+						topic: sub.ntfyTopic,
+						title: "Neue Ergebnisse verfügbar",
+						message: `Das ${jpa.name} hat neue Examensergebnisse veröffentlicht.`,
+						click: jpa.websiteUrl || undefined,
+						priority: "high" as const,
+						actions,
+					};
+				});
 
 				const ntfyBaseUrl = process.env.NTFY_BASE_URL || "https://ntfy.sh";
 				const { sent, failed } = await sendBatchNotifications(

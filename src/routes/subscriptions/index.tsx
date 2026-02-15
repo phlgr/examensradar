@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import {
 	Check,
 	CheckCircle,
@@ -31,7 +31,6 @@ export const Route = createFileRoute("/subscriptions/")({
 function SubscriptionsPage() {
 	const { copy, isCopied } = useClipboard();
 	const { restore } = Route.useSearch();
-	const navigate = useNavigate();
 	const [showOnboarding, setShowOnboarding] = useState(false);
 	const [showRestoredBanner, setShowRestoredBanner] = useState(false);
 	const [onboardingData, setOnboardingData] = useState<{
@@ -46,10 +45,11 @@ function SubscriptionsPage() {
 		if (restore) {
 			setDeviceId(restore);
 			sessionStorage.setItem("examensradar_restored", "true");
-			navigate({ to: "/subscriptions", replace: true });
-			window.location.reload();
+			// Use location.replace to atomically update URL and reload
+			// This avoids race condition between navigate() and reload()
+			window.location.replace("/subscriptions");
 		}
-	}, [restore, navigate]);
+	}, [restore]);
 
 	// Show restored banner after restoration
 	useEffect(() => {

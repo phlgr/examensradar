@@ -9,7 +9,27 @@ export const userRouter = router({
 	completeOnboarding: deviceProcedure
 		.input(z.object({ subscriptionId: z.string() }))
 		.mutation(async ({ ctx, input }) => {
-			await completeSubscriptionSetup(input.subscriptionId, ctx.deviceId);
+			const subscription = await completeSubscriptionSetup(
+				input.subscriptionId,
+				ctx.deviceId,
+			);
+
+			// Send welcome notification with restore link
+			const appUrl = process.env.APP_URL || "https://examensradar.de";
+			await sendNtfyNotification({
+				topic: subscription.ntfyTopic,
+				title: "Willkommen bei Examensradar!",
+				message:
+					"Dein Abonnement ist eingerichtet. Du wirst benachrichtigt, sobald neue Ergebnisse veröffentlicht werden.",
+				actions: [
+					{
+						action: "view",
+						label: "Abonnements verwalten",
+						url: `${appUrl}/subscriptions?restore=${ctx.deviceId}`,
+					},
+				],
+			});
+
 			return { success: true };
 		}),
 

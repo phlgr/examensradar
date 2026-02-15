@@ -131,8 +131,8 @@ export const deleteSubscription = async (
 export const completeSubscriptionSetup = async (
 	subscriptionId: string,
 	deviceId: string,
-): Promise<void> => {
-	await db
+): Promise<Subscription> => {
+	const subscription = await db
 		.update(schema.subscription)
 		.set({ setupCompletedAt: new Date() })
 		.where(
@@ -140,7 +140,15 @@ export const completeSubscriptionSetup = async (
 				eq(schema.subscription.id, subscriptionId),
 				eq(schema.subscription.deviceId, deviceId),
 			),
-		);
+		)
+		.returning()
+		.get();
+
+	if (!subscription) {
+		throw new Error("Subscription not found");
+	}
+
+	return subscription;
 };
 
 // Notification log functions
