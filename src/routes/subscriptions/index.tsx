@@ -1,5 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Check, Copy, ExternalLink, Radar, Smartphone } from "lucide-react";
+import {
+	Check,
+	Copy,
+	ExternalLink,
+	Loader2,
+	Radar,
+	Send,
+	Smartphone,
+} from "lucide-react";
 import { useState } from "react";
 import { OnboardingModal } from "@/components/onboarding/OnboardingModal";
 import { Badge } from "@/components/ui/badge";
@@ -48,6 +56,8 @@ function SubscriptionsPage() {
 			subscriptionsQuery.refetch();
 		},
 	});
+
+	const pingNotification = trpc.user.pingNotification.useMutation();
 
 	const handleSubscribe = async (jpaId: string) => {
 		try {
@@ -273,6 +283,26 @@ function SubscriptionsPage() {
 														<code className="flex-1 text-xs sm:text-sm bg-nb-yellow px-2 sm:px-3 py-2 border-2 border-nb-black font-bold break-all">
 															{subscription.ntfyTopic}
 														</code>
+														{subscription.setupCompletedAt && (
+															<Button
+																variant="ghost"
+																size="icon"
+																onClick={() =>
+																	pingNotification.mutate({
+																		ntfyTopic: subscription.ntfyTopic,
+																	})
+																}
+																disabled={pingNotification.isPending}
+																title="Test-Benachrichtigung senden"
+																className="shrink-0"
+															>
+																{pingNotification.isPending ? (
+																	<Loader2 className="w-4 h-4 animate-spin" />
+																) : (
+																	<Send className="w-4 h-4" />
+																)}
+															</Button>
+														)}
 														<Button
 															variant="icon"
 															size="icon"

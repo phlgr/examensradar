@@ -36,6 +36,26 @@ export const userRouter = router({
 			return { success: true };
 		}),
 
+	pingNotification: deviceProcedure
+		.input(z.object({ ntfyTopic: z.string() }))
+		.mutation(async ({ input }) => {
+			const sent = await sendNtfyNotification({
+				topic: input.ntfyTopic,
+				title: "Examensradar",
+				message:
+					"Super, die Benachrichtigungen funktionieren noch einwandfrei!",
+			});
+
+			if (!sent) {
+				throw new TRPCError({
+					code: "INTERNAL_SERVER_ERROR",
+					message: "Benachrichtigung konnte nicht gesendet werden.",
+				});
+			}
+
+			return { success: true };
+		}),
+
 	verifyTestCode: deviceProcedure
 		.input(z.object({ code: z.string().length(6) }))
 		.mutation(async ({ ctx, input }) => {

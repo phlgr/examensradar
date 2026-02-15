@@ -21,7 +21,7 @@ const modalContentVariants = cva(
 	},
 );
 
-export interface ModalProps extends VariantProps<typeof modalContentVariants> {
+interface ModalProps extends VariantProps<typeof modalContentVariants> {
 	open: boolean;
 	onClose: () => void;
 	children: React.ReactNode;
