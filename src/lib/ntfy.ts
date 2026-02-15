@@ -1,9 +1,16 @@
+interface NtfyAction {
+	action: "view";
+	label: string;
+	url: string;
+}
+
 interface NtfyNotification {
 	topic: string;
 	title: string;
 	message: string;
 	click?: string;
 	priority?: "min" | "low" | "default" | "high" | "max";
+	actions?: NtfyAction[];
 }
 
 export async function sendNtfyNotification(
@@ -18,6 +25,12 @@ export async function sendNtfyNotification(
 
 		if (notification.click) {
 			headers.Click = notification.click;
+		}
+
+		if (notification.actions?.length) {
+			headers.Actions = notification.actions
+				.map((a) => `${a.action}, ${a.label}, ${a.url}`)
+				.join("; ");
 		}
 
 		const response = await fetch(`${baseUrl}/${notification.topic}`, {

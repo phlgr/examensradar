@@ -18,3 +18,14 @@ export function getOrCreateDeviceId(): string {
 
 	return deviceId;
 }
+
+/**
+ * Set the device ID in localStorage.
+ * Used for restoring a device ID from a notification action link.
+ */
+export function setDeviceId(deviceId: string): void {
+	if (typeof window === "undefined") {
+		throw new Error("Device ID can only be set on client");
+	}
+	localStorage.setItem(STORAGE_KEY, deviceId);
+}

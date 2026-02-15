@@ -1,6 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
 	Check,
+	CheckCircle,
 	Copy,
 	ExternalLink,
 	Loader2,
@@ -8,27 +9,55 @@ import {
 	Send,
 	Smartphone,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { z } from "zod";
 import { OnboardingModal } from "@/components/onboarding/OnboardingModal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useClipboard } from "@/hooks/use-clipboard";
+import { setDeviceId } from "@/lib/device-id";
 import { trpc } from "@/lib/trpc";
 
+const searchSchema = z.object({
+	restore: z.uuid().optional(),
+});
+
 export const Route = createFileRoute("/subscriptions/")({
+	validateSearch: searchSchema,
 	component: SubscriptionsPage,
 });
 
 function SubscriptionsPage() {
 	const { copy, isCopied } = useClipboard();
+	const { restore } = Route.useSearch();
+	const navigate = useNavigate();
 	const [showOnboarding, setShowOnboarding] = useState(false);
+	const [showRestoredBanner, setShowRestoredBanner] = useState(false);
 	const [onboardingData, setOnboardingData] = useState<{
 		ntfyTopic: string;
 		subscriptionId: string;
 		isFirstSubscription: boolean;
 		jpaName: string;
 	} | null>(null);
+
+	// Handle restore parameter from notification action
+	useEffect(() => {
+		if (restore) {
+			setDeviceId(restore);
+			sessionStorage.setItem("examensradar_restored", "true");
+			navigate({ to: "/subscriptions", replace: true });
+			window.location.reload();
+		}
+	}, [restore, navigate]);
+
+	// Show restored banner after restoration
+	useEffect(() => {
+		if (sessionStorage.getItem("examensradar_restored")) {
+			setShowRestoredBanner(true);
+			sessionStorage.removeItem("examensradar_restored");
+		}
+	}, []);
 
 	// tRPC queries
 	const jpasQuery = trpc.jpa.getAll.useQuery();
@@ -103,6 +132,34 @@ function SubscriptionsPage() {
 						Verwalte deine Benachrichtigungen für Examensergebnisse.
 					</p>
 				</div>
+
+				{/* Restored Banner */}
+				{showRestoredBanner && (
+					<Card variant="success" className="mb-6 sm:mb-8 p-4">
+						<div className="flex items-center gap-3">
+							<div className="bg-nb-mint p-2 border-3 border-nb-black shrink-0">
+								<CheckCircle className="w-5 h-5" />
+							</div>
+							<div className="flex-1">
+								<p className="font-black text-sm uppercase">
+									Abonnements wiederhergestellt
+								</p>
+								<p className="text-xs font-medium">
+									Deine Abonnements wurden erfolgreich auf dieses Gerät
+									übertragen.
+								</p>
+							</div>
+							<Button
+								variant="ghost"
+								size="sm"
+								onClick={() => setShowRestoredBanner(false)}
+								className="shrink-0"
+							>
+								Schließen
+							</Button>
+						</div>
+					</Card>
+				)}
 
 				{/* ntfy Setup Instructions - only show when at least one subscription has completed setup */}
 				{subscriptions.length > 0 &&

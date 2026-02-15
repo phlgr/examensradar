@@ -38,12 +38,20 @@ export const userRouter = router({
 
 	pingNotification: deviceProcedure
 		.input(z.object({ ntfyTopic: z.string() }))
-		.mutation(async ({ input }) => {
+		.mutation(async ({ ctx, input }) => {
+			const appUrl = process.env.APP_URL || "https://examensradar.de";
 			const sent = await sendNtfyNotification({
 				topic: input.ntfyTopic,
 				title: "Examensradar",
 				message:
 					"Super, die Benachrichtigungen funktionieren noch einwandfrei!",
+				actions: [
+					{
+						action: "view",
+						label: "Abonnements verwalten",
+						url: `${appUrl}/subscriptions?restore=${ctx.deviceId}`,
+					},
+				],
 			});
 
 			if (!sent) {
