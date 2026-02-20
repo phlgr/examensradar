@@ -43,7 +43,7 @@
     "better-sqlite3": "^12.6.2"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.4.1",
+    "@biomejs/biome": "2.4.2",
     "@tanstack/devtools-vite": "0.5.1",
     "@tanstack/react-devtools": "0.9.5",
     "@tanstack/react-router-devtools": "1.160.2",
