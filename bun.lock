@@ -35,7 +35,7 @@
         "@biomejs/biome": "2.4.4",
         "@tanstack/devtools-vite": "0.5.1",
         "@tanstack/react-devtools": "0.9.6",
-        "@tanstack/react-router-devtools": "1.162.2",
+        "@tanstack/react-router-devtools": "1.162.4",
         "@types/bun": "1.3.9",
         "@types/node": "25.3.0",
         "@types/react": "19.2.14",
@@ -384,7 +384,7 @@
 
     "@tanstack/react-router": ["@tanstack/react-router@1.162.4", "", { "dependencies": { "@tanstack/history": "1.161.4", "@tanstack/react-store": "^0.9.1", "@tanstack/router-core": "1.162.2", "isbot": "^5.1.22", "tiny-invariant": "^1.3.3", "tiny-warning": "^1.0.3" }, "peerDependencies": { "react": ">=18.0.0 || >=19.0.0", "react-dom": ">=18.0.0 || >=19.0.0" } }, "sha512-FMUMoTVZk+gFn1upTSxr7LenD3LK5Gi+pjSLf5IB2aT1uutHiFYEYWV0JunPry4Ac4OPOxMf9G0YM3Yyd8iSFw=="],
 
-    "@tanstack/react-router-devtools": ["@tanstack/react-router-devtools@1.162.2", "", { "dependencies": { "@tanstack/router-devtools-core": "1.162.2" }, "peerDependencies": { "@tanstack/react-router": "^1.162.2", "@tanstack/router-core": "^1.162.2", "react": ">=18.0.0 || >=19.0.0", "react-dom": ">=18.0.0 || >=19.0.0" }, "optionalPeers": ["@tanstack/router-core"] }, "sha512-QgFKttjFCy51b0WD3t5Y2aTY4vAXCJBnrYe6a61HnI+XqGNgJH3IH/6iNeno7qyqo9FbgSqaIHJX+Y6nMWVdrQ=="],
+    "@tanstack/react-router-devtools": ["@tanstack/react-router-devtools@1.162.4", "", { "dependencies": { "@tanstack/router-devtools-core": "1.162.2" }, "peerDependencies": { "@tanstack/react-router": "^1.162.4", "@tanstack/router-core": "^1.162.2", "react": ">=18.0.0 || >=19.0.0", "react-dom": ">=18.0.0 || >=19.0.0" }, "optionalPeers": ["@tanstack/router-core"] }, "sha512-clIlN0yDjuhHbMoVZC94EZHqoUnH9yx054nAAoCVHHN7gLD/29xHTIRgPuXWmGb0cpQanddkllBto5WefI1UMg=="],
 
     "@tanstack/react-start": ["@tanstack/react-start@1.162.4", "", { "dependencies": { "@tanstack/react-router": "1.162.4", "@tanstack/react-start-client": "1.162.4", "@tanstack/react-start-server": "1.162.4", "@tanstack/router-utils": "^1.161.4", "@tanstack/start-client-core": "1.162.2", "@tanstack/start-plugin-core": "1.162.4", "@tanstack/start-server-core": "1.162.2", "pathe": "^2.0.3" }, "peerDependencies": { "react": ">=18.0.0 || >=19.0.0", "react-dom": ">=18.0.0 || >=19.0.0", "vite": ">=7.0.0" } }, "sha512-6MKomGKndIIchTqQYB7euTKv3UfNxp2L+FXrLREq2d8oK2EEQ/HeraFC5NqsrTHdf/PLxbWtpzoljLqD6a3BMA=="],
 
