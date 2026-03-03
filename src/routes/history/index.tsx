@@ -15,7 +15,7 @@ type JpaGroup = {
 	lastRelease: Date;
 	dayOfMonthCounts: Map<number, number>;
 	typicalDay: number | null;
-	typicalHour: number | null;
+	typicalHour: number;
 };
 
 function computeMedian(days: number[]): number {
@@ -53,7 +53,7 @@ function groupByJpa(
 				lastRelease: sentAt,
 				dayOfMonthCounts: new Map(),
 				typicalDay: null,
-				typicalHour: null,
+				typicalHour: 0,
 			};
 			map.set(entry.jpaSlug, group);
 		}
@@ -70,7 +70,7 @@ function groupByJpa(
 		const allDays = group.entries.map((e) => e.sentAt.getDate());
 		const allHours = group.entries.map((e) => e.sentAt.getHours());
 		group.typicalDay = allDays.length >= 2 ? computeMedian(allDays) : null;
-		group.typicalHour = allHours.length >= 2 ? computeMedian(allHours) : null;
+		group.typicalHour = computeMedian(allHours);
 	}
 
 	return [...map.values()].sort(
@@ -173,23 +173,19 @@ function JpaCard({ group }: { group: JpaGroup }) {
 					<p className="text-sm font-bold mt-0.5">
 						Meist um den{" "}
 						<span className="bg-nb-yellow px-1">{group.typicalDay}.</span> des
-						Monats
-						{group.typicalHour !== null && (
-							<>
-								{", gegen "}
-								<span className="bg-nb-yellow px-1">
-									{group.typicalHour} Uhr
-								</span>
-							</>
-						)}
+						Monats{", gegen "}
+						<span className="bg-nb-yellow px-1">{group.typicalHour} Uhr</span>
 					</p>
 				) : (
 					<p className="text-sm font-medium mt-0.5 text-nb-black/60">
 						Erste Veröffentlichung am{" "}
-						{group.entries[0].sentAt.toLocaleString("de-DE", {
+						{group.entries[0].sentAt.toLocaleDateString("de-DE", {
 							dateStyle: "long",
-							timeStyle: "short",
 						})}
+						{", gegen "}
+						<span className="bg-nb-yellow px-1 text-nb-black font-bold">
+							{group.typicalHour} Uhr
+						</span>
 					</p>
 				)}
 			</div>
