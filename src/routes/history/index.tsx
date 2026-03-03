@@ -180,7 +180,7 @@ function JpaCard({ group }: { group: JpaGroup }) {
 				</p>
 			</div>
 
-			<div className="mb-3 overflow-x-auto">
+			<div className="mb-3">
 				<DayTimeline
 					dayOfMonthCounts={group.dayOfMonthCounts}
 					typicalDay={group.typicalDay}
