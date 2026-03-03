@@ -166,7 +166,10 @@ function JpaCard({ group }: { group: JpaGroup }) {
 
 				<p className="text-sm font-medium mt-1">
 					Letzte Veröffentlichung:{" "}
-					{group.lastRelease.toLocaleDateString("de-DE", { dateStyle: "long" })}
+					{group.lastRelease.toLocaleString("de-DE", {
+						dateStyle: "long",
+						timeStyle: "short",
+					})}
 				</p>
 
 				{group.typicalDay !== null ? (
