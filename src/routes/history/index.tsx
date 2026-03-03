@@ -14,7 +14,7 @@ type JpaGroup = {
 	entries: Array<{ sentAt: Date }>;
 	lastRelease: Date;
 	dayOfMonthCounts: Map<number, number>;
-	typicalDay: number | null;
+	typicalDay: number;
 	typicalHour: number;
 };
 
@@ -52,7 +52,7 @@ function groupByJpa(
 				entries: [],
 				lastRelease: sentAt,
 				dayOfMonthCounts: new Map(),
-				typicalDay: null,
+				typicalDay: 0,
 				typicalHour: 0,
 			};
 			map.set(entry.jpaSlug, group);
@@ -69,7 +69,7 @@ function groupByJpa(
 	for (const group of map.values()) {
 		const allDays = group.entries.map((e) => e.sentAt.getDate());
 		const allHours = group.entries.map((e) => e.sentAt.getHours());
-		group.typicalDay = allDays.length >= 2 ? computeMedian(allDays) : null;
+		group.typicalDay = computeMedian(allDays);
 		group.typicalHour = computeMedian(allHours);
 	}
 
@@ -83,7 +83,7 @@ function DayTimeline({
 	typicalDay,
 }: {
 	dayOfMonthCounts: Map<number, number>;
-	typicalDay: number | null;
+	typicalDay: number;
 }) {
 	const maxDay = Math.max(31, ...dayOfMonthCounts.keys());
 	const days = Array.from({ length: maxDay }, (_, i) => i + 1);
@@ -172,25 +172,12 @@ function JpaCard({ group }: { group: JpaGroup }) {
 					})}
 				</p>
 
-				{group.typicalDay !== null ? (
-					<p className="text-sm font-bold mt-0.5">
-						Meist um den{" "}
-						<span className="bg-nb-yellow px-1">{group.typicalDay}.</span> des
-						Monats{", gegen "}
-						<span className="bg-nb-yellow px-1">{group.typicalHour} Uhr</span>
-					</p>
-				) : (
-					<p className="text-sm font-medium mt-0.5 text-nb-black/60">
-						Erste Veröffentlichung am{" "}
-						{group.entries[0].sentAt.toLocaleDateString("de-DE", {
-							dateStyle: "long",
-						})}
-						{", gegen "}
-						<span className="bg-nb-yellow px-1 text-nb-black font-bold">
-							{group.typicalHour} Uhr
-						</span>
-					</p>
-				)}
+				<p className="text-sm font-bold mt-0.5">
+					Meist um den{" "}
+					<span className="bg-nb-yellow px-1">{group.typicalDay}.</span> des
+					Monats{", gegen "}
+					<span className="bg-nb-yellow px-1">{group.typicalHour} Uhr</span>
+				</p>
 			</div>
 
 			<div className="mb-3 overflow-x-auto">
