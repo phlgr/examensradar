@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Bell, Radar } from "lucide-react";
+import { Bell, History, Radar } from "lucide-react";
 import { LinkButton } from "@/components/ui";
 
 export default function Header() {
@@ -18,6 +18,15 @@ export default function Header() {
 			</Link>
 
 			<nav className="flex items-center gap-4">
+				<LinkButton
+					to="/history"
+					variant="default"
+					size="icon"
+					aria-label="Ergebnis-Historie"
+					className="border-3 shadow-[var(--nb-shadow-sm)] hover:translate-x-1 hover:translate-y-1"
+				>
+					<History className="w-5 h-5" />
+				</LinkButton>
 				<LinkButton
 					to="/subscriptions"
 					variant="default"

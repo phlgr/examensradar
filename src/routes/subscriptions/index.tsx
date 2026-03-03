@@ -4,6 +4,7 @@ import {
 	CheckCircle,
 	Copy,
 	ExternalLink,
+	History,
 	Loader2,
 	Radar,
 	Send,
@@ -15,6 +16,7 @@ import { OnboardingModal } from "@/components/onboarding/OnboardingModal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { LinkButton } from "@/components/ui/link-button";
 import { useClipboard } from "@/hooks/use-clipboard";
 import { setDeviceId } from "@/lib/device-id";
 import { trpc } from "@/lib/trpc";
@@ -132,6 +134,22 @@ function SubscriptionsPage() {
 						Verwalte deine Benachrichtigungen für Examensergebnisse.
 					</p>
 				</div>
+
+				{/* History Teaser */}
+				<Card variant="flat" className="mb-6 sm:mb-8 p-3 sm:p-4">
+					<div className="flex flex-wrap items-center gap-3">
+						<div className="w-9 h-9 bg-nb-yellow border-3 border-nb-black flex items-center justify-center shrink-0">
+							<History className="w-4 h-4" />
+						</div>
+						<p className="text-sm font-medium flex-1 min-w-0">
+							<span className="font-black">Wann veröffentlicht dein JPA?</span>{" "}
+							Sieh dir die Ergebnis-Historie mit typischem Tag und Uhrzeit an.
+						</p>
+						<LinkButton to="/history" size="sm" className="w-full sm:w-auto">
+							Zur Historie
+						</LinkButton>
+					</div>
+				</Card>
 
 				{/* Restored Banner */}
 				{showRestoredBanner && (

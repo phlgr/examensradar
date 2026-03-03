@@ -1,5 +1,5 @@
 import { Database } from "bun:sqlite";
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/bun-sqlite";
 import { nanoid } from "nanoid";
 import * as schema from "./schema.ts";
@@ -149,6 +149,21 @@ export const completeSubscriptionSetup = async (
 	}
 
 	return subscription;
+};
+
+export const getNotificationHistory = async () => {
+	return db
+		.select({
+			sentAt: schema.notificationLog.sentAt,
+			jpaName: schema.jpa.name,
+			jpaSlug: schema.jpa.slug,
+			jpaWebsiteUrl: schema.jpa.websiteUrl,
+		})
+		.from(schema.notificationLog)
+		.leftJoin(schema.jpa, eq(schema.notificationLog.jpaId, schema.jpa.id))
+		.orderBy(desc(schema.notificationLog.sentAt))
+		.limit(500)
+		.all();
 };
 
 // Notification log functions

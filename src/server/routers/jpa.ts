@@ -5,6 +5,7 @@ import {
 	getJpaById,
 	getJpaBySlug,
 	getJpas,
+	getNotificationHistory,
 	getSubscriptionCountsByJpa,
 	updateJpa,
 } from "@/db";
@@ -64,5 +65,9 @@ export const jpaRouter = router({
 	getSubscriptionCounts: adminProcedure.query(async () => {
 		const counts = await getSubscriptionCountsByJpa();
 		return Object.fromEntries(counts);
+	}),
+
+	getHistory: publicProcedure.query(async () => {
+		return getNotificationHistory();
 	}),
 });

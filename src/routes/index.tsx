@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Plus, Smartphone, Zap } from "lucide-react";
+import { History, Plus, Smartphone, Zap } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { LinkButton } from "@/components/ui/link-button";
 
@@ -33,7 +33,7 @@ function LandingPage() {
 			{/* Hero Section */}
 			<section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 bg-nb-mint">
 				<div className="max-w-4xl mx-auto">
-					<Card className="p-6 sm:p-8 md:p-12">
+					<Card className="pt-6 px-6 pb-3 sm:pt-8 sm:px-8 sm:pb-4 md:pt-12 md:px-12 md:pb-6">
 						<h1 className="text-4xl sm:text-5xl md:text-7xl font-black text-nb-black mb-4 sm:mb-6 uppercase leading-tight">
 							Schluss mit
 							<br />
@@ -45,13 +45,24 @@ function LandingPage() {
 							Wir benachrichtigen dich sofort, wenn das Justizprüfungsamt neue
 							Examensergebnisse veröffentlicht.
 						</p>
-						<LinkButton
-							to="/subscriptions"
-							size="lg"
-							className="w-full sm:w-auto"
-						>
-							Jetzt starten
-						</LinkButton>
+						<div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+							<LinkButton
+								to="/subscriptions"
+								size="lg"
+								className="w-full sm:w-auto"
+							>
+								Jetzt starten
+							</LinkButton>
+							<LinkButton
+								to="/history"
+								variant="ghost"
+								size="sm"
+								className="w-full sm:w-auto gap-1.5"
+							>
+								<History className="w-4 h-4" />
+								Ergebnis-Historie
+							</LinkButton>
+						</div>
 					</Card>
 				</div>
 			</section>
@@ -81,6 +92,37 @@ function LandingPage() {
 							</Card>
 						))}
 					</div>
+				</div>
+			</section>
+
+			{/* History Teaser */}
+			<section className="py-12 sm:py-16 px-4 sm:px-6 bg-nb-teal">
+				<div className="max-w-4xl mx-auto">
+					<Card variant="primary" className="p-6 sm:p-8">
+						<div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
+							<div className="w-14 h-14 bg-nb-black border-4 border-nb-black flex items-center justify-center shrink-0 shadow-[var(--nb-shadow-sm)]">
+								<History className="w-7 h-7 text-nb-yellow" />
+							</div>
+							<div className="flex-1">
+								<h2 className="text-xl sm:text-2xl font-black uppercase mb-1">
+									Wann veröffentlicht dein JPA?
+								</h2>
+								<p className="font-medium text-sm sm:text-base">
+									In der Historie siehst du, an welchen Tagen die Prüfungsämter
+									in der Vergangenheit Ergebnisse veröffentlicht haben —
+									inklusive typischem Tag und Uhrzeit.
+								</p>
+							</div>
+							<LinkButton
+								to="/history"
+								variant="default"
+								size="lg"
+								className="shrink-0 w-full sm:w-auto"
+							>
+								Zur Historie
+							</LinkButton>
+						</div>
+					</Card>
 				</div>
 			</section>
 

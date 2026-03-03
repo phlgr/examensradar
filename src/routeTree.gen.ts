@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SubscriptionsIndexRouteImport } from './routes/subscriptions/index'
+import { Route as HistoryIndexRouteImport } from './routes/history/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as ApiWebhookResultsRouteImport } from './routes/api/webhook/results'
@@ -27,6 +28,11 @@ const IndexRoute = IndexRouteImport.update({
 const SubscriptionsIndexRoute = SubscriptionsIndexRouteImport.update({
   id: '/subscriptions/',
   path: '/subscriptions/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HistoryIndexRoute = HistoryIndexRouteImport.update({
+  id: '/history/',
+  path: '/history/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
@@ -69,6 +75,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/': typeof AdminIndexRoute
+  '/history/': typeof HistoryIndexRoute
   '/subscriptions/': typeof SubscriptionsIndexRoute
   '/api/admin/check': typeof ApiAdminCheckRoute
   '/api/admin/login': typeof ApiAdminLoginRoute
@@ -80,6 +87,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin': typeof AdminIndexRoute
+  '/history': typeof HistoryIndexRoute
   '/subscriptions': typeof SubscriptionsIndexRoute
   '/api/admin/check': typeof ApiAdminCheckRoute
   '/api/admin/login': typeof ApiAdminLoginRoute
@@ -92,6 +100,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/': typeof AdminIndexRoute
+  '/history/': typeof HistoryIndexRoute
   '/subscriptions/': typeof SubscriptionsIndexRoute
   '/api/admin/check': typeof ApiAdminCheckRoute
   '/api/admin/login': typeof ApiAdminLoginRoute
@@ -105,6 +114,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin/login'
     | '/admin/'
+    | '/history/'
     | '/subscriptions/'
     | '/api/admin/check'
     | '/api/admin/login'
@@ -116,6 +126,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin/login'
     | '/admin'
+    | '/history'
     | '/subscriptions'
     | '/api/admin/check'
     | '/api/admin/login'
@@ -127,6 +138,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin/login'
     | '/admin/'
+    | '/history/'
     | '/subscriptions/'
     | '/api/admin/check'
     | '/api/admin/login'
@@ -139,6 +151,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminLoginRoute: typeof AdminLoginRoute
   AdminIndexRoute: typeof AdminIndexRoute
+  HistoryIndexRoute: typeof HistoryIndexRoute
   SubscriptionsIndexRoute: typeof SubscriptionsIndexRoute
   ApiAdminCheckRoute: typeof ApiAdminCheckRoute
   ApiAdminLoginRoute: typeof ApiAdminLoginRoute
@@ -161,6 +174,13 @@ declare module '@tanstack/react-router' {
       path: '/subscriptions'
       fullPath: '/subscriptions/'
       preLoaderRoute: typeof SubscriptionsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/history/': {
+      id: '/history/'
+      path: '/history'
+      fullPath: '/history/'
+      preLoaderRoute: typeof HistoryIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/': {
@@ -219,6 +239,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminLoginRoute: AdminLoginRoute,
   AdminIndexRoute: AdminIndexRoute,
+  HistoryIndexRoute: HistoryIndexRoute,
   SubscriptionsIndexRoute: SubscriptionsIndexRoute,
   ApiAdminCheckRoute: ApiAdminCheckRoute,
   ApiAdminLoginRoute: ApiAdminLoginRoute,
