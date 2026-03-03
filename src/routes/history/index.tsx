@@ -43,8 +43,9 @@ function groupByJpa(
 		const sentAt = new Date(entry.sentAt);
 		const day = sentAt.getDate();
 
-		if (!map.has(entry.jpaSlug)) {
-			map.set(entry.jpaSlug, {
+		let group = map.get(entry.jpaSlug);
+		if (!group) {
+			group = {
 				jpaName: entry.jpaName,
 				jpaSlug: entry.jpaSlug,
 				jpaWebsiteUrl: entry.jpaWebsiteUrl,
@@ -53,10 +54,9 @@ function groupByJpa(
 				dayOfMonthCounts: new Map(),
 				typicalDay: null,
 				typicalHour: null,
-			});
+			};
+			map.set(entry.jpaSlug, group);
 		}
-
-		const group = map.get(entry.jpaSlug)!;
 		group.entries.push({ sentAt });
 
 		if (sentAt > group.lastRelease) {
