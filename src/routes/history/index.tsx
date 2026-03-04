@@ -189,56 +189,6 @@ function OverviewCard({ groups }: { groups: JpaGroup[] }) {
 	);
 }
 
-function DayTimeline({
-	dayOfMonthCounts,
-	typicalDay,
-}: {
-	dayOfMonthCounts: Map<number, number>;
-	typicalDay: number;
-}) {
-	const maxDay = Math.max(31, ...dayOfMonthCounts.keys());
-	const days = Array.from({ length: maxDay }, (_, i) => i + 1);
-
-	return (
-		<div className="flex flex-wrap gap-1">
-			{days.map((day) => {
-				const count = dayOfMonthCounts.get(day) ?? 0;
-				const isTypical = day === typicalDay;
-				const hasRelease = count > 0;
-
-				let boxClass =
-					"w-5 h-5 flex items-center justify-center text-[9px] font-bold relative";
-
-				if (hasRelease) {
-					boxClass += isTypical
-						? " bg-nb-yellow border-[3px] border-nb-black"
-						: " bg-nb-yellow border-2 border-nb-black";
-				} else {
-					boxClass += " bg-nb-cream border border-nb-black/20";
-				}
-
-				return (
-					<div key={day} className="flex flex-col items-center gap-0.5">
-						<div
-							className={boxClass}
-							title={count > 0 ? `${count}× am ${day}.` : ""}
-						>
-							{count > 1 && (
-								<span className="absolute -top-1.5 -right-1.5 bg-nb-black text-nb-yellow text-[8px] font-black w-3.5 h-3.5 flex items-center justify-center">
-									{count}
-								</span>
-							)}
-						</div>
-						<span className="text-[8px] font-medium text-nb-black/40 leading-none">
-							{day}
-						</span>
-					</div>
-				);
-			})}
-		</div>
-	);
-}
-
 function predictNextRelease(group: JpaGroup): Date | null {
 	if (group.entries.length < 1) return null;
 
@@ -346,10 +296,7 @@ function JpaCard({ group }: { group: JpaGroup }) {
 			</div>
 
 			<div className="mb-3">
-				<DayTimeline
-					dayOfMonthCounts={group.dayOfMonthCounts}
-					typicalDay={group.typicalDay}
-				/>
+				<WeekdayBar weekdayCounts={group.weekdayCounts} />
 			</div>
 
 			<p className="text-xs font-medium text-nb-black/50">{compactDates}</p>
