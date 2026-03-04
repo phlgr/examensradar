@@ -239,6 +239,25 @@ function DayTimeline({
 	);
 }
 
+function predictNextRelease(group: JpaGroup): Date | null {
+	if (group.entries.length < 1) return null;
+
+	const MS_PER_DAY = 1000 * 60 * 60 * 24;
+	const now = new Date();
+	const alreadyReleasedThisMonth =
+		group.lastRelease.getMonth() === now.getMonth() &&
+		group.lastRelease.getFullYear() === now.getFullYear();
+	const month = now.getMonth() + (alreadyReleasedThisMonth ? 1 : 0);
+	const candidate = new Date(now.getFullYear(), month, group.typicalDay);
+
+	// Shift weekend to Friday / Monday
+	const day = candidate.getDay();
+	if (day === 6) candidate.setTime(candidate.getTime() - MS_PER_DAY);
+	if (day === 0) candidate.setTime(candidate.getTime() + MS_PER_DAY);
+
+	return candidate;
+}
+
 function JpaCard({ group }: { group: JpaGroup }) {
 	const sortedEntries = [...group.entries].sort(
 		(a, b) => b.sentAt.getTime() - a.sentAt.getTime(),
@@ -255,6 +274,20 @@ function JpaCard({ group }: { group: JpaGroup }) {
 			}),
 		)
 		.join(", ");
+
+	const prediction = predictNextRelease(group);
+	const daysUntil = prediction
+		? Math.ceil((prediction.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+		: null;
+	const isOverdue = daysUntil !== null && daysUntil < 0;
+	const relativeLabel =
+		daysUntil !== null
+			? isOverdue
+				? `seit ${Math.abs(Math.round(daysUntil / 7))} Wochen überfällig`
+				: daysUntil <= 14
+					? `in ${daysUntil} Tagen`
+					: `in ${Math.round(daysUntil / 7)} Wochen`
+			: null;
 
 	return (
 		<Card className="p-4 sm:p-6">
@@ -293,6 +326,23 @@ function JpaCard({ group }: { group: JpaGroup }) {
 					{" des Monats, gegen "}
 					<span className="bg-nb-yellow px-1">{group.typicalHour} Uhr</span>
 				</p>
+
+				{prediction && (
+					<p className="text-sm font-bold mt-1">
+						Nächste Veröffentlichung voraussichtlich{" "}
+						<span
+							className={`border border-nb-black px-1 ${isOverdue ? "bg-nb-coral" : "bg-nb-teal"}`}
+						>
+							{prediction.toLocaleDateString("de-DE", {
+								day: "numeric",
+								month: "long",
+							})}
+						</span>{" "}
+						<span className="font-medium text-nb-black/50">
+							({relativeLabel})
+						</span>
+					</p>
+				)}
 			</div>
 
 			<div className="mb-3">
