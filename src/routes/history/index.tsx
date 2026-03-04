@@ -7,6 +7,17 @@ export const Route = createFileRoute("/history/")({
 	component: HistoryPage,
 });
 
+const WEEKDAYS = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"] as const;
+const WEEKDAYS_FULL = [
+	"Sonntag",
+	"Montag",
+	"Dienstag",
+	"Mittwoch",
+	"Donnerstag",
+	"Freitag",
+	"Samstag",
+] as const;
+
 type JpaGroup = {
 	jpaName: string;
 	jpaSlug: string;
@@ -14,17 +25,33 @@ type JpaGroup = {
 	entries: Array<{ sentAt: Date }>;
 	lastRelease: Date;
 	dayOfMonthCounts: Map<number, number>;
+	weekdayCounts: Map<number, number>;
 	typicalDay: number;
+	typicalWeekday: number;
 	typicalHour: number;
 };
 
-function computeMedian(days: number[]): number {
-	const sorted = [...days].sort((a, b) => a - b);
+function computeMedian(values: number[]): number {
+	const sorted = [...values].sort((a, b) => a - b);
 	const mid = Math.floor(sorted.length / 2);
 	if (sorted.length % 2 === 0) {
 		return Math.round((sorted[mid - 1] + sorted[mid]) / 2);
 	}
 	return sorted[mid];
+}
+
+function computeMode(values: number[]): number {
+	const counts = new Map<number, number>();
+	for (const v of values) counts.set(v, (counts.get(v) ?? 0) + 1);
+	let best = values[0];
+	let bestCount = 0;
+	for (const [v, c] of counts) {
+		if (c > bestCount) {
+			best = v;
+			bestCount = c;
+		}
+	}
+	return best;
 }
 
 function groupByJpa(
@@ -42,6 +69,7 @@ function groupByJpa(
 
 		const sentAt = new Date(entry.sentAt);
 		const day = sentAt.getDate();
+		const weekday = sentAt.getDay();
 
 		let group = map.get(entry.jpaSlug);
 		if (!group) {
@@ -52,7 +80,9 @@ function groupByJpa(
 				entries: [],
 				lastRelease: sentAt,
 				dayOfMonthCounts: new Map(),
+				weekdayCounts: new Map(),
 				typicalDay: 0,
+				typicalWeekday: 0,
 				typicalHour: 0,
 			};
 			map.set(entry.jpaSlug, group);
@@ -64,17 +94,98 @@ function groupByJpa(
 		}
 
 		group.dayOfMonthCounts.set(day, (group.dayOfMonthCounts.get(day) ?? 0) + 1);
+		group.weekdayCounts.set(
+			weekday,
+			(group.weekdayCounts.get(weekday) ?? 0) + 1,
+		);
 	}
 
 	for (const group of map.values()) {
 		const allDays = group.entries.map((e) => e.sentAt.getDate());
+		const allWeekdays = group.entries.map((e) => e.sentAt.getDay());
 		const allHours = group.entries.map((e) => e.sentAt.getHours());
 		group.typicalDay = computeMedian(allDays);
+		group.typicalWeekday = computeMode(allWeekdays);
 		group.typicalHour = computeMedian(allHours);
 	}
 
 	return [...map.values()].sort(
 		(a, b) => b.lastRelease.getTime() - a.lastRelease.getTime(),
+	);
+}
+
+function WeekdayBar({ weekdayCounts }: { weekdayCounts: Map<number, number> }) {
+	const max = Math.max(...weekdayCounts.values(), 1);
+	// Mon–Sun order (1–6, 0)
+	const order = [1, 2, 3, 4, 5, 6, 0];
+	return (
+		<div className="flex gap-1 items-end">
+			{order.map((wd) => {
+				const count = weekdayCounts.get(wd) ?? 0;
+				const height = Math.round((count / max) * 24) + 8;
+				return (
+					<div key={wd} className="flex flex-col items-center gap-0.5">
+						<div
+							className={`w-6 ${count > 0 ? "bg-nb-yellow border-2 border-nb-black" : "bg-nb-cream border border-nb-black/20"}`}
+							style={{ height }}
+							title={`${WEEKDAYS_FULL[wd]}: ${count}×`}
+						/>
+						<span className="text-[9px] font-bold text-nb-black/50">
+							{WEEKDAYS[wd]}
+						</span>
+					</div>
+				);
+			})}
+		</div>
+	);
+}
+
+function OverviewCard({ groups }: { groups: JpaGroup[] }) {
+	const totalReleases = groups.reduce((s, g) => s + g.entries.length, 0);
+	const allWeekdayCounts = new Map<number, number>();
+	for (const group of groups) {
+		for (const [wd, count] of group.weekdayCounts) {
+			allWeekdayCounts.set(wd, (allWeekdayCounts.get(wd) ?? 0) + count);
+		}
+	}
+	const mostCommonWeekday = computeMode([
+		...groups.flatMap((g) => g.entries.map((e) => e.sentAt.getDay())),
+	]);
+
+	return (
+		<Card variant="primary" className="p-4 sm:p-6 mb-6 sm:mb-8">
+			<div className="flex flex-col sm:flex-row gap-4 sm:gap-8 sm:items-end">
+				<div className="flex-1">
+					<p className="text-xs font-black uppercase text-nb-black/50 mb-1">
+						Gesamt
+					</p>
+					<p className="text-3xl sm:text-4xl font-black">
+						{totalReleases}{" "}
+						<span className="text-base font-bold">Veröffentlichungen</span>
+					</p>
+					<p className="text-sm font-medium mt-1">
+						von {groups.length}{" "}
+						{groups.length === 1 ? "Justizprüfungsamt" : "Justizprüfungsämtern"}
+					</p>
+					{totalReleases > 0 && (
+						<p className="text-sm font-bold mt-1">
+							Häufigster Wochentag:{" "}
+							<span className="bg-nb-black text-nb-yellow px-1">
+								{WEEKDAYS_FULL[mostCommonWeekday]}
+							</span>
+						</p>
+					)}
+				</div>
+				{totalReleases > 0 && (
+					<div>
+						<p className="text-xs font-black uppercase text-nb-black/50 mb-2">
+							Wochentage
+						</p>
+						<WeekdayBar weekdayCounts={allWeekdayCounts} />
+					</div>
+				)}
+			</div>
+		</Card>
 	);
 }
 
@@ -173,9 +284,13 @@ function JpaCard({ group }: { group: JpaGroup }) {
 				</p>
 
 				<p className="text-sm font-bold mt-0.5">
-					Meist um den{" "}
-					<span className="bg-nb-yellow px-1">{group.typicalDay}.</span> des
-					Monats{", gegen "}
+					Meist{" "}
+					<span className="bg-nb-yellow px-1">
+						{WEEKDAYS_FULL[group.typicalWeekday]}
+					</span>
+					{", um den "}
+					<span className="bg-nb-yellow px-1">{group.typicalDay}.</span>
+					{" des Monats, gegen "}
 					<span className="bg-nb-yellow px-1">{group.typicalHour} Uhr</span>
 				</p>
 			</div>
@@ -219,18 +334,23 @@ function HistoryPage() {
 					</p>
 				</div>
 
-				<div className="space-y-4">
-					{groups.length === 0 ? (
-						<Card className="p-8 text-center">
-							<div className="w-16 h-16 bg-nb-yellow border-4 border-nb-black flex items-center justify-center mx-auto mb-4">
-								<History className="w-8 h-8" />
-							</div>
-							<p className="font-bold">Noch keine Ergebnisse veröffentlicht.</p>
-						</Card>
-					) : (
-						groups.map((group) => <JpaCard key={group.jpaSlug} group={group} />)
-					)}
-				</div>
+				{groups.length === 0 ? (
+					<Card className="p-8 text-center">
+						<div className="w-16 h-16 bg-nb-yellow border-4 border-nb-black flex items-center justify-center mx-auto mb-4">
+							<History className="w-8 h-8" />
+						</div>
+						<p className="font-bold">Noch keine Ergebnisse veröffentlicht.</p>
+					</Card>
+				) : (
+					<>
+						<OverviewCard groups={groups} />
+						<div className="space-y-4">
+							{groups.map((group) => (
+								<JpaCard key={group.jpaSlug} group={group} />
+							))}
+						</div>
+					</>
+				)}
 			</div>
 		</div>
 	);
