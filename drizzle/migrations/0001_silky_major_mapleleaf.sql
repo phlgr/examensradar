@@ -1,0 +1,1 @@
+ALTER TABLE `jpa` ADD `notifications_disabled` integer DEFAULT false NOT NULL;

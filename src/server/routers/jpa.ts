@@ -47,6 +47,7 @@ export const jpaRouter = router({
 				name: z.string().min(1).optional(),
 				slug: z.string().min(1).optional(),
 				websiteUrl: z.string().url().nullable().optional(),
+				notificationsDisabled: z.boolean().optional(),
 			}),
 		)
 		.mutation(async ({ input }) => {

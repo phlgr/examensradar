@@ -48,6 +48,7 @@ export const createJpa = async (data: {
 		name: data.name,
 		slug: data.slug,
 		websiteUrl: data.websiteUrl ?? null,
+		notificationsDisabled: false,
 		createdAt: new Date(),
 	};
 	await db.insert(schema.jpa).values(jpa);
@@ -56,7 +57,12 @@ export const createJpa = async (data: {
 
 export const updateJpa = async (
 	id: string,
-	data: { name?: string; slug?: string; websiteUrl?: string | null },
+	data: {
+		name?: string;
+		slug?: string;
+		websiteUrl?: string | null;
+		notificationsDisabled?: boolean;
+	},
 ): Promise<void> => {
 	await db.update(schema.jpa).set(data).where(eq(schema.jpa.id, id));
 };

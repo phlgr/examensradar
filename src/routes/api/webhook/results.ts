@@ -44,6 +44,13 @@ export const Route = createFileRoute("/api/webhook/results")({
 					return Response.json({ error: "JPA not found" }, { status: 404 });
 				}
 
+				if (jpa.notificationsDisabled) {
+					return Response.json({
+						message: "Notifications disabled for this JPA",
+						sent: 0,
+					});
+				}
+
 				// Get all subscriptions for this JPA
 				const subscriptions = await getSubscriptionsByJpa(jpa.id);
 

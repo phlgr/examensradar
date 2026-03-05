@@ -1,5 +1,15 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Check, Copy, Edit2, LogOut, Plus, Trash2, Users } from "lucide-react";
+import {
+	Bell,
+	BellOff,
+	Check,
+	Copy,
+	Edit2,
+	LogOut,
+	Plus,
+	Trash2,
+	Users,
+} from "lucide-react";
 import { useEffect, useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -74,6 +84,12 @@ function AdminPage() {
 		},
 	});
 
+	const toggleNotifications = trpc.jpa.update.useMutation({
+		onSuccess: () => {
+			jpasQuery.refetch();
+		},
+	});
+
 	if (isAuthenticated === null || jpasQuery.isLoading) {
 		return (
 			<div className="min-h-screen flex items-center justify-center bg-nb-cream">
@@ -140,7 +156,7 @@ function AdminPage() {
 								<Card key={jpa.id} className="p-4 sm:p-6">
 									<div className="flex items-start justify-between gap-4">
 										<div className="flex-1 min-w-0">
-											<div className="flex items-center gap-3 mb-1">
+											<div className="flex items-center gap-3 mb-1 flex-wrap">
 												<h3 className="text-lg font-black uppercase">
 													{jpa.name}
 												</h3>
@@ -148,6 +164,12 @@ function AdminPage() {
 													<Users className="w-3 h-3" />
 													{subscriptionCounts[jpa.id] ?? 0}
 												</div>
+												{jpa.notificationsDisabled && (
+													<div className="flex items-center gap-1 px-2 py-0.5 bg-red-100 border-2 border-red-500 text-red-700 text-xs font-bold">
+														<BellOff className="w-3 h-3" />
+														Pausiert
+													</div>
+												)}
 											</div>
 											<p className="text-sm font-medium text-nb-black/60 mb-1">
 												Slug: {jpa.slug}
@@ -238,6 +260,27 @@ function AdminPage() {
 											</div>
 										</div>
 										<div className="flex gap-2">
+											<Button
+												variant="icon"
+												size="icon"
+												onClick={() =>
+													toggleNotifications.mutate({
+														id: jpa.id,
+														notificationsDisabled: !jpa.notificationsDisabled,
+													})
+												}
+												title={
+													jpa.notificationsDisabled
+														? "Benachrichtigungen aktivieren"
+														: "Benachrichtigungen pausieren"
+												}
+											>
+												{jpa.notificationsDisabled ? (
+													<Bell className="w-4 h-4" />
+												) : (
+													<BellOff className="w-4 h-4" />
+												)}
+											</Button>
 											<Button
 												variant="icon"
 												size="icon"

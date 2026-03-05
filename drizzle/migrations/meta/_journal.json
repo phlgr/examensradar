@@ -8,6 +8,13 @@
       "when": 1769374521397,
       "tag": "0000_shocking_stardust",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1772708109051,
+      "tag": "0001_silky_major_mapleleaf",
+      "breakpoints": true
     }
   ]
 }

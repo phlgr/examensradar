@@ -6,6 +6,11 @@ export const jpa = sqliteTable("jpa", {
 	slug: text("slug").notNull().unique(),
 	name: text("name").notNull(),
 	websiteUrl: text("website_url"),
+	notificationsDisabled: integer("notifications_disabled", {
+		mode: "boolean",
+	})
+		.notNull()
+		.default(false),
 	createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
 });
 
