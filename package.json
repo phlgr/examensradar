@@ -55,7 +55,7 @@
     "better-sqlite3": "12.8.0",
     "drizzle-kit": "0.31.10",
     "lefthook": "2.1.4",
-    "typescript": "5.9.3",
+    "typescript": "6.0.2",
     "vite": "8.0.2"
   }
 }
