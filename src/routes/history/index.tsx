@@ -29,7 +29,6 @@ type JpaGroup = {
 	entries: Array<{ sentAt: Date }>;
 	lastRelease: Date;
 	weekdayCounts: Map<number, number>;
-	typicalWeekday: number;
 	typicalHour: number;
 };
 
@@ -81,7 +80,6 @@ function groupByJpa(
 				entries: [],
 				lastRelease: sentAt,
 				weekdayCounts: new Map(),
-				typicalWeekday: 0,
 				typicalHour: 0,
 			};
 			map.set(entry.jpaSlug, group);
@@ -99,9 +97,7 @@ function groupByJpa(
 	}
 
 	for (const group of map.values()) {
-		const allWeekdays = group.entries.map((e) => e.sentAt.getDay());
 		const allHours = group.entries.map((e) => e.sentAt.getHours());
-		group.typicalWeekday = computeMode(allWeekdays);
 		group.typicalHour = computeMedian(allHours);
 	}
 
@@ -189,10 +185,11 @@ function OverviewCard({ groups }: { groups: JpaGroup[] }) {
 // offset to the last working day (so an end-of-month office reads "zum
 // Monatsende" even when it occasionally slips into the next month).
 function monthPositionLabel(offsetDays: number): string {
-	if (offsetDays >= -2) return "zum Monatsende";
-	if (offsetDays >= -10) return "gegen Ende des Monats";
-	if (offsetDays >= -20) return "zur Monatsmitte";
-	return "zu Monatsbeginn";
+	if (offsetDays >= -1) return "am letzten Werktag des Monats";
+	if (offsetDays >= -4) return "in den letzten Tagen des Monats";
+	if (offsetDays >= -12) return "in der zweiten Monatshälfte";
+	if (offsetDays >= -20) return "um die Monatsmitte";
+	return "in der ersten Monatshälfte";
 }
 
 const CONFIDENCE_LABEL: Record<PredictionConfidence, string> = {
@@ -273,18 +270,15 @@ function JpaCard({ group }: { group: JpaGroup }) {
 
 				<p className="text-sm font-bold mt-0.5">
 					Meist{" "}
-					<span className="bg-nb-yellow px-1">
-						{WEEKDAYS_FULL[group.typicalWeekday]}
-					</span>
 					{prediction && (
 						<>
-							{", "}
 							<span className="bg-nb-yellow px-1">
 								{monthPositionLabel(prediction.medianOffsetDays)}
 							</span>
+							{", "}
 						</>
 					)}
-					{", gegen "}
+					gegen{" "}
 					<span className="bg-nb-yellow px-1">{group.typicalHour} Uhr</span>
 				</p>
 
