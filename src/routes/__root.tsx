@@ -1,31 +1,10 @@
 import { TanStackDevtools } from "@tanstack/react-devtools";
 import { createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
-import { createClientOnlyFn } from "@tanstack/react-start";
-import { useEffect } from "react";
 import { TRPCProvider } from "@/lib/trpc-provider";
 import Header from "../components/Header";
 
 import appCss from "../styles.css?url";
-
-// @plausible-analytics/tracker reads `location` at module load, so it is loaded
-// lazily inside a client-only function — a top-level import would crash SSR.
-// autoCapturePageviews (default) hooks the History API, covering SPA
-// navigations without manual router subscriptions.
-const initPlausible = createClientOnlyFn(async () => {
-	const { init } = await import("@plausible-analytics/tracker");
-	init({
-		domain: "examensradar.de",
-		endpoint: "https://apps.gartz.dev/api/event",
-	});
-});
-
-function PlausibleTracker() {
-	useEffect(() => {
-		initPlausible();
-	}, []);
-	return null;
-}
 
 export const Route = createRootRoute({
 	head: () => ({
@@ -76,7 +55,6 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 			</head>
 			<body>
 				<TRPCProvider>
-					<PlausibleTracker />
 					<Header />
 					{children}
 				</TRPCProvider>
