@@ -1,31 +1,23 @@
+import { init } from "@plausible-analytics/tracker";
 import { TanStackDevtools } from "@tanstack/react-devtools";
-import {
-	createRootRoute,
-	HeadContent,
-	Scripts,
-	useRouter,
-} from "@tanstack/react-router";
+import { createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
-import Plausible from "plausible-tracker";
 import { useEffect } from "react";
 import { TRPCProvider } from "@/lib/trpc-provider";
 import Header from "../components/Header";
 
 import appCss from "../styles.css?url";
 
-const { trackPageview } = Plausible({
-	domain: "examensradar.de",
-	apiHost: "https://apps.gartz.dev",
-});
-
 function PlausibleTracker() {
-	const router = useRouter();
+	// The tracker relies on browser APIs, so initialise it on the client only.
+	// autoCapturePageviews (default) hooks the History API, covering SPA
+	// navigations without manual router subscriptions.
 	useEffect(() => {
-		trackPageview();
-		return router.subscribe("onResolved", () => {
-			trackPageview();
+		init({
+			domain: "examensradar.de",
+			endpoint: "https://apps.gartz.dev/api/event",
 		});
-	}, [router]);
+	}, []);
 	return null;
 }
 
