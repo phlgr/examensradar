@@ -1,6 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ExternalLink, History } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import {
+	type PredictionConfidence,
+	predictNextRelease,
+} from "@/lib/prediction";
 import { trpc } from "@/lib/trpc";
 
 export const Route = createFileRoute("/history/")({
@@ -24,9 +28,7 @@ type JpaGroup = {
 	jpaWebsiteUrl: string | null;
 	entries: Array<{ sentAt: Date }>;
 	lastRelease: Date;
-	dayOfMonthCounts: Map<number, number>;
 	weekdayCounts: Map<number, number>;
-	typicalDay: number;
 	typicalWeekday: number;
 	typicalHour: number;
 };
@@ -68,7 +70,6 @@ function groupByJpa(
 		if (!entry.jpaSlug || !entry.jpaName || !entry.sentAt) continue;
 
 		const sentAt = new Date(entry.sentAt);
-		const day = sentAt.getDate();
 		const weekday = sentAt.getDay();
 
 		let group = map.get(entry.jpaSlug);
@@ -79,9 +80,7 @@ function groupByJpa(
 				jpaWebsiteUrl: entry.jpaWebsiteUrl,
 				entries: [],
 				lastRelease: sentAt,
-				dayOfMonthCounts: new Map(),
 				weekdayCounts: new Map(),
-				typicalDay: 0,
 				typicalWeekday: 0,
 				typicalHour: 0,
 			};
@@ -93,7 +92,6 @@ function groupByJpa(
 			group.lastRelease = sentAt;
 		}
 
-		group.dayOfMonthCounts.set(day, (group.dayOfMonthCounts.get(day) ?? 0) + 1);
 		group.weekdayCounts.set(
 			weekday,
 			(group.weekdayCounts.get(weekday) ?? 0) + 1,
@@ -101,10 +99,8 @@ function groupByJpa(
 	}
 
 	for (const group of map.values()) {
-		const allDays = group.entries.map((e) => e.sentAt.getDate());
 		const allWeekdays = group.entries.map((e) => e.sentAt.getDay());
 		const allHours = group.entries.map((e) => e.sentAt.getHours());
-		group.typicalDay = computeMedian(allDays);
 		group.typicalWeekday = computeMode(allWeekdays);
 		group.typicalHour = computeMedian(allHours);
 	}
@@ -189,24 +185,24 @@ function OverviewCard({ groups }: { groups: JpaGroup[] }) {
 	);
 }
 
-function predictNextRelease(group: JpaGroup): Date | null {
-	if (group.entries.length < 1) return null;
-
-	const MS_PER_DAY = 1000 * 60 * 60 * 24;
-	const now = new Date();
-	const alreadyReleasedThisMonth =
-		group.lastRelease.getMonth() === now.getMonth() &&
-		group.lastRelease.getFullYear() === now.getFullYear();
-	const month = now.getMonth() + (alreadyReleasedThisMonth ? 1 : 0);
-	const candidate = new Date(now.getFullYear(), month, group.typicalDay);
-
-	// Shift weekend to Friday / Monday
-	const day = candidate.getDay();
-	if (day === 6) candidate.setTime(candidate.getTime() - MS_PER_DAY);
-	if (day === 0) candidate.setTime(candidate.getTime() + MS_PER_DAY);
-
-	return candidate;
+// Describes where in the month a JPA tends to publish, derived from the median
+// offset to the last working day (so an end-of-month office reads "zum
+// Monatsende" even when it occasionally slips into the next month).
+function monthPositionLabel(offsetDays: number): string {
+	if (offsetDays >= -2) return "zum Monatsende";
+	if (offsetDays >= -10) return "gegen Ende des Monats";
+	if (offsetDays >= -20) return "zur Monatsmitte";
+	return "zu Monatsbeginn";
 }
+
+const CONFIDENCE_LABEL: Record<PredictionConfidence, string> = {
+	high: "hohe Sicherheit",
+	medium: "mittlere Sicherheit",
+	low: "grobe Schätzung",
+};
+
+const shortDate = (date: Date) =>
+	date.toLocaleDateString("de-DE", { day: "numeric", month: "short" });
 
 function JpaCard({ group }: { group: JpaGroup }) {
 	const sortedEntries = [...group.entries].sort(
@@ -225,19 +221,28 @@ function JpaCard({ group }: { group: JpaGroup }) {
 		)
 		.join(", ");
 
-	const prediction = predictNextRelease(group);
+	const prediction = predictNextRelease(
+		group.entries.map((e) => e.sentAt),
+		new Date(),
+	);
 	const daysUntil = prediction
-		? Math.ceil((prediction.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+		? Math.ceil(
+				(prediction.date.getTime() - Date.now()) / (1000 * 60 * 60 * 24),
+			)
 		: null;
 	const isOverdue = daysUntil !== null && daysUntil < 0;
 	const relativeLabel =
-		daysUntil !== null
-			? isOverdue
-				? `seit ${Math.abs(Math.round(daysUntil / 7))} Wochen überfällig`
-				: daysUntil <= 14
-					? `in ${daysUntil} Tagen`
-					: `in ${Math.round(daysUntil / 7)} Wochen`
-			: null;
+		daysUntil === null
+			? null
+			: isOverdue
+				? Math.abs(daysUntil) < 7
+					? `seit ${Math.abs(daysUntil)} Tagen überfällig`
+					: `seit ${Math.round(Math.abs(daysUntil) / 7)} Wochen überfällig`
+				: daysUntil === 0
+					? "heute erwartet"
+					: daysUntil <= 14
+						? `in ${daysUntil} Tagen`
+						: `in ${Math.round(daysUntil / 7)} Wochen`;
 
 	return (
 		<Card className="p-4 sm:p-6">
@@ -271,9 +276,15 @@ function JpaCard({ group }: { group: JpaGroup }) {
 					<span className="bg-nb-yellow px-1">
 						{WEEKDAYS_FULL[group.typicalWeekday]}
 					</span>
-					{", um den "}
-					<span className="bg-nb-yellow px-1">{group.typicalDay}.</span>
-					{" des Monats, gegen "}
+					{prediction && (
+						<>
+							{", "}
+							<span className="bg-nb-yellow px-1">
+								{monthPositionLabel(prediction.medianOffsetDays)}
+							</span>
+						</>
+					)}
+					{", gegen "}
 					<span className="bg-nb-yellow px-1">{group.typicalHour} Uhr</span>
 				</p>
 
@@ -283,13 +294,18 @@ function JpaCard({ group }: { group: JpaGroup }) {
 						<span
 							className={`border border-nb-black px-1 ${isOverdue ? "bg-nb-coral" : "bg-nb-teal"}`}
 						>
-							{prediction.toLocaleDateString("de-DE", {
+							{prediction.date.toLocaleDateString("de-DE", {
 								day: "numeric",
 								month: "long",
 							})}
 						</span>{" "}
 						<span className="font-medium text-nb-black/50">
 							({relativeLabel})
+						</span>
+						<span className="block text-xs font-medium text-nb-black/50 mt-0.5">
+							Zeitfenster {shortDate(prediction.windowStart)} –{" "}
+							{shortDate(prediction.windowEnd)} ·{" "}
+							{CONFIDENCE_LABEL[prediction.confidence]}
 						</span>
 					</p>
 				)}
