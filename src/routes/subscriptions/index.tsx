@@ -72,7 +72,7 @@ function SubscriptionsPage() {
 			subscriptionsQuery.refetch();
 			// Find the JPA name for the subscription
 			const jpa = jpasQuery.data?.find((j) => j.id === variables.jpaId);
-			trackEvent("Subscribe", { jpa: jpa?.name || "JPA" });
+			trackEvent("subscribe", { jpa: jpa?.name || "JPA" });
 			// Show onboarding/test modal after every subscription
 			setOnboardingData({
 				ntfyTopic: data.ntfyTopic,
@@ -86,7 +86,7 @@ function SubscriptionsPage() {
 
 	const deleteSubscription = trpc.subscription.delete.useMutation({
 		onSuccess: () => {
-			trackEvent("Unsubscribe");
+			trackEvent("unsubscribe");
 			subscriptionsQuery.refetch();
 		},
 	});

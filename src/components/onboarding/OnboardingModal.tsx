@@ -81,8 +81,8 @@ export function OnboardingModal({
 	// Mutations
 	const completeOnboarding = trpc.user.completeOnboarding.useMutation({
 		onSuccess: () => {
-			trackEvent("Onboarding Completed", {
-				firstSubscription: isFirstSubscription,
+			trackEvent("onboarding_completed", {
+				first_subscription: isFirstSubscription,
 			});
 			onClose();
 		},
@@ -90,7 +90,7 @@ export function OnboardingModal({
 
 	const sendTestNotification = trpc.user.sendTestNotification.useMutation({
 		onSuccess: () => {
-			trackEvent("Test Sent");
+			trackEvent("test_sent");
 			setCodeError(false);
 			setSendError(null);
 		},
@@ -101,7 +101,7 @@ export function OnboardingModal({
 
 	const verifyTestCode = trpc.user.verifyTestCode.useMutation({
 		onSuccess: () => {
-			trackEvent("Test Verified");
+			trackEvent("test_verified");
 			setCodeVerified(true);
 			setCodeError(false);
 		},
