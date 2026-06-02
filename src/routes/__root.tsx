@@ -1,4 +1,3 @@
-import { init } from "@plausible-analytics/tracker";
 import { TanStackDevtools } from "@tanstack/react-devtools";
 import { createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
@@ -9,13 +8,16 @@ import Header from "../components/Header";
 import appCss from "../styles.css?url";
 
 function PlausibleTracker() {
-	// The tracker relies on browser APIs, so initialise it on the client only.
-	// autoCapturePageviews (default) hooks the History API, covering SPA
-	// navigations without manual router subscriptions.
+	// The tracker reads `location` at module load and relies on browser APIs, so
+	// it must be imported dynamically on the client — a top-level import would
+	// crash server-side rendering. autoCapturePageviews (default) hooks the
+	// History API, covering SPA navigations without manual router subscriptions.
 	useEffect(() => {
-		init({
-			domain: "examensradar.de",
-			endpoint: "https://apps.gartz.dev/api/event",
+		import("@plausible-analytics/tracker").then(({ init }) => {
+			init({
+				domain: "examensradar.de",
+				endpoint: "https://apps.gartz.dev/api/event",
+			});
 		});
 	}, []);
 	return null;
