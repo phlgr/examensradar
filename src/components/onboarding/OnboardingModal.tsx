@@ -19,6 +19,7 @@ import {
 	ModalTitle,
 } from "@/components/ui/modal";
 import { ProgressSteps } from "@/components/ui/progress-steps";
+import { trackEvent } from "@/lib/analytics";
 import { trpc } from "@/lib/trpc";
 
 interface OnboardingModalProps {
@@ -79,11 +80,17 @@ export function OnboardingModal({
 
 	// Mutations
 	const completeOnboarding = trpc.user.completeOnboarding.useMutation({
-		onSuccess: onClose,
+		onSuccess: () => {
+			trackEvent("Onboarding Completed", {
+				firstSubscription: isFirstSubscription,
+			});
+			onClose();
+		},
 	});
 
 	const sendTestNotification = trpc.user.sendTestNotification.useMutation({
 		onSuccess: () => {
+			trackEvent("Test Sent");
 			setCodeError(false);
 			setSendError(null);
 		},
@@ -94,6 +101,7 @@ export function OnboardingModal({
 
 	const verifyTestCode = trpc.user.verifyTestCode.useMutation({
 		onSuccess: () => {
+			trackEvent("Test Verified");
 			setCodeVerified(true);
 			setCodeError(false);
 		},

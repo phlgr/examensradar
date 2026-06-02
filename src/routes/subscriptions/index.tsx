@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { LinkButton } from "@/components/ui/link-button";
 import { useClipboard } from "@/hooks/use-clipboard";
+import { trackEvent } from "@/lib/analytics";
 import { setDeviceId } from "@/lib/device-id";
 import { trpc } from "@/lib/trpc";
 
@@ -71,6 +72,7 @@ function SubscriptionsPage() {
 			subscriptionsQuery.refetch();
 			// Find the JPA name for the subscription
 			const jpa = jpasQuery.data?.find((j) => j.id === variables.jpaId);
+			trackEvent("Subscribe", { jpa: jpa?.name || "JPA" });
 			// Show onboarding/test modal after every subscription
 			setOnboardingData({
 				ntfyTopic: data.ntfyTopic,
@@ -84,6 +86,7 @@ function SubscriptionsPage() {
 
 	const deleteSubscription = trpc.subscription.delete.useMutation({
 		onSuccess: () => {
+			trackEvent("Unsubscribe");
 			subscriptionsQuery.refetch();
 		},
 	});
