@@ -56,6 +56,13 @@ export const subscriber = sqliteTable("subscriber", {
 	/** Lowercased and trimmed on write, so uniqueness is on the real address. */
 	email: text("email").notNull().unique(),
 	manageToken: text("manage_token").notNull().unique(),
+	/**
+	 * Separate from `manageToken` on purpose. The List-Unsubscribe header hands
+	 * this URL to Gmail and to every scanner in between, so the credential we
+	 * publish must only be able to unsubscribe — not read the address or alter
+	 * subscriptions the way the manage token can.
+	 */
+	unsubscribeToken: text("unsubscribe_token").notNull().unique(),
 	/** Cleared once used, so a confirmation link works exactly once. */
 	confirmToken: text("confirm_token").unique(),
 	confirmExpiresAt: integer("confirm_expires_at", { mode: "timestamp_ms" }),
@@ -83,6 +90,17 @@ export const emailSubscription = sqliteTable(
 		jpaId: text("jpa_id")
 			.notNull()
 			.references(() => jpa.id, { onDelete: "cascade" }),
+		/**
+		 * The device that signed this address up, when there was one. On
+		 * confirmation the matching ntfy subscription for the same JPA is deleted,
+		 * so nobody receives both a push and a mail for one publication.
+		 *
+		 * Recorded here rather than read at confirmation time because the
+		 * confirmation link is often opened on a different device than the signup,
+		 * and it is per-JPA so migrating one office never silently drops the push
+		 * for another.
+		 */
+		deviceId: text("device_id"),
 		createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
 	},
 	(table) => [

@@ -2,6 +2,7 @@ CREATE TABLE `email_subscription` (
 	`id` text PRIMARY KEY NOT NULL,
 	`subscriber_id` text NOT NULL,
 	`jpa_id` text NOT NULL,
+	`device_id` text,
 	`created_at` integer NOT NULL,
 	FOREIGN KEY (`subscriber_id`) REFERENCES `subscriber`(`id`) ON UPDATE no action ON DELETE cascade,
 	FOREIGN KEY (`jpa_id`) REFERENCES `jpa`(`id`) ON UPDATE no action ON DELETE cascade
@@ -13,6 +14,7 @@ CREATE TABLE `subscriber` (
 	`id` text PRIMARY KEY NOT NULL,
 	`email` text NOT NULL,
 	`manage_token` text NOT NULL,
+	`unsubscribe_token` text NOT NULL,
 	`confirm_token` text,
 	`confirm_expires_at` integer,
 	`confirmed_at` integer,
@@ -25,4 +27,5 @@ CREATE TABLE `subscriber` (
 --> statement-breakpoint
 CREATE UNIQUE INDEX `subscriber_email_unique` ON `subscriber` (`email`);--> statement-breakpoint
 CREATE UNIQUE INDEX `subscriber_manage_token_unique` ON `subscriber` (`manage_token`);--> statement-breakpoint
+CREATE UNIQUE INDEX `subscriber_unsubscribe_token_unique` ON `subscriber` (`unsubscribe_token`);--> statement-breakpoint
 CREATE UNIQUE INDEX `subscriber_confirm_token_unique` ON `subscriber` (`confirm_token`);

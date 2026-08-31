@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "e2afb3bd-bc27-4505-a452-663469d83867",
+  "id": "ddc96077-7f6e-4eb6-b073-b55a09fc5fa2",
   "prevId": "a1b7627c-6f82-41ee-8786-d5aedc978155",
   "tables": {
     "admin_session": {
@@ -72,6 +72,13 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true,
+          "autoincrement": false
+        },
+        "device_id": {
+          "name": "device_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
           "autoincrement": false
         },
         "created_at": {
@@ -268,6 +275,13 @@
           "notNull": true,
           "autoincrement": false
         },
+        "unsubscribe_token": {
+          "name": "unsubscribe_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
         "confirm_token": {
           "name": "confirm_token",
           "type": "text",
@@ -337,6 +351,13 @@
           "name": "subscriber_manage_token_unique",
           "columns": [
             "manage_token"
+          ],
+          "isUnique": true
+        },
+        "subscriber_unsubscribe_token_unique": {
+          "name": "subscriber_unsubscribe_token_unique",
+          "columns": [
+            "unsubscribe_token"
           ],
           "isUnique": true
         },

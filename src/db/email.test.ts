@@ -46,6 +46,59 @@ const expireConfirmToken = (email: string) =>
 		email,
 	]);
 
+test("manage and unsubscribe tokens are distinct credentials", async () => {
+	const subscriber = await upsertPendingSubscriber("tokens@example.com", null);
+
+	// The unsubscribe token is published via List-Unsubscribe, so it must not be
+	// usable to read or alter the subscription.
+	expect(subscriber.unsubscribeToken).toBeTruthy();
+	expect(subscriber.unsubscribeToken).not.toBe(subscriber.manageToken);
+	expect(
+		await getSubscriberByManageToken(subscriber.unsubscribeToken),
+	).toBeNull();
+});
+
+test("confirming retires only the superseded ntfy subscription", async () => {
+	const migrated = await jpa("retire-migrated");
+	const untouched = await jpa("retire-untouched");
+	const deviceId = crypto.randomUUID();
+
+	// The device already receives pushes for both offices.
+	for (const office of [migrated, untouched]) {
+		setup.run(
+			"INSERT INTO subscription (id, device_id, jpa_id, ntfy_topic, setup_completed_at, created_at) VALUES (?,?,?,?,?,?)",
+			[
+				`sub-${office.slug}`,
+				deviceId,
+				office.id,
+				`examensradar-${office.slug}`,
+				Date.now(),
+				Date.now(),
+			],
+		);
+	}
+
+	// It signs up by mail for one of them only.
+	const pending = await upsertPendingSubscriber("retire@example.com", null);
+	await addEmailSubscription(pending.id, migrated.id, deviceId);
+
+	const remaining = () =>
+		(
+			setup
+				.query("SELECT jpa_id FROM subscription WHERE device_id = ?")
+				.all(deviceId) as { jpa_id: string }[]
+		).map((row) => row.jpa_id);
+
+	// Nothing is retired before the address is proven — dropping a working
+	// channel for an unconfirmed one would leave them with neither.
+	expect(remaining().sort()).toEqual([migrated.id, untouched.id].sort());
+
+	await confirmSubscriber(pending.confirmToken as string);
+
+	// Only the office now covered by mail loses its push.
+	expect(remaining()).toEqual([untouched.id]);
+});
+
 test("normalizeEmail folds case and whitespace", () => {
 	expect(normalizeEmail("  Philipp@Example.DE ")).toBe("philipp@example.de");
 });

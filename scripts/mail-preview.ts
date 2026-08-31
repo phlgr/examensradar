@@ -21,13 +21,19 @@ import {
 
 const JPA_NAME = "Justizprüfungsamt Hamm";
 const JPA_URL = "https://www.olg-hamm.nrw.de/";
-const TOKEN = "VORSCHAU-TOKEN-1234567890";
+const CONFIRM_TOKEN = "VORSCHAU-CONFIRM-TOKEN-123";
+// Distinct on purpose, so a preview shows that the published unsubscribe link
+// never carries the manage credential.
+const TOKENS = {
+	manage: "VORSCHAU-MANAGE-TOKEN-123",
+	unsubscribe: "VORSCHAU-UNSUBSCRIBE-TOKEN-123",
+};
 
 const templates: Record<string, () => MailContent> = {
-	confirm: () => renderConfirmMail(JPA_NAME, TOKEN),
-	welcome: () => renderWelcomeMail(JPA_NAME, TOKEN),
-	results: () => renderResultsMail(JPA_NAME, JPA_URL, TOKEN),
-	manage: () => renderManageLinkMail(TOKEN),
+	confirm: () => renderConfirmMail(JPA_NAME, CONFIRM_TOKEN),
+	welcome: () => renderWelcomeMail(JPA_NAME, TOKENS),
+	results: () => renderResultsMail(JPA_NAME, JPA_URL, TOKENS),
+	manage: () => renderManageLinkMail(TOKENS),
 };
 
 function arg(name: string): string | undefined {

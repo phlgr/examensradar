@@ -18,10 +18,28 @@ const FONT = "-apple-system,'Segoe UI',Helvetica,Arial,sans-serif";
 
 const appUrl = () => process.env.APP_URL || "https://examensradar.de";
 
+/**
+ * The two credentials a subscriber mail can carry. They are separate because
+ * the unsubscribe URL is handed to Gmail via List-Unsubscribe and therefore
+ * published, while the manage token must not be.
+ */
+export interface MailTokens {
+	manage: string;
+	unsubscribe: string;
+}
+
 // Route paths stay English like the rest of the app; only the copy is German.
-const manageUrl = (token: string) => `${appUrl()}/manage/${token}`;
-const unsubscribeUrl = (token: string) => `${appUrl()}/unsubscribe/${token}`;
+/** Entry point: sets the session cookie, then redirects to /subscriptions. */
+const restoreUrl = (token: string) => `${appUrl()}/restore/${token}`;
 const confirmUrl = (token: string) => `${appUrl()}/confirm/${token}`;
+/** The page a human lands on from the footer link. */
+const unsubscribeUrl = (token: string) => `${appUrl()}/unsubscribe/${token}`;
+/**
+ * POST-only, machine-facing. This is what Gmail one-clicks, so it renders
+ * nothing and can do nothing but unsubscribe.
+ */
+const unsubscribePostUrl = (token: string) =>
+	`${appUrl()}/api/email/unsubscribe/${token}`;
 
 function escapeHtml(value: string): string {
 	return value
@@ -76,9 +94,9 @@ const footerLink = (url: string, label: string) =>
 	`<a href="${escapeHtml(url)}" style="color:${MUTED}">${escapeHtml(label)}</a>`;
 
 /** Small print carried by every mail sent to a confirmed subscriber. */
-function subscriberFooter(token: string): string {
+function subscriberFooter(tokens: MailTokens): string {
 	return `Du erhältst diese E-Mail, weil du dich auf examensradar.de für Benachrichtigungen dieses Prüfungsamts angemeldet hast.<br>
-${footerLink(unsubscribeUrl(token), "Abmelden")} &middot; ${footerLink(manageUrl(token), "Abo verwalten")}`;
+${footerLink(unsubscribeUrl(tokens.unsubscribe), "Abmelden")} &middot; ${footerLink(restoreUrl(tokens.manage), "Abo verwalten")}`;
 }
 
 /** Double opt-in. Nothing is sent to an address until this link is clicked. */
@@ -110,31 +128,34 @@ Bestätigung senden wir dir nichts.
 }
 
 /** Sent once double opt-in completes. Its real job is delivering the manage link. */
-export function renderWelcomeMail(jpaName: string, token: string): MailContent {
+export function renderWelcomeMail(
+	jpaName: string,
+	tokens: MailTokens,
+): MailContent {
 	return {
 		subject: "Alles bereit — wir halten dich auf dem Laufenden",
 		text: `Alles bereit
 
 Wir benachrichtigen dich, sobald das ${jpaName} neue Examensergebnisse veröffentlicht.
 
-Abo verwalten: ${manageUrl(token)}
+Abo verwalten: ${restoreUrl(tokens.manage)}
 
 --
 Bewahre diese E-Mail auf: über den Link oben kannst du dein Abo jederzeit
 verwalten oder beenden.
 
-Abmelden: ${unsubscribeUrl(token)}
+Abmelden: ${unsubscribeUrl(tokens.unsubscribe)}
 `,
 		html: layout({
 			heading: "Alles bereit",
 			body: paragraph(
 				`Wir benachrichtigen dich, sobald das <strong>${escapeHtml(jpaName)}</strong> neue Examensergebnisse veröffentlicht.`,
 			),
-			cta: { url: manageUrl(token), label: "Abo verwalten" },
+			cta: { url: restoreUrl(tokens.manage), label: "Abo verwalten" },
 			footer: `Bewahre diese E-Mail auf — über den Link kannst du dein Abo jederzeit verwalten oder beenden.<br>
-${footerLink(unsubscribeUrl(token), "Abmelden")}`,
+${footerLink(unsubscribeUrl(tokens.unsubscribe), "Abmelden")}`,
 		}),
-		unsubscribeUrl: unsubscribeUrl(token),
+		unsubscribeUrl: unsubscribePostUrl(tokens.unsubscribe),
 	};
 }
 
@@ -142,7 +163,7 @@ ${footerLink(unsubscribeUrl(token), "Abmelden")}`,
 export function renderResultsMail(
 	jpaName: string,
 	jpaWebsiteUrl: string | null,
-	token: string,
+	tokens: MailTokens,
 ): MailContent {
 	const body = `Das ${jpaName} hat neue Examensergebnisse veröffentlicht.`;
 
@@ -156,8 +177,8 @@ ${jpaWebsiteUrl ? `\nErgebnisse ansehen: ${jpaWebsiteUrl}\n` : ""}
 Du erhältst diese E-Mail, weil du dich auf examensradar.de für
 Benachrichtigungen dieses Prüfungsamts angemeldet hast.
 
-Abmelden: ${unsubscribeUrl(token)}
-Abo verwalten: ${manageUrl(token)}
+Abmelden: ${unsubscribeUrl(tokens.unsubscribe)}
+Abo verwalten: ${restoreUrl(tokens.manage)}
 `,
 		html: layout({
 			heading: "Neue Ergebnisse verfügbar",
@@ -167,36 +188,36 @@ Abo verwalten: ${manageUrl(token)}
 			cta: jpaWebsiteUrl
 				? { url: jpaWebsiteUrl, label: "Ergebnisse ansehen" }
 				: undefined,
-			footer: subscriberFooter(token),
+			footer: subscriberFooter(tokens),
 		}),
-		unsubscribeUrl: unsubscribeUrl(token),
+		unsubscribeUrl: unsubscribePostUrl(tokens.unsubscribe),
 	};
 }
 
 /** Re-sends the manage link to an address that already confirmed. */
-export function renderManageLinkMail(token: string): MailContent {
+export function renderManageLinkMail(tokens: MailTokens): MailContent {
 	return {
 		subject: "Dein Link zur Abo-Verwaltung",
 		text: `Dein Abo verwalten
 
 Über diesen Link kannst du deine Benachrichtigungen ändern oder beenden.
 
-Abo verwalten: ${manageUrl(token)}
+Abo verwalten: ${restoreUrl(tokens.manage)}
 
 --
 Du hast das nicht angefordert? Dann ignoriere diese E-Mail einfach.
 
-Abmelden: ${unsubscribeUrl(token)}
+Abmelden: ${unsubscribeUrl(tokens.unsubscribe)}
 `,
 		html: layout({
 			heading: "Dein Abo verwalten",
 			body: paragraph(
 				"Über diesen Link kannst du deine Benachrichtigungen ändern oder beenden.",
 			),
-			cta: { url: manageUrl(token), label: "Abo verwalten" },
+			cta: { url: restoreUrl(tokens.manage), label: "Abo verwalten" },
 			footer: `Du hast das nicht angefordert? Dann ignoriere diese E-Mail einfach.<br>
-${footerLink(unsubscribeUrl(token), "Abmelden")}`,
+${footerLink(unsubscribeUrl(tokens.unsubscribe), "Abmelden")}`,
 		}),
-		unsubscribeUrl: unsubscribeUrl(token),
+		unsubscribeUrl: unsubscribePostUrl(tokens.unsubscribe),
 	};
 }

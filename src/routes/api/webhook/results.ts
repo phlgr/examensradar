@@ -152,11 +152,10 @@ export const Route = createFileRoute("/api/webhook/results")({
 				});
 
 				const mails = subscribers.map((subscriber) => ({
-					...renderResultsMail(
-						jpa.name,
-						jpa.websiteUrl,
-						subscriber.manageToken,
-					),
+					...renderResultsMail(jpa.name, jpa.websiteUrl, {
+						manage: subscriber.manageToken,
+						unsubscribe: subscriber.unsubscribeToken,
+					}),
 					to: subscriber.email,
 				}));
 

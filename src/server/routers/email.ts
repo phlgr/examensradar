@@ -9,12 +9,14 @@ import {
 	getSubscriberJpas,
 	normalizeEmail,
 	removeEmailSubscription,
+	retireSupersededNtfySubscriptions,
 	unsubscribeSubscriber,
 	upsertPendingSubscriber,
 } from "@/db";
 import { getClientIp } from "@/lib/client-ip";
 import { sendMail } from "@/lib/mail";
 import {
+	type MailTokens,
 	renderConfirmMail,
 	renderManageLinkMail,
 	renderWelcomeMail,
@@ -33,6 +35,14 @@ function dispatch(to: string, content: Parameters<typeof sendMail>[0] | null) {
 		console.error(`[email] background send to ${to} crashed`, error);
 	});
 }
+
+const tokensFor = (subscriber: {
+	manageToken: string;
+	unsubscribeToken: string;
+}): MailTokens => ({
+	manage: subscriber.manageToken,
+	unsubscribe: subscriber.unsubscribeToken,
+});
 
 const emailInput = z.email().max(254);
 const tokenInput = z.string().min(16).max(64);
@@ -82,9 +92,10 @@ export const emailRouter = router({
 
 			if (existing && isActive) {
 				// The address is already proven; no second opt-in to run.
-				await addEmailSubscription(existing.id, jpa.id);
+				await addEmailSubscription(existing.id, jpa.id, ctx.deviceId);
+				await retireSupersededNtfySubscriptions(existing.id);
 				dispatch(email, {
-					...renderWelcomeMail(jpa.name, existing.manageToken),
+					...renderWelcomeMail(jpa.name, tokensFor(existing)),
 					to: email,
 				});
 
@@ -92,7 +103,7 @@ export const emailRouter = router({
 			}
 
 			const subscriber = await upsertPendingSubscriber(email, ip);
-			await addEmailSubscription(subscriber.id, jpa.id);
+			await addEmailSubscription(subscriber.id, jpa.id, ctx.deviceId);
 
 			dispatch(
 				email,
@@ -126,7 +137,7 @@ export const emailRouter = router({
 			// way back in once the confirmation page is closed.
 			if (first) {
 				dispatch(subscriber.email, {
-					...renderWelcomeMail(first.jpaName, subscriber.manageToken),
+					...renderWelcomeMail(first.jpaName, tokensFor(subscriber)),
 					to: subscriber.email,
 				});
 			}
@@ -149,7 +160,7 @@ export const emailRouter = router({
 
 			if (subscriber?.confirmedAt && !subscriber.unsubscribedAt) {
 				dispatch(email, {
-					...renderManageLinkMail(subscriber.manageToken),
+					...renderManageLinkMail(tokensFor(subscriber)),
 					to: email,
 				});
 			}
