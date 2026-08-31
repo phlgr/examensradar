@@ -5,10 +5,47 @@ import {
 	getNotifiableSubscriptionsByJpa,
 	logNotification,
 } from "@/db";
-import { sendBatchNotifications } from "@/lib/ntfy";
+import { type NtfyNotification, sendBatchNotifications } from "@/lib/ntfy";
 
 interface WebhookPayload {
 	jpa_slug: string;
+}
+
+/**
+ * Freed from changebot's 30s timeout, the background fan-out can afford to sit
+ * out a rate limit properly: ntfy.sh replenishes roughly one token per 5s, so
+ * clearing a large overshoot is a minutes-long job, not a seconds-long one.
+ */
+const DISPATCH_BUDGET_MS = 5 * 60_000;
+const DISPATCH_MAX_ATTEMPTS = 6;
+
+async function dispatch(
+	jpa: { id: string; slug: string },
+	notifications: NtfyNotification[],
+	publishedAt: Date,
+): Promise<void> {
+	try {
+		const { sent, failed } = await sendBatchNotifications(notifications, {
+			baseUrl: process.env.NTFY_BASE_URL || "https://ntfy.sh",
+			budgetMs: DISPATCH_BUDGET_MS,
+			maxAttempts: DISPATCH_MAX_ATTEMPTS,
+		});
+
+		await logNotification(jpa.id, sent, publishedAt);
+
+		if (failed > 0) {
+			console.error(
+				`[webhook] ${jpa.slug}: ${failed} of ${notifications.length} notifications FAILED after retries (sent ${sent})`,
+			);
+		} else {
+			console.log(
+				`[webhook] ${jpa.slug}: sent ${sent}/${notifications.length} notifications`,
+			);
+		}
+	} catch (error) {
+		// Nothing upstream is listening any more — the webhook already returned.
+		console.error(`[webhook] ${jpa.slug}: dispatch crashed`, error);
+	}
 }
 
 export const Route = createFileRoute("/api/webhook/results")({
@@ -92,34 +129,23 @@ export const Route = createFileRoute("/api/webhook/results")({
 					};
 				});
 
-				const ntfyBaseUrl = process.env.NTFY_BASE_URL || "https://ntfy.sh";
-				const { sent, failed } = await sendBatchNotifications(
-					notifications,
-					ntfyBaseUrl,
-				);
-
-				// Log the notification
-				await logNotification(jpa.id, sent);
-
 				const total = await countSubscriptionsByJpa(jpa.id);
 
-				if (failed > 0) {
-					console.error(
-						`[webhook] ${jpa.slug}: ${failed} of ${subscriptions.length} notifications FAILED (sent ${sent})`,
-					);
-				} else {
-					console.log(
-						`[webhook] ${jpa.slug}: sent ${sent}/${subscriptions.length} notifications (${total} subscriptions total)`,
-					);
-				}
+				// Acknowledge before delivering. Waiting out ntfy.sh's per-IP burst
+				// limit can take minutes, and changebot gives up after 30s — a timeout
+				// there would look like a failed notification and could be retried,
+				// re-pushing to everyone who already succeeded.
+				void dispatch(jpa, notifications, new Date());
 
-				return Response.json({
-					message: "Notifications sent",
-					sent,
-					failed,
-					notifiable: subscriptions.length,
-					total,
-				});
+				return Response.json(
+					{
+						message: "Notifications queued",
+						jpa: jpa.slug,
+						notifiable: notifications.length,
+						total,
+					},
+					{ status: 202 },
+				);
 			},
 		},
 	},

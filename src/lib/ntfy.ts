@@ -4,13 +4,20 @@ interface NtfyAction {
 	url: string;
 }
 
-interface NtfyNotification {
+export interface NtfyNotification {
 	topic: string;
 	title: string;
 	message: string;
 	click?: string;
 	priority?: "min" | "low" | "default" | "high" | "max";
 	actions?: NtfyAction[];
+}
+
+export interface BatchOptions {
+	baseUrl?: string;
+	/** Wall-clock ceiling for the whole batch, including backoff waits. */
+	budgetMs?: number;
+	maxAttempts?: number;
 }
 
 interface PublishResult {
@@ -23,10 +30,14 @@ interface PublishResult {
 const RETRYABLE = new Set([429, 500, 502, 503, 504]);
 /** Parallel publishes in flight. Keeps a large fan-out from arriving as one spike. */
 const CONCURRENCY = 8;
-const MAX_ATTEMPTS = 3;
-/** changebot's webhook timeout is 30s; stay well inside it so it never sees a timeout. */
-const BATCH_BUDGET_MS = 20_000;
-const MAX_BACKOFF_MS = 8_000;
+const DEFAULT_MAX_ATTEMPTS = 3;
+const DEFAULT_BUDGET_MS = 20_000;
+/**
+ * ntfy.sh replenishes its per-IP burst at roughly one token per 5s, so a large
+ * overshoot needs to be waited out rather than hammered. Cap any single wait so
+ * one hostile Retry-After can't consume the whole budget.
+ */
+const MAX_BACKOFF_MS = 30_000;
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -89,14 +100,15 @@ async function sendWithRetry(
 	notification: NtfyNotification,
 	baseUrl: string,
 	deadline: number,
+	maxAttempts: number,
 ): Promise<boolean> {
-	for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+	for (let attempt = 1; attempt <= maxAttempts; attempt++) {
 		try {
 			const { ok, status, retryAfterMs } = await publish(notification, baseUrl);
 
 			if (ok) return true;
 
-			if (!RETRYABLE.has(status) || attempt === MAX_ATTEMPTS) {
+			if (!RETRYABLE.has(status) || attempt === maxAttempts) {
 				console.error(
 					`ntfy publish to ${notification.topic} failed with HTTP ${status} after ${attempt} attempt(s)`,
 				);
@@ -127,9 +139,15 @@ async function sendWithRetry(
 
 export async function sendBatchNotifications(
 	notifications: NtfyNotification[],
-	baseUrl = "https://ntfy.sh",
+	options: BatchOptions = {},
 ): Promise<{ sent: number; failed: number }> {
-	const deadline = Date.now() + BATCH_BUDGET_MS;
+	const {
+		baseUrl = "https://ntfy.sh",
+		budgetMs = DEFAULT_BUDGET_MS,
+		maxAttempts = DEFAULT_MAX_ATTEMPTS,
+	} = options;
+
+	const deadline = Date.now() + budgetMs;
 	const queue = [...notifications];
 	let sent = 0;
 
@@ -137,7 +155,7 @@ export async function sendBatchNotifications(
 		{ length: Math.min(CONCURRENCY, queue.length) },
 		async () => {
 			for (let next = queue.pop(); next; next = queue.pop()) {
-				if (await sendWithRetry(next, baseUrl, deadline)) sent++;
+				if (await sendWithRetry(next, baseUrl, deadline, maxAttempts)) sent++;
 			}
 		},
 	);

@@ -208,16 +208,23 @@ export const getNotificationHistory = async () => {
 };
 
 // Notification log functions
+/**
+ * `sentAt` is passed in rather than taken as `now` because the fan-out runs in
+ * the background and can spend minutes backing off. /history derives publication
+ * day/hour patterns from this column, so it has to record when the office
+ * published, not when we finished delivering.
+ */
 export const logNotification = async (
 	jpaId: string,
 	subscriberCount: number,
+	sentAt: Date = new Date(),
 ): Promise<void> => {
 	await db
 		.insert(schema.notificationLog)
 		.values({
 			id: nanoid(),
 			jpaId,
-			sentAt: new Date(),
+			sentAt,
 			subscriberCount,
 		})
 		.run();
