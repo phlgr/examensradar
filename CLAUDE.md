@@ -20,7 +20,9 @@ bun run lint:fix     # Biome lint/format only
 bun run db:generate  # Generate Drizzle migrations
 bun run db:migrate   # Apply migrations
 bun run db:seed      # Seed database with JPAs
-bun run db:studio    # Open Drizzle Studio GUI
+# db:studio was removed — drizzle-kit's sqlite driver is better-sqlite3, which
+# has no linux prebuild and needs node-gyp. Use the drizzle-gateway container
+# on the server for a GUI.
 ```
 
 ## Architecture
