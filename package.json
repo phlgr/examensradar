@@ -6,6 +6,7 @@
 		"dev": "bunx --bun vite dev --port 3000",
 		"build": "bunx --bun vite build",
 		"start": "bun .output/server/index.mjs",
+		"test": "bun test",
 		"lint": "bun run lint:types && bun run lint:fix",
 		"lint:types": "tsgo",
 		"lint:fix": "biome check --fix --no-errors-on-unmatched",

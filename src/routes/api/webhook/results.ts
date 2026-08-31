@@ -1,10 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import {
+	countEmailSubscriptionsByJpa,
 	countSubscriptionsByJpa,
 	getJpaBySlug,
+	getMailableSubscribersByJpa,
 	getNotifiableSubscriptionsByJpa,
 	logNotification,
 } from "@/db";
+import { type Mail, sendBatchMails } from "@/lib/mail";
+import { renderResultsMail } from "@/lib/mail-templates";
 import { type NtfyNotification, sendBatchNotifications } from "@/lib/ntfy";
 
 interface WebhookPayload {
@@ -19,27 +23,43 @@ interface WebhookPayload {
 const DISPATCH_BUDGET_MS = 5 * 60_000;
 const DISPATCH_MAX_ATTEMPTS = 6;
 
+/**
+ * Both channels run during the ntfy sunset overlap. They are independent: a
+ * rate-limited ntfy fan-out must not hold up mail, and neither failure should
+ * cost the other its delivery, so they run concurrently and their results are
+ * summed only for the log.
+ */
 async function dispatch(
 	jpa: { id: string; slug: string },
 	notifications: NtfyNotification[],
+	mails: Mail[],
 	publishedAt: Date,
 ): Promise<void> {
 	try {
-		const { sent, failed } = await sendBatchNotifications(notifications, {
-			baseUrl: process.env.NTFY_BASE_URL || "https://ntfy.sh",
-			budgetMs: DISPATCH_BUDGET_MS,
-			maxAttempts: DISPATCH_MAX_ATTEMPTS,
-		});
+		const [push, mail] = await Promise.all([
+			notifications.length
+				? sendBatchNotifications(notifications, {
+						baseUrl: process.env.NTFY_BASE_URL || "https://ntfy.sh",
+						budgetMs: DISPATCH_BUDGET_MS,
+						maxAttempts: DISPATCH_MAX_ATTEMPTS,
+					})
+				: Promise.resolve({ sent: 0, failed: 0 }),
+			mails.length
+				? sendBatchMails(mails, { budgetMs: DISPATCH_BUDGET_MS })
+				: Promise.resolve({ sent: 0, failed: 0 }),
+		]);
 
-		await logNotification(jpa.id, sent, publishedAt);
+		// /history reads this as "how many people were told", so it has to count
+		// both channels.
+		await logNotification(jpa.id, push.sent + mail.sent, publishedAt);
 
-		if (failed > 0) {
+		console.log(
+			`[webhook] ${jpa.slug}: ntfy ${push.sent}/${notifications.length}, mail ${mail.sent}/${mails.length}`,
+		);
+
+		if (push.failed > 0 || mail.failed > 0) {
 			console.error(
-				`[webhook] ${jpa.slug}: ${failed} of ${notifications.length} notifications FAILED after retries (sent ${sent})`,
-			);
-		} else {
-			console.log(
-				`[webhook] ${jpa.slug}: sent ${sent}/${notifications.length} notifications`,
+				`[webhook] ${jpa.slug}: ${push.failed} push and ${mail.failed} mail notifications FAILED after retries`,
 			);
 		}
 	} catch (error) {
@@ -95,8 +115,10 @@ export const Route = createFileRoute("/api/webhook/results")({
 
 				// Only devices that have proven they can receive pushes
 				const subscriptions = await getNotifiableSubscriptionsByJpa(jpa.id);
+				// Confirmed, still subscribed, not suppressed
+				const subscribers = await getMailableSubscribersByJpa(jpa.id);
 
-				if (subscriptions.length === 0) {
+				if (subscriptions.length === 0 && subscribers.length === 0) {
 					return Response.json({ message: "No subscribers", sent: 0 });
 				}
 
@@ -129,19 +151,32 @@ export const Route = createFileRoute("/api/webhook/results")({
 					};
 				});
 
-				const total = await countSubscriptionsByJpa(jpa.id);
+				const mails = subscribers.map((subscriber) => ({
+					...renderResultsMail(
+						jpa.name,
+						jpa.websiteUrl,
+						subscriber.manageToken,
+					),
+					to: subscriber.email,
+				}));
+
+				const total =
+					(await countSubscriptionsByJpa(jpa.id)) +
+					(await countEmailSubscriptionsByJpa(jpa.id));
 
 				// Acknowledge before delivering. Waiting out ntfy.sh's per-IP burst
 				// limit can take minutes, and changebot gives up after 30s — a timeout
 				// there would look like a failed notification and could be retried,
 				// re-pushing to everyone who already succeeded.
-				void dispatch(jpa, notifications, new Date());
+				void dispatch(jpa, notifications, mails, new Date());
 
 				return Response.json(
 					{
 						message: "Notifications queued",
 						jpa: jpa.slug,
-						notifiable: notifications.length,
+						notifiable: notifications.length + mails.length,
+						push: notifications.length,
+						mail: mails.length,
 						total,
 					},
 					{ status: 202 },

@@ -1,5 +1,5 @@
 import { Database } from "bun:sqlite";
-import { and, desc, eq, inArray, isNotNull, or } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, isNull, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/bun-sqlite";
 import { nanoid } from "nanoid";
 import * as schema from "./schema.ts";
@@ -7,6 +7,7 @@ import * as schema from "./schema.ts";
 type JPA = typeof schema.jpa.$inferSelect;
 type Subscription = typeof schema.subscription.$inferSelect;
 type AdminSession = typeof schema.adminSession.$inferSelect;
+type Subscriber = typeof schema.subscriber.$inferSelect;
 
 const DATABASE_PATH = process.env.DATABASE_PATH || "./data/examensradar.db";
 
@@ -190,6 +191,211 @@ export const completeSubscriptionSetup = async (
 	}
 
 	return subscription;
+};
+
+// Email subscriber functions
+const CONFIRM_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
+const newToken = () => nanoid(32);
+
+/** Uniqueness has to be on the real address, not on how it was typed. */
+export const normalizeEmail = (email: string): string =>
+	email.trim().toLowerCase();
+
+export const getSubscriberByEmail = async (
+	email: string,
+): Promise<Subscriber | null> => {
+	const result = await db
+		.select()
+		.from(schema.subscriber)
+		.where(eq(schema.subscriber.email, email))
+		.get();
+	return result || null;
+};
+
+export const getSubscriberByManageToken = async (
+	token: string,
+): Promise<Subscriber | null> => {
+	const result = await db
+		.select()
+		.from(schema.subscriber)
+		.where(eq(schema.subscriber.manageToken, token))
+		.get();
+	return result || null;
+};
+
+/**
+ * Creates a pending subscriber, or puts an existing one back into pending with
+ * a fresh token. Re-running double opt-in is what makes it safe to reset a
+ * subscriber who had unsubscribed or hard-bounced: only the address owner can
+ * complete it.
+ */
+export const upsertPendingSubscriber = async (
+	email: string,
+	ip: string | null,
+): Promise<Subscriber> => {
+	const now = new Date();
+	const existing = await getSubscriberByEmail(email);
+
+	const pending = {
+		confirmToken: newToken(),
+		confirmExpiresAt: new Date(now.getTime() + CONFIRM_TTL_MS),
+		consentIp: ip,
+		consentAt: now,
+	};
+
+	if (existing) {
+		return db
+			.update(schema.subscriber)
+			.set(pending)
+			.where(eq(schema.subscriber.id, existing.id))
+			.returning()
+			.get();
+	}
+
+	const subscriber = {
+		id: nanoid(),
+		email,
+		manageToken: newToken(),
+		...pending,
+		confirmedAt: null,
+		bouncedAt: null,
+		unsubscribedAt: null,
+		createdAt: now,
+	};
+
+	await db.insert(schema.subscriber).values(subscriber);
+	return subscriber;
+};
+
+/**
+ * Completes double opt-in. Clearing the token makes the link single-use, and
+ * clearing `unsubscribedAt`/`bouncedAt` is the point: a fresh confirmed opt-in
+ * supersedes an earlier suppression, and only the address owner can produce one.
+ */
+export const confirmSubscriber = async (
+	token: string,
+): Promise<Subscriber | null> => {
+	const subscriber = await db
+		.select()
+		.from(schema.subscriber)
+		.where(eq(schema.subscriber.confirmToken, token))
+		.get();
+
+	if (!subscriber) return null;
+
+	const expiresAt = subscriber.confirmExpiresAt;
+	if (expiresAt && expiresAt.getTime() < Date.now()) return null;
+
+	return db
+		.update(schema.subscriber)
+		.set({
+			confirmedAt: subscriber.confirmedAt ?? new Date(),
+			confirmToken: null,
+			confirmExpiresAt: null,
+			unsubscribedAt: null,
+			bouncedAt: null,
+		})
+		.where(eq(schema.subscriber.id, subscriber.id))
+		.returning()
+		.get();
+};
+
+/**
+ * Keeps the subscriber row as a suppression record and drops what it subscribed
+ * to. Deleting the row would let the address be re-added by anyone typing it in.
+ */
+export const unsubscribeSubscriber = async (id: string): Promise<void> => {
+	await db
+		.delete(schema.emailSubscription)
+		.where(eq(schema.emailSubscription.subscriberId, id));
+
+	await db
+		.update(schema.subscriber)
+		.set({ unsubscribedAt: new Date() })
+		.where(eq(schema.subscriber.id, id));
+};
+
+export const addEmailSubscription = async (
+	subscriberId: string,
+	jpaId: string,
+): Promise<void> => {
+	await db
+		.insert(schema.emailSubscription)
+		.values({
+			id: nanoid(),
+			subscriberId,
+			jpaId,
+			createdAt: new Date(),
+		})
+		.onConflictDoNothing();
+};
+
+export const removeEmailSubscription = async (
+	subscriberId: string,
+	jpaId: string,
+): Promise<void> => {
+	await db
+		.delete(schema.emailSubscription)
+		.where(
+			and(
+				eq(schema.emailSubscription.subscriberId, subscriberId),
+				eq(schema.emailSubscription.jpaId, jpaId),
+			),
+		);
+};
+
+export const getSubscriberJpas = async (subscriberId: string) => {
+	return db
+		.select({
+			jpaId: schema.jpa.id,
+			jpaName: schema.jpa.name,
+			jpaSlug: schema.jpa.slug,
+			createdAt: schema.emailSubscription.createdAt,
+		})
+		.from(schema.emailSubscription)
+		.innerJoin(schema.jpa, eq(schema.emailSubscription.jpaId, schema.jpa.id))
+		.where(eq(schema.emailSubscription.subscriberId, subscriberId))
+		.all();
+};
+
+/**
+ * Addresses worth sending a results notification to: confirmed, still
+ * subscribed, and not suppressed. Everything the fan-out needs, so it never has
+ * to decide mailability itself.
+ */
+export const getMailableSubscribersByJpa = async (
+	jpaId: string,
+): Promise<{ email: string; manageToken: string }[]> => {
+	return db
+		.select({
+			email: schema.subscriber.email,
+			manageToken: schema.subscriber.manageToken,
+		})
+		.from(schema.emailSubscription)
+		.innerJoin(
+			schema.subscriber,
+			eq(schema.emailSubscription.subscriberId, schema.subscriber.id),
+		)
+		.where(
+			and(
+				eq(schema.emailSubscription.jpaId, jpaId),
+				isNotNull(schema.subscriber.confirmedAt),
+				isNull(schema.subscriber.unsubscribedAt),
+				isNull(schema.subscriber.bouncedAt),
+			),
+		)
+		.all();
+};
+
+export const countEmailSubscriptionsByJpa = async (
+	jpaId: string,
+): Promise<number> => {
+	return db
+		.select()
+		.from(schema.emailSubscription)
+		.where(eq(schema.emailSubscription.jpaId, jpaId))
+		.all().length;
 };
 
 export const getNotificationHistory = async () => {
