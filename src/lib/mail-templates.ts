@@ -18,9 +18,10 @@ const FONT = "-apple-system,'Segoe UI',Helvetica,Arial,sans-serif";
 
 const appUrl = () => process.env.APP_URL || "https://examensradar.de";
 
-const manageUrl = (token: string) => `${appUrl()}/abo/${token}`;
-const unsubscribeUrl = (token: string) => `${appUrl()}/abmelden/${token}`;
-const confirmUrl = (token: string) => `${appUrl()}/bestaetigen/${token}`;
+// Route paths stay English like the rest of the app; only the copy is German.
+const manageUrl = (token: string) => `${appUrl()}/manage/${token}`;
+const unsubscribeUrl = (token: string) => `${appUrl()}/unsubscribe/${token}`;
+const confirmUrl = (token: string) => `${appUrl()}/confirm/${token}`;
 
 function escapeHtml(value: string): string {
 	return value
