@@ -1,5 +1,5 @@
 import { Database } from "bun:sqlite";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/bun-sqlite";
 import { nanoid } from "nanoid";
 import * as schema from "./schema.ts";
@@ -82,14 +82,49 @@ export const getDeviceSubscriptions = async (
 		.all();
 };
 
-export const getSubscriptionsByJpa = async (
+/**
+ * Subscriptions for a JPA that are worth pushing to.
+ *
+ * Publishing to a topic nobody ever subscribed to in the ntfy app still costs a
+ * request against ntfy.sh's per-IP burst limit, and on 2026-08-31 that waste is
+ * what caused a third of a real result notification to be dropped. So we only
+ * notify devices that have proven they can receive pushes.
+ *
+ * A subscription qualifies if it completed setup itself, OR if the same device
+ * completed setup on any other subscription — a device that verified once is
+ * demonstrably reachable, even if it skipped the code entry the second time.
+ */
+export const getNotifiableSubscriptionsByJpa = async (
 	jpaId: string,
 ): Promise<Subscription[]> => {
+	const verifiedDevices = db
+		.select({ deviceId: schema.subscription.deviceId })
+		.from(schema.subscription)
+		.where(isNotNull(schema.subscription.setupCompletedAt));
+
+	return db
+		.select()
+		.from(schema.subscription)
+		.where(
+			and(
+				eq(schema.subscription.jpaId, jpaId),
+				or(
+					isNotNull(schema.subscription.setupCompletedAt),
+					inArray(schema.subscription.deviceId, verifiedDevices),
+				),
+			),
+		)
+		.all();
+};
+
+export const countSubscriptionsByJpa = async (
+	jpaId: string,
+): Promise<number> => {
 	return db
 		.select()
 		.from(schema.subscription)
 		.where(eq(schema.subscription.jpaId, jpaId))
-		.all();
+		.all().length;
 };
 
 export const getSubscriptionCountsByJpa = async (): Promise<
@@ -173,16 +208,23 @@ export const getNotificationHistory = async () => {
 };
 
 // Notification log functions
+/**
+ * `sentAt` is passed in rather than taken as `now` because the fan-out runs in
+ * the background and can spend minutes backing off. /history derives publication
+ * day/hour patterns from this column, so it has to record when the office
+ * published, not when we finished delivering.
+ */
 export const logNotification = async (
 	jpaId: string,
 	subscriberCount: number,
+	sentAt: Date = new Date(),
 ): Promise<void> => {
 	await db
 		.insert(schema.notificationLog)
 		.values({
 			id: nanoid(),
 			jpaId,
-			sentAt: new Date(),
+			sentAt,
 			subscriberCount,
 		})
 		.run();
