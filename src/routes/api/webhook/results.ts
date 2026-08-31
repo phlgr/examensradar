@@ -1,5 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { getJpaBySlug, getSubscriptionsByJpa, logNotification } from "@/db";
+import {
+	countSubscriptionsByJpa,
+	getJpaBySlug,
+	getNotifiableSubscriptionsByJpa,
+	logNotification,
+} from "@/db";
 import { sendBatchNotifications } from "@/lib/ntfy";
 
 interface WebhookPayload {
@@ -51,8 +56,8 @@ export const Route = createFileRoute("/api/webhook/results")({
 					});
 				}
 
-				// Get all subscriptions for this JPA
-				const subscriptions = await getSubscriptionsByJpa(jpa.id);
+				// Only devices that have proven they can receive pushes
+				const subscriptions = await getNotifiableSubscriptionsByJpa(jpa.id);
 
 				if (subscriptions.length === 0) {
 					return Response.json({ message: "No subscribers", sent: 0 });
@@ -96,11 +101,24 @@ export const Route = createFileRoute("/api/webhook/results")({
 				// Log the notification
 				await logNotification(jpa.id, sent);
 
+				const total = await countSubscriptionsByJpa(jpa.id);
+
+				if (failed > 0) {
+					console.error(
+						`[webhook] ${jpa.slug}: ${failed} of ${subscriptions.length} notifications FAILED (sent ${sent})`,
+					);
+				} else {
+					console.log(
+						`[webhook] ${jpa.slug}: sent ${sent}/${subscriptions.length} notifications (${total} subscriptions total)`,
+					);
+				}
+
 				return Response.json({
 					message: "Notifications sent",
 					sent,
 					failed,
-					total: subscriptions.length,
+					notifiable: subscriptions.length,
+					total,
 				});
 			},
 		},
