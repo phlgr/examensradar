@@ -4,6 +4,7 @@ import {
 	ExternalLink,
 	History,
 	Loader2,
+	LogOut,
 	Mail,
 	MailCheck,
 	Radar,
@@ -100,6 +101,10 @@ function SubscriptionsPage() {
 			trackEvent("email_remove_jpa");
 			utils.email.me.invalidate();
 		},
+	});
+
+	const signOut = trpc.email.signOut.useMutation({
+		onSuccess: () => window.location.reload(),
 	});
 
 	const deleteNtfySubscription = trpc.subscription.delete.useMutation({
@@ -212,6 +217,16 @@ function SubscriptionsPage() {
 									{me.email}
 								</p>
 							</div>
+							<Button
+								variant="ghost"
+								size="sm"
+								onClick={() => signOut.mutate()}
+								disabled={signOut.isPending}
+								className="shrink-0 gap-1.5"
+							>
+								<LogOut className="w-4 h-4" />
+								Ausloggen
+							</Button>
 						</div>
 					</Card>
 				)}

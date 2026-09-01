@@ -25,23 +25,26 @@ export function getManageTokenFromRequest(request: Request): string | null {
 	return null;
 }
 
-/**
- * Deliberately a session cookie (no Max-Age): closing the browser is the
- * sign-out, which is what actually happens on shared machines — and any mail
- * footer signs the next visit back in with one click. This is why there is no
- * explicit sign-out anywhere.
- */
-export function buildManageCookie(token: string): string {
-	const options = [
-		`${COOKIE_NAME}=${token}`,
-		"Path=/",
-		"HttpOnly",
-		"SameSite=Lax",
-	];
+function serialize(parts: string[]): string {
+	const options = [...parts, "Path=/", "HttpOnly", "SameSite=Lax"];
 
 	if (process.env.NODE_ENV === "production") {
 		options.push("Secure");
 	}
 
 	return options.join("; ");
+}
+
+/**
+ * Deliberately a session cookie (no Max-Age): closing the browser ends the
+ * session — which is what actually happens on shared machines — and any mail
+ * footer signs the next visit back in with one click. "Ausloggen" on the
+ * manage page clears it explicitly for everyone who doesn't close browsers.
+ */
+export function buildManageCookie(token: string): string {
+	return serialize([`${COOKIE_NAME}=${token}`]);
+}
+
+export function buildClearManageCookie(): string {
+	return serialize([`${COOKIE_NAME}=`, "Max-Age=0"]);
 }
