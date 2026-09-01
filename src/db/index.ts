@@ -165,6 +165,19 @@ export const claimScrapeChange = async (
 	return claimed.length > 0;
 };
 
+/**
+ * Drops the stored baseline. Called when the scrape config changes: the old
+ * hash describes content selected by the old URL/selector, and diffing the
+ * new config's content against it would produce a guaranteed false "change".
+ * Deleting the row (rather than nulling the hash) also defuses any in-flight
+ * claim against the old hash — its UPDATE matches no row and loses.
+ */
+export const resetScrapeState = async (jpaId: string): Promise<void> => {
+	await db
+		.delete(schema.scrapeState)
+		.where(eq(schema.scrapeState.jpaId, jpaId));
+};
+
 export const recordScrapeSuccess = async (jpaId: string): Promise<void> => {
 	await db
 		.update(schema.scrapeState)

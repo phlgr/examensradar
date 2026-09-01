@@ -18,6 +18,7 @@ const {
 	ensureScrapeState,
 	recordScrapeError,
 	recordScrapeSuccess,
+	resetScrapeState,
 } = await import("../db/index.ts");
 const { checkJpa } = await import("./scraper.ts");
 const { queueResultsNotifications } = await import("./notify-results.ts");
@@ -116,6 +117,22 @@ test("a vanished selector records an error instead of notifying", async () => {
 	const state = await ensureScrapeState(jpa.id);
 	expect(state.errorCount).toBe(2);
 	expect(state.lastError).toContain("selector matched nothing");
+});
+
+test("a reset baseline turns the next differing content into a new baseline, not a notification", async () => {
+	const jpa = await scrapableJpa();
+	const notify = notifyMock();
+
+	serveHtml(page("Inhalt unter altem Selektor"));
+	await checkJpa(jpa, notify);
+
+	// What the admin update mutation does when scrape config changes: the old
+	// hash describes nothing anymore, so the state is dropped.
+	await resetScrapeState(jpa.id);
+
+	serveHtml(page("völlig anderer Inhalt unter neuem Selektor"));
+	expect((await checkJpa(jpa, notify)).result).toBe("baseline");
+	expect(notify).not.toHaveBeenCalled();
 });
 
 test("claimScrapeChange lets exactly one concurrent claim win", async () => {

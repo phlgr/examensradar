@@ -91,6 +91,7 @@ function AdminPage() {
 	const createJpa = trpc.jpa.create.useMutation({
 		onSuccess: () => {
 			jpasQuery.refetch();
+			scrapeStatesQuery.refetch();
 			setShowCreateForm(false);
 		},
 	});
@@ -98,6 +99,8 @@ function AdminPage() {
 	const updateJpa = trpc.jpa.update.useMutation({
 		onSuccess: () => {
 			jpasQuery.refetch();
+			// Saving a changed scrape config resets and re-baselines on the server.
+			scrapeStatesQuery.refetch();
 			setEditingJpa(null);
 		},
 	});

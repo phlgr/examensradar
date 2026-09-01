@@ -9,6 +9,7 @@ import {
 	getNotificationHistory,
 	getScrapeStates,
 	getSubscriptionCountsByJpa,
+	resetScrapeState,
 	updateJpa,
 } from "@/db";
 import { checkJpa } from "../scraper";
@@ -42,7 +43,13 @@ export const jpaRouter = router({
 			}),
 		)
 		.mutation(async ({ input }) => {
-			return createJpa(input);
+			const jpa = await createJpa(input);
+			if (jpa.scrapeUrl && jpa.scrapeSelector) {
+				// Store the baseline right away — with no stored hash this can only
+				// record, never notify.
+				await checkJpa(jpa);
+			}
+			return jpa;
 		}),
 
 	update: adminProcedure
@@ -59,8 +66,33 @@ export const jpaRouter = router({
 		)
 		.mutation(async ({ input }) => {
 			const { id, ...data } = input;
+			const existing = await getJpaById(id);
+			if (!existing) {
+				throw new TRPCError({ code: "NOT_FOUND", message: "JPA not found" });
+			}
+
 			await updateJpa(id, data);
-			return getJpaById(id);
+			const updated = await getJpaById(id);
+
+			// A changed scrape config makes the stored baseline meaningless: it
+			// hashes what the OLD URL/selector saw, so the next check would read as
+			// a guaranteed "change" and mass-notify. Reset instead, and store the
+			// new config's baseline immediately so monitoring resumes without a
+			// notification and without waiting for the next tick.
+			const scrapeConfigChanged =
+				(data.scrapeUrl !== undefined &&
+					data.scrapeUrl !== existing.scrapeUrl) ||
+				(data.scrapeSelector !== undefined &&
+					data.scrapeSelector !== existing.scrapeSelector);
+
+			if (updated && scrapeConfigChanged) {
+				await resetScrapeState(id);
+				if (updated.scrapeUrl && updated.scrapeSelector) {
+					await checkJpa(updated);
+				}
+			}
+
+			return updated;
 		}),
 
 	delete: adminProcedure

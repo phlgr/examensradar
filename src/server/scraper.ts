@@ -102,18 +102,9 @@ async function runScrapeCycle(): Promise<void> {
 
 let started = false;
 
-/**
- * Boots the polling loop (idempotent). Opt-in via SCRAPER_ENABLED=true so dev
- * servers and one-off scripts never poll the JPAs or notify anyone by
- * accident; production sets the variable.
- */
+/** Boots the polling loop (idempotent). */
 export function startScraper(): void {
 	if (started) return;
-
-	if (process.env.SCRAPER_ENABLED !== "true") {
-		console.log("[scraper] disabled — set SCRAPER_ENABLED=true to enable");
-		return;
-	}
 	started = true;
 
 	const intervalMs =
