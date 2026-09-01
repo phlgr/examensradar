@@ -89,16 +89,19 @@ function SubscriptionsPage() {
 	const meQuery = trpc.email.me.useQuery(undefined, { retry: false });
 	const ntfySubscriptionsQuery = trpc.subscription.getAll.useQuery();
 
+	const jpaNameById = (id: string) =>
+		jpasQuery.data?.find((jpa) => jpa.id === id)?.name ?? id;
+
 	const addJpa = trpc.email.addJpa.useMutation({
-		onSuccess: () => {
-			trackEvent("email_add_jpa");
+		onSuccess: (_data, variables) => {
+			trackEvent("email_add_jpa", { jpa: jpaNameById(variables.jpaId) });
 			utils.email.me.invalidate();
 		},
 	});
 
 	const removeJpa = trpc.email.removeJpa.useMutation({
-		onSuccess: () => {
-			trackEvent("email_remove_jpa");
+		onSuccess: (_data, variables) => {
+			trackEvent("email_remove_jpa", { jpa: jpaNameById(variables.jpaId) });
 			utils.email.me.invalidate();
 		},
 	});
@@ -120,7 +123,7 @@ function SubscriptionsPage() {
 
 	if (loading) {
 		return (
-			<div className="min-h-screen flex items-center justify-center bg-nb-cream">
+			<div className="flex-1 flex items-center justify-center bg-nb-cream">
 				<div className="w-12 h-12 border-4 border-nb-black border-t-nb-yellow animate-spin" />
 			</div>
 		);
@@ -135,7 +138,7 @@ function SubscriptionsPage() {
 	const ntfySubscriptions = ntfySubscriptionsQuery.data ?? [];
 
 	return (
-		<div className="min-h-screen py-4 sm:py-8 px-4 bg-nb-cream">
+		<div className="flex-1 py-4 sm:py-8 px-4 bg-nb-cream">
 			<div className="max-w-4xl mx-auto">
 				<div className="mb-6 sm:mb-8">
 					<h1 className="text-3xl sm:text-4xl font-black uppercase mb-2">

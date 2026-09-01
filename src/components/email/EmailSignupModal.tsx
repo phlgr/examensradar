@@ -1,5 +1,5 @@
 import { Loader2, Mail, MailCheck } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -33,6 +33,12 @@ export function EmailSignupModal({
 }: EmailSignupModalProps) {
 	// The parent mounts this fresh per signup attempt, so state needs no reset.
 	const [email, setEmail] = useState("");
+
+	// Top of the signup funnel: seeing the form. Paired with email_subscribe
+	// and email_confirmed, Plausible can then chart drop-off per step and JPA.
+	useEffect(() => {
+		if (open) trackEvent("email_signup_open", { jpa: jpaName });
+	}, [open, jpaName]);
 
 	const subscribe = trpc.email.subscribe.useMutation({
 		onSuccess: () => trackEvent("email_subscribe", { jpa: jpaName }),

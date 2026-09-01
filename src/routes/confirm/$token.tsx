@@ -20,7 +20,9 @@ function ConfirmPage() {
 
 	const stateQuery = trpc.email.confirmState.useQuery({ token });
 	const confirm = trpc.email.confirm.useMutation({
-		onSuccess: () => trackEvent("email_confirmed"),
+		// Nearly always one name — several only when JPAs were added while pending.
+		onSuccess: (data) =>
+			trackEvent("email_confirmed", { jpa: data.jpaNames.join(", ") }),
 	});
 
 	// Confirmed either just now (mutation, which alone carries the manage
@@ -34,7 +36,7 @@ function ConfirmPage() {
 
 	if (stateQuery.isLoading) {
 		return (
-			<div className="min-h-screen flex items-center justify-center bg-nb-cream">
+			<div className="flex-1 flex items-center justify-center bg-nb-cream">
 				<div className="w-12 h-12 border-4 border-nb-black border-t-nb-yellow animate-spin" />
 			</div>
 		);
@@ -152,7 +154,7 @@ function ConfirmPage() {
 
 function Shell({ children }: { children: React.ReactNode }) {
 	return (
-		<div className="min-h-screen flex items-center justify-center px-4 py-12 bg-nb-cream">
+		<div className="flex-1 flex items-center justify-center px-4 py-12 bg-nb-cream">
 			<Card className="w-full max-w-lg p-6 sm:p-10">
 				<div className="text-center space-y-4 sm:space-y-6">{children}</div>
 			</Card>
