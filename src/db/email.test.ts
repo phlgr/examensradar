@@ -215,6 +215,21 @@ test("an expired confirmation link is refused", async () => {
 	expect(await getMailableSubscribersByJpa(office.id)).toEqual([]);
 });
 
+test("a used confirm link still reads confirmed after the TTL", async () => {
+	const office = await jpa("late-reopen");
+	const pending = await upsertPendingSubscriber("late@example.com", null);
+	await addEmailSubscription(pending.id, office.id);
+	await confirmSubscriber(pending.confirmToken);
+	expireConfirmToken("late@example.com");
+
+	// Reopening the mail hours later shows the done state, not "invalid" —
+	// the TTL only bounds the unused link. Replaying still grants nothing.
+	expect(await classifyConfirmToken(pending.confirmToken)).toMatchObject({
+		state: "confirmed",
+	});
+	expect(await confirmSubscriber(pending.confirmToken)).toBeNull();
+});
+
 test("one address may subscribe to several JPAs", async () => {
 	const first = await jpa("multi-a");
 	const second = await jpa("multi-b");

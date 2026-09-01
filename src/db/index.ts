@@ -344,8 +344,14 @@ const getSubscriberByConfirmToken = async (
  *   used link is not an error, but it grants nothing: the manage credential
  *   only ever travels through the confirm mutation's pending → active
  *   transition, never to whoever replays a used link later.
- * `invalid` — unknown or rotated token, expired, or a used link whose
- *   subscriber has since opted out: an old mail must never undo that.
+ * `invalid` — unknown or rotated token, an unused link past its hour, or a
+ *   used link whose subscriber has since opted out: an old mail must never
+ *   undo that.
+ *
+ * The TTL only guards the unused link — it bounds how long the click grants
+ * something. Once used, the link outliving its hour must still read
+ * `confirmed`, or reopening the mail later would show "invalid" and nudge an
+ * active subscriber into a pointless re-signup.
  */
 export type ConfirmTokenState =
 	| { state: "pending" | "confirmed"; subscriber: Subscriber }
@@ -355,12 +361,16 @@ export const classifyConfirmToken = async (
 	token: string,
 ): Promise<ConfirmTokenState> => {
 	const subscriber = await getSubscriberByConfirmToken(token);
-	const expired =
-		subscriber?.confirmExpiresAt &&
-		subscriber.confirmExpiresAt.getTime() < Date.now();
+	if (!subscriber) return { state: "invalid", subscriber: null };
 
-	if (!subscriber || expired) return { state: "invalid", subscriber: null };
-	if (!subscriber.confirmedAt) return { state: "pending", subscriber };
+	if (!subscriber.confirmedAt) {
+		const expired =
+			subscriber.confirmExpiresAt &&
+			subscriber.confirmExpiresAt.getTime() < Date.now();
+		return expired
+			? { state: "invalid", subscriber: null }
+			: { state: "pending", subscriber };
+	}
 
 	return isActiveSubscriber(subscriber)
 		? { state: "confirmed", subscriber }
