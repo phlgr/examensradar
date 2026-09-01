@@ -154,7 +154,13 @@ export const deleteSubscription = async (
 };
 
 // Email subscriber functions
-const CONFIRM_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+/**
+ * Deliberately short: a confirm link that leaks later — scanner logs, a
+ * forwarded mail — should already be dead, and whoever misses the window just
+ * signs up again for a fresh link. The "15 Minuten" copy in
+ * `renderConfirmMail` must match this value.
+ */
+const CONFIRM_TTL_MS = 15 * 60 * 1000;
 
 const newToken = () => nanoid(32);
 

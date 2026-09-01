@@ -103,7 +103,10 @@ function subscriberFooter(tokens: MailTokens): string {
 ${footerLink(unsubscribeUrl(tokens.unsubscribe), "Abmelden")} &middot; ${footerLink(manageUrl(tokens.manage), "Abo verwalten")}`;
 }
 
-/** Double opt-in. Nothing is sent to an address until this link is clicked. */
+/**
+ * Double opt-in. Nothing is sent to an address until this link is clicked.
+ * The "15 Minuten" urgency copy must match CONFIRM_TTL_MS in src/db/index.ts.
+ */
 export function renderConfirmMail(jpaName: string, token: string): MailContent {
 	const url = confirmUrl(token);
 
@@ -115,18 +118,26 @@ Bestätige deine E-Mail-Adresse, damit wir dich benachrichtigen können, sobald 
 
 E-Mail bestätigen: ${url}
 
+Der Link ist aus Sicherheitsgründen nur 15 Minuten gültig — bestätige am
+besten gleich jetzt.
+
 --
-Du hast das nicht angefordert? Dann ignoriere diese E-Mail einfach. Ohne
-Bestätigung senden wir dir nichts.
+Link abgelaufen? Melde dich einfach neu an, dann bekommst du sofort einen
+frischen. Du hast das nicht angefordert? Dann ignoriere diese E-Mail einfach —
+ohne Bestätigung senden wir dir nichts.
 `,
 		html: layout({
 			heading: "Nur noch ein Klick",
-			body: paragraph(
-				`Bestätige deine E-Mail-Adresse, damit wir dich benachrichtigen können, sobald das <strong>${escapeHtml(jpaName)}</strong> neue Examensergebnisse veröffentlicht.`,
-			),
+			body:
+				paragraph(
+					`Bestätige deine E-Mail-Adresse, damit wir dich benachrichtigen können, sobald das <strong>${escapeHtml(jpaName)}</strong> neue Examensergebnisse veröffentlicht.`,
+				) +
+				paragraph(
+					"Der Link ist aus Sicherheitsgründen nur <strong>15 Minuten</strong> gültig — bestätige am besten gleich jetzt.",
+				),
 			cta: { url, label: "E-Mail bestätigen" },
 			footer:
-				"Du hast das nicht angefordert? Dann ignoriere diese E-Mail einfach — ohne Bestätigung senden wir dir nichts.",
+				"Link abgelaufen? Melde dich einfach neu an, dann bekommst du sofort einen frischen. Du hast das nicht angefordert? Dann ignoriere diese E-Mail einfach — ohne Bestätigung senden wir dir nichts.",
 		}),
 	};
 }
