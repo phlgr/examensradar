@@ -6,13 +6,15 @@
 		"dev": "bunx --bun vite dev --port 3000",
 		"build": "bunx --bun vite build",
 		"start": "bun .output/server/index.mjs",
+		"test": "bun test",
 		"lint": "bun run lint:types && bun run lint:fix",
 		"lint:types": "tsgo",
 		"lint:fix": "biome check --fix --no-errors-on-unmatched",
 		"knip": "knip-bun",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "bun scripts/migrate.ts",
-		"db:seed": "bun scripts/seed.ts"
+		"db:seed": "bun scripts/seed.ts",
+		"mail:preview": "bun scripts/mail-preview.ts"
 	},
 	"dependencies": {
 		"@plausible-analytics/tracker": "^0.4.5",
@@ -32,6 +34,7 @@
 		"lucide-react": "^1.0.0",
 		"nanoid": "^6.0.0",
 		"nitro": "npm:nitro-nightly@latest",
+		"nodemailer": "9.0.6",
 		"react": "^19.2.3",
 		"react-dom": "^19.2.3",
 		"superjson": "^2.2.6",
@@ -48,6 +51,7 @@
 		"@tanstack/react-router-devtools": "1.167.1",
 		"@types/bun": "1.4.0",
 		"@types/node": "26.4.0",
+		"@types/nodemailer": "8.0.1",
 		"@types/react": "19.2.18",
 		"@types/react-dom": "19.2.5",
 		"@vitejs/plugin-react": "6.1.1",

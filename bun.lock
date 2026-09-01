@@ -22,6 +22,7 @@
         "lucide-react": "^1.0.0",
         "nanoid": "^6.0.0",
         "nitro": "npm:nitro-nightly@latest",
+        "nodemailer": "9.0.6",
         "react": "^19.2.3",
         "react-dom": "^19.2.3",
         "superjson": "^2.2.6",
@@ -38,6 +39,7 @@
         "@tanstack/react-router-devtools": "1.167.1",
         "@types/bun": "1.4.0",
         "@types/node": "26.4.0",
+        "@types/nodemailer": "8.0.1",
         "@types/react": "19.2.18",
         "@types/react-dom": "19.2.5",
         "@vitejs/plugin-react": "6.1.1",
@@ -413,6 +415,8 @@
 
     "@types/node": ["@types/node@26.4.0", "", { "dependencies": { "undici-types": "~8.3.0" } }, "sha512-faiGnoIrLH/V8cibOMEAZ8pMw6oXqSukl29ra4mN8GdaB2ZewzeaLj+INpV5N+Z1eKWzY+IzaIZH2EIR6YZRNQ=="],
 
+    "@types/nodemailer": ["@types/nodemailer@8.0.1", "", { "dependencies": { "@types/node": "*" } }, "sha512-PxpaInm8V1JQDd4j0ds5HfvWQk8JupS1C0Picb96QJsrrRDjBH+DlK7L4ZdNSqNULhiZRQHc40nLVShaGxXAMw=="],
+
     "@types/react": ["@types/react@19.2.18", "", { "dependencies": { "csstype": "^3.2.2" } }, "sha512-AnzbBERsrLKtk2XSfTbYRLjQPdy116Sty4q+T+Bp3IC4l6jNBvreVPAHmpq9qhXQM7CXZPjLVmGMw9sy+hxQ3w=="],
 
     "@types/react-dom": ["@types/react-dom@19.2.5", "", { "peerDependencies": { "@types/react": "^19.2.0" } }, "sha512-fMPwH9v7r/pp43yUd2/Mbiex5KouJwwR3dzHkhLREUC6764VyDsqxhAxv6OFEYR1RhjOyD1naqba8ECDBe7ZQg=="],
@@ -646,6 +650,8 @@
     "nitro": ["nitro-nightly@3.0.1-20260810-113911-16ff2809", "", { "dependencies": { "consola": "^3.4.2", "crossws": "^0.4.10", "db0": "^0.3.4", "env-runner": "^0.1.16", "h3": "^2.0.1-rc.25", "h3-rules": "^0.1.0", "hookable": "^6.1.1", "nf3": "^0.3.22", "ocache": "^0.2.0", "ofetch": "^2.0.0-alpha.3", "ohash": "^2.0.11", "rolldown": "^1.2.0", "rou3": "^0.9.1", "srvx": "^0.11.22", "unenv": "^2.0.0-rc.24", "unstorage": "^2.0.0-alpha.7" }, "peerDependencies": { "@vercel/queue": "^0.4.0", "dotenv": "*", "giget": "*", "jiti": "^2.7.0", "rollup": "^4.62.2", "vite": "^7 || ^8", "xml2js": "^0.6.2", "zephyr-agent": "^1.1.2" }, "optionalPeers": ["@vercel/queue", "dotenv", "giget", "jiti", "rollup", "vite", "xml2js", "zephyr-agent"], "bin": { "nitro": "dist/cli/index.mjs" } }, "sha512-CD/oRD6udCLWDMOHRRulls448wD1bUzQ6GYfzlUKXTSERDGML9orZhp0dfXTDMZ0A4EtUkRogFH/vHAj9P42ow=="],
 
     "node-releases": ["node-releases@2.0.53", "", {}, "sha512-D9UOmYG3UH1V+ENW56t5QXBwJw1YEY18ruVeus89Rw+SyIgjPkCO84bRzO3uNIYosJbNwiabWVn48o3uJLjxFQ=="],
+
+    "nodemailer": ["nodemailer@9.0.6", "", {}, "sha512-IQUGFdhdGwI9+AWX+FpUt4DLmvFaOjTMEoneTIWX/RXxuy1TdenPwWrvFMSfLkPKl+HQEXWuSAxEMMbPYXtBmg=="],
 
     "ocache": ["ocache@0.2.0", "", { "dependencies": { "ohash": "^2.0.11" } }, "sha512-QE+SxXf/A8yR01rEOg2X5KwUe+mARHo1xQXl+iwLMzLIH06S5lBOZhhHQWp7T5etfFa8nOnRhvjGuo9YBCWwig=="],
 

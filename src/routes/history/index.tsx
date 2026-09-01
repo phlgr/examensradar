@@ -319,7 +319,7 @@ function HistoryPage() {
 
 	if (historyQuery.isLoading) {
 		return (
-			<div className="min-h-screen flex items-center justify-center bg-nb-cream">
+			<div className="flex-1 flex items-center justify-center bg-nb-cream">
 				<div className="w-12 h-12 border-4 border-nb-black border-t-nb-yellow animate-spin" />
 			</div>
 		);
@@ -329,7 +329,7 @@ function HistoryPage() {
 	const groups = groupByJpa(entries);
 
 	return (
-		<div className="min-h-screen py-4 sm:py-8 px-4 bg-nb-cream">
+		<div className="flex-1 py-4 sm:py-8 px-4 bg-nb-cream">
 			<div className="max-w-4xl mx-auto">
 				<div className="mb-6 sm:mb-8">
 					<h1 className="text-3xl sm:text-4xl font-black uppercase mb-2">

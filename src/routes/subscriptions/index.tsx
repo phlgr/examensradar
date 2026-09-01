@@ -1,29 +1,40 @@
 import { createFileRoute } from "@tanstack/react-router";
 import {
-	Check,
 	CheckCircle,
-	Copy,
 	ExternalLink,
 	History,
 	Loader2,
+	LogOut,
+	Mail,
+	MailCheck,
 	Radar,
-	Send,
 	Smartphone,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { z } from "zod";
-import { OnboardingModal } from "@/components/onboarding/OnboardingModal";
+import { EmailSignupModal } from "@/components/email/EmailSignupModal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { LinkButton } from "@/components/ui/link-button";
-import { useClipboard } from "@/hooks/use-clipboard";
 import { trackEvent } from "@/lib/analytics";
 import { setDeviceId } from "@/lib/device-id";
 import { trpc } from "@/lib/trpc";
 
+// Neither param may make validateSearch throw: mail clients truncate links,
+// and a throw here replaces the whole page with the raw router error instead
+// of the invalid-link banner. `.catch(undefined)` turns anything malformed
+// into "param absent".
 const searchSchema = z.object({
-	restore: z.uuid().optional(),
+	/** Legacy ntfy device restore from old push notifications. */
+	restore: z.uuid().optional().catch(undefined),
+	/**
+	 * Manage token from mail links; exchanged for the httpOnly cookie. No shape
+	 * check: a mangled token must still reach signIn, whose rejection is what
+	 * shows the invalid-link banner.
+	 */
+	manage: z.string().optional().catch(undefined),
 });
 
 export const Route = createFileRoute("/subscriptions/")({
@@ -31,110 +42,119 @@ export const Route = createFileRoute("/subscriptions/")({
 	component: SubscriptionsPage,
 });
 
+const RESTORED_FLAG = "examensradar_restored";
+const INVALID_LINK_FLAG = "examensradar_link_invalid";
+
 function SubscriptionsPage() {
-	const { copy, isCopied } = useClipboard();
-	const { restore } = Route.useSearch();
-	const [showOnboarding, setShowOnboarding] = useState(false);
+	const { restore, manage } = Route.useSearch();
 	const [showRestoredBanner, setShowRestoredBanner] = useState(false);
-	const [onboardingData, setOnboardingData] = useState<{
-		ntfyTopic: string;
-		subscriptionId: string;
-		isFirstSubscription: boolean;
-		jpaName: string;
+	const [showInvalidLink, setShowInvalidLink] = useState(false);
+	const [signupJpa, setSignupJpa] = useState<{
+		id: string;
+		name: string;
 	} | null>(null);
 
-	// Handle restore parameter from notification action
+	// Legacy: restore parameter from old ntfy notification actions.
 	useEffect(() => {
 		if (restore) {
 			setDeviceId(restore);
-			sessionStorage.setItem("examensradar_restored", "true");
-			// Use location.replace to atomically update URL and reload
-			// This avoids race condition between navigate() and reload()
+			sessionStorage.setItem(RESTORED_FLAG, "true");
+			// location.replace scrubs the credential from the URL atomically.
 			window.location.replace("/subscriptions");
 		}
 	}, [restore]);
 
-	// Show restored banner after restoration
+	// Manage token from a mail link: trade it for the httpOnly cookie, then
+	// scrub it from the URL the same way the restore param is scrubbed.
+	const signIn = trpc.email.signIn.useMutation();
+	// signIn.mutate is stable; the token is the only real trigger.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: run once per token
 	useEffect(() => {
-		if (sessionStorage.getItem("examensradar_restored")) {
+		if (!manage) return;
+		signIn.mutate(
+			{ token: manage },
+			{
+				onError: () => sessionStorage.setItem(INVALID_LINK_FLAG, "true"),
+				onSettled: () => window.location.replace("/subscriptions"),
+			},
+		);
+	}, [manage]);
+
+	useEffect(() => {
+		if (sessionStorage.getItem(RESTORED_FLAG)) {
 			setShowRestoredBanner(true);
-			sessionStorage.removeItem("examensradar_restored");
+			sessionStorage.removeItem(RESTORED_FLAG);
+		}
+		if (sessionStorage.getItem(INVALID_LINK_FLAG)) {
+			setShowInvalidLink(true);
+			sessionStorage.removeItem(INVALID_LINK_FLAG);
 		}
 	}, []);
 
-	// tRPC queries
+	const utils = trpc.useUtils();
 	const jpasQuery = trpc.jpa.getAll.useQuery();
-	const subscriptionsQuery = trpc.subscription.getAll.useQuery();
+	// UNAUTHORIZED simply means "not signed in", so never retry it.
+	const meQuery = trpc.email.me.useQuery(undefined, { retry: false });
+	const ntfySubscriptionsQuery = trpc.subscription.getAll.useQuery();
 
-	// tRPC mutations
-	const createSubscription = trpc.subscription.create.useMutation({
-		onSuccess: (data, variables) => {
-			subscriptionsQuery.refetch();
-			// Find the JPA name for the subscription
-			const jpa = jpasQuery.data?.find((j) => j.id === variables.jpaId);
-			trackEvent("subscribe", { jpa: jpa?.name || "JPA" });
-			// Show onboarding/test modal after every subscription
-			setOnboardingData({
-				ntfyTopic: data.ntfyTopic,
-				subscriptionId: data.id,
-				isFirstSubscription: data.isFirstSubscription,
-				jpaName: jpa?.name || "JPA",
-			});
-			setShowOnboarding(true);
+	const jpaNameById = (id: string) =>
+		jpasQuery.data?.find((jpa) => jpa.id === id)?.name ?? id;
+
+	const addJpa = trpc.email.addJpa.useMutation({
+		onSuccess: (_data, variables) => {
+			trackEvent("email_add_jpa", { jpa: jpaNameById(variables.jpaId) });
+			utils.email.me.invalidate();
 		},
 	});
 
-	const deleteSubscription = trpc.subscription.delete.useMutation({
+	const removeJpa = trpc.email.removeJpa.useMutation({
+		onSuccess: (_data, variables) => {
+			trackEvent("email_remove_jpa", { jpa: jpaNameById(variables.jpaId) });
+			utils.email.me.invalidate();
+		},
+	});
+
+	const signOut = trpc.email.signOut.useMutation({
+		onSuccess: () => window.location.reload(),
+	});
+
+	const deleteNtfySubscription = trpc.subscription.delete.useMutation({
 		onSuccess: () => {
 			trackEvent("unsubscribe");
-			subscriptionsQuery.refetch();
+			ntfySubscriptionsQuery.refetch();
 		},
 	});
 
-	const pingNotification = trpc.user.pingNotification.useMutation();
-
-	const handleSubscribe = async (jpaId: string) => {
-		try {
-			await createSubscription.mutateAsync({ jpaId });
-		} catch (error) {
-			console.error("Failed to subscribe:", error);
-		}
-	};
-
-	const handleUnsubscribe = async (subscriptionId: string) => {
-		try {
-			await deleteSubscription.mutateAsync({ id: subscriptionId });
-		} catch (error) {
-			console.error("Failed to unsubscribe:", error);
-		}
-	};
-
-	const loading = jpasQuery.isLoading || subscriptionsQuery.isLoading;
+	// Exchanging a token or restoring — hold the spinner until the reload.
+	const exchanging = Boolean(restore || manage);
+	const loading = jpasQuery.isLoading || meQuery.isLoading || exchanging;
 
 	if (loading) {
 		return (
-			<div className="min-h-screen flex items-center justify-center bg-nb-cream">
+			<div className="flex-1 flex items-center justify-center bg-nb-cream">
 				<div className="w-12 h-12 border-4 border-nb-black border-t-nb-yellow animate-spin" />
 			</div>
 		);
 	}
 
 	const jpas = jpasQuery.data ?? [];
-	const subscriptions = subscriptionsQuery.data ?? [];
-
-	const userSubscriptions = new Map(
-		subscriptions.map((sub) => [sub.jpaId, sub]),
+	const me = meQuery.data ?? null;
+	const managing = me !== null && !me.unsubscribed;
+	const subscribedJpaIds = new Set(
+		managing ? me.jpas.map((jpa) => jpa.jpaId) : [],
 	);
+	const ntfySubscriptions = ntfySubscriptionsQuery.data ?? [];
 
 	return (
-		<div className="min-h-screen py-4 sm:py-8 px-4 bg-nb-cream">
+		<div className="flex-1 py-4 sm:py-8 px-4 bg-nb-cream">
 			<div className="max-w-4xl mx-auto">
 				<div className="mb-6 sm:mb-8">
 					<h1 className="text-3xl sm:text-4xl font-black uppercase mb-2">
 						Benachrichtigungen
 					</h1>
 					<p className="font-medium text-sm sm:text-base">
-						Verwalte deine Benachrichtigungen für Examensergebnisse.
+						Erhalte eine E-Mail, sobald dein Prüfungsamt neue Examensergebnisse
+						veröffentlicht — keine App, kein Konto.
 					</p>
 				</div>
 
@@ -154,7 +174,20 @@ function SubscriptionsPage() {
 					</div>
 				</Card>
 
-				{/* Restored Banner */}
+				{/* Invalid manage link */}
+				{showInvalidLink && (
+					<Card variant="destructive" className="mb-6 sm:mb-8 p-4">
+						<p className="font-black text-sm uppercase">
+							Dieser Verwaltungslink ist nicht mehr gültig
+						</p>
+						<p className="text-xs font-medium mt-1">
+							Lass dir unten mit deiner E-Mail-Adresse einen neuen Link
+							schicken.
+						</p>
+					</Card>
+				)}
+
+				{/* Legacy device restore banner */}
 				{showRestoredBanner && (
 					<Card variant="success" className="mb-6 sm:mb-8 p-4">
 						<div className="flex items-center gap-3">
@@ -182,55 +215,45 @@ function SubscriptionsPage() {
 					</Card>
 				)}
 
-				{/* ntfy Setup Instructions - only show when at least one subscription has completed setup */}
-				{subscriptions.length > 0 &&
-					subscriptions.some((s) => s.setupCompletedAt) && (
-						<Card variant="accent" className="mb-6 sm:mb-8 p-4 sm:p-6">
-							<div className="flex flex-col sm:flex-row items-start gap-4">
-								<div className="bg-nb-white p-3 border-4 border-nb-black shadow-[var(--nb-shadow-sm)] shrink-0">
-									<Smartphone className="w-6 h-6 sm:w-8 sm:h-8" />
-								</div>
-								<div className="flex-1 min-w-0">
-									<h2 className="text-lg sm:text-xl font-black uppercase mb-2">
-										ntfy App einrichten
-									</h2>
-									<p className="font-medium text-sm sm:text-base mb-4">
-										Um Push-Benachrichtigungen zu erhalten, installiere die ntfy
-										App und abonniere deinen persönlichen Kanal:
-									</p>
-									<div className="flex flex-wrap gap-2 sm:gap-3">
-										<a
-											href="https://play.google.com/store/apps/details?id=io.heckel.ntfy"
-											target="_blank"
-											rel="noopener noreferrer"
-											className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-nb-white border-3 border-nb-black font-bold uppercase text-xs sm:text-sm shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all cursor-pointer"
-										>
-											<ExternalLink className="w-3 h-3 sm:w-4 sm:h-4" />
-											Android
-										</a>
-										<a
-											href="https://apps.apple.com/app/ntfy/id1625396347"
-											target="_blank"
-											rel="noopener noreferrer"
-											className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-nb-white border-3 border-nb-black font-bold uppercase text-xs sm:text-sm shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all cursor-pointer"
-										>
-											<ExternalLink className="w-3 h-3 sm:w-4 sm:h-4" />
-											iOS
-										</a>
-										<a
-											href="https://ntfy.sh"
-											target="_blank"
-											rel="noopener noreferrer"
-											className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-nb-white border-3 border-nb-black font-bold uppercase text-xs sm:text-sm shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all cursor-pointer"
-										>
-											<ExternalLink className="w-3 h-3 sm:w-4 sm:h-4" />
-											Web
-										</a>
-									</div>
-								</div>
+				{/* Signed-in header */}
+				{managing && (
+					<Card variant="primary" className="mb-6 sm:mb-8 p-4">
+						<div className="flex flex-wrap items-center gap-3">
+							<div className="bg-nb-white p-2 border-3 border-nb-black shrink-0">
+								<MailCheck className="w-5 h-5" />
 							</div>
-						</Card>
-					)}
+							<div className="flex-1 min-w-0">
+								<p className="font-black text-sm uppercase">Angemeldet</p>
+								<p className="text-xs sm:text-sm font-medium break-all">
+									{me.email}
+								</p>
+							</div>
+							<Button
+								variant="ghost"
+								size="sm"
+								onClick={() => signOut.mutate()}
+								disabled={signOut.isPending}
+								className="shrink-0 gap-1.5"
+							>
+								<LogOut className="w-4 h-4" />
+								Ausloggen
+							</Button>
+						</div>
+					</Card>
+				)}
+
+				{/* Previously unsubscribed */}
+				{me?.unsubscribed && (
+					<Card variant="muted" className="mb-6 sm:mb-8 p-4">
+						<p className="font-black text-sm uppercase">
+							Du bist von allen E-Mails abgemeldet
+						</p>
+						<p className="text-xs font-medium mt-1">
+							Wenn du wieder benachrichtigt werden möchtest, abonniere unten
+							einfach neu — wir schicken dir dann einen Bestätigungslink.
+						</p>
+					</Card>
+				)}
 
 				{/* JPA List */}
 				<div className="space-y-4">
@@ -250,154 +273,72 @@ function SubscriptionsPage() {
 					) : (
 						<div className="grid gap-4">
 							{jpas.map((jpa) => {
-								const subscription = userSubscriptions.get(jpa.id);
-								const isSubscribed = !!subscription;
+								const isSubscribed = subscribedJpaIds.has(jpa.id);
+								const isMutating =
+									(addJpa.isPending && addJpa.variables?.jpaId === jpa.id) ||
+									(removeJpa.isPending &&
+										removeJpa.variables?.jpaId === jpa.id);
 
 								return (
 									<Card
 										key={jpa.id}
 										variant={isSubscribed ? "success" : "default"}
-										className="overflow-hidden"
+										className="p-4 sm:p-6"
 									>
-										{/* Header Section */}
-										<div className="p-4 sm:p-6 pb-3 sm:pb-4">
-											<div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4 mb-3">
-												<div className="flex-1 min-w-0">
-													<div className="flex items-center gap-2 sm:gap-3 mb-2 flex-wrap">
-														<h3 className="text-lg sm:text-xl font-black uppercase">
-															{jpa.name}
-														</h3>
-														{isSubscribed && <Badge>Abonniert</Badge>}
-													</div>
-													{jpa.websiteUrl && (
-														<a
-															href={jpa.websiteUrl}
-															target="_blank"
-															rel="noopener noreferrer"
-															className="text-xs sm:text-sm font-bold inline-flex items-center gap-1 underline decoration-2 hover:bg-nb-yellow transition-colors cursor-pointer"
-														>
-															Zur Website
-															<ExternalLink className="w-3 h-3" />
-														</a>
-													)}
+										<div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4">
+											<div className="flex-1 min-w-0">
+												<div className="flex items-center gap-2 sm:gap-3 mb-2 flex-wrap">
+													<h3 className="text-lg sm:text-xl font-black uppercase">
+														{jpa.name}
+													</h3>
+													{isSubscribed && <Badge>Abonniert</Badge>}
 												</div>
+												{jpa.websiteUrl && (
+													<a
+														href={jpa.websiteUrl}
+														target="_blank"
+														rel="noopener noreferrer"
+														className="text-xs sm:text-sm font-bold inline-flex items-center gap-1 underline decoration-2 hover:bg-nb-yellow transition-colors cursor-pointer"
+													>
+														Zur Website
+														<ExternalLink className="w-3 h-3" />
+													</a>
+												)}
+											</div>
 
+											{managing ? (
 												<Button
 													onClick={() =>
-														isSubscribed && subscription
-															? handleUnsubscribe(subscription.id)
-															: handleSubscribe(jpa.id)
+														isSubscribed
+															? removeJpa.mutate({ jpaId: jpa.id })
+															: addJpa.mutate({ jpaId: jpa.id })
 													}
 													variant={isSubscribed ? "destructive" : "default"}
+													disabled={isMutating}
 													className="shrink-0 w-full sm:w-auto"
 													size="sm"
 												>
-													{isSubscribed ? "Abbestellen" : "Abonnieren"}
+													{isMutating ? (
+														<Loader2 className="w-4 h-4 animate-spin" />
+													) : isSubscribed ? (
+														"Abbestellen"
+													) : (
+														"Abonnieren"
+													)}
 												</Button>
-											</div>
+											) : (
+												<Button
+													onClick={() =>
+														setSignupJpa({ id: jpa.id, name: jpa.name })
+													}
+													className="shrink-0 w-full sm:w-auto gap-1.5"
+													size="sm"
+												>
+													<Mail className="w-4 h-4" />
+													Abonnieren
+												</Button>
+											)}
 										</div>
-
-										{/* Subscription Details Section */}
-										{subscription && (
-											<div className="px-4 sm:px-6 pb-4 sm:pb-6 space-y-3">
-												{/* Incomplete Setup Warning */}
-												{!subscription.setupCompletedAt && (
-													<div className="p-3 sm:p-4 bg-nb-yellow border-3 border-nb-black">
-														<div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-															<div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
-																<div className="bg-nb-white p-1.5 border-2 border-nb-black shrink-0">
-																	<Radar className="w-4 h-4" />
-																</div>
-																<div className="flex-1 min-w-0">
-																	<p className="font-black text-xs sm:text-sm uppercase mb-0.5">
-																		Setup noch nicht abgeschlossen
-																	</p>
-																	<p className="text-xs font-medium">
-																		Schließe die Einrichtung ab, um
-																		Benachrichtigungen zu erhalten
-																	</p>
-																</div>
-															</div>
-															<Button
-																size="sm"
-																onClick={() => {
-																	const jpaData = jpasQuery.data?.find(
-																		(j) => j.id === subscription.jpaId,
-																	);
-																	setOnboardingData({
-																		ntfyTopic: subscription.ntfyTopic,
-																		subscriptionId: subscription.id,
-																		isFirstSubscription: subscriptions.every(
-																			(s) => s.setupCompletedAt === null,
-																		),
-																		jpaName: jpaData?.name || "JPA",
-																	});
-																	setShowOnboarding(true);
-																}}
-																className="shrink-0 w-full sm:w-auto"
-															>
-																Setup fortsetzen
-															</Button>
-														</div>
-													</div>
-												)}
-
-												{/* Channel Info */}
-												<div className="p-3 sm:p-4 bg-nb-white border-3 border-nb-black">
-													<div className="flex items-start justify-between gap-2 sm:gap-3 mb-2 sm:mb-3">
-														<p className="text-xs font-bold uppercase text-nb-black/60">
-															Dein ntfy Kanal
-														</p>
-														{subscription.setupCompletedAt && (
-															<div className="flex items-center gap-1 sm:gap-1.5 text-nb-mint">
-																<Check className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-																<span className="text-xs font-bold uppercase whitespace-nowrap">
-																	Eingerichtet
-																</span>
-															</div>
-														)}
-													</div>
-													<div className="flex items-center gap-2">
-														<code className="flex-1 text-xs sm:text-sm bg-nb-yellow px-2 sm:px-3 py-2 border-2 border-nb-black font-bold break-all">
-															{subscription.ntfyTopic}
-														</code>
-														{subscription.setupCompletedAt && (
-															<Button
-																variant="ghost"
-																size="icon"
-																onClick={() =>
-																	pingNotification.mutate({
-																		ntfyTopic: subscription.ntfyTopic,
-																	})
-																}
-																disabled={pingNotification.isPending}
-																title="Test-Benachrichtigung senden"
-																className="shrink-0"
-															>
-																{pingNotification.isPending ? (
-																	<Loader2 className="w-4 h-4 animate-spin" />
-																) : (
-																	<Send className="w-4 h-4" />
-																)}
-															</Button>
-														)}
-														<Button
-															variant="icon"
-															size="icon"
-															onClick={() => copy(subscription.ntfyTopic)}
-															title="Kopieren"
-															className="shrink-0"
-														>
-															{isCopied(subscription.ntfyTopic) ? (
-																<Check className="w-4 h-4" />
-															) : (
-																<Copy className="w-4 h-4" />
-															)}
-														</Button>
-													</div>
-												</div>
-											</div>
-										)}
 									</Card>
 								);
 							})}
@@ -405,21 +346,137 @@ function SubscriptionsPage() {
 					)}
 				</div>
 
-				{/* Onboarding Modal */}
-				{onboardingData && (
-					<OnboardingModal
-						open={showOnboarding}
-						onClose={() => {
-							setShowOnboarding(false);
-							subscriptionsQuery.refetch();
-						}}
-						ntfyTopic={onboardingData.ntfyTopic}
-						subscriptionId={onboardingData.subscriptionId}
-						isFirstSubscription={onboardingData.isFirstSubscription}
-						jpaName={onboardingData.jpaName}
+				{/* Lost-link re-entry */}
+				{!managing && <ResendManageLinkCard />}
+
+				{/* Legacy ntfy subscriptions */}
+				{ntfySubscriptions.length > 0 && (
+					<div className="mt-8 sm:mt-10 space-y-4">
+						<h2 className="text-xl sm:text-2xl font-black uppercase">
+							Push-Benachrichtigungen (Legacy)
+						</h2>
+						<Card variant="muted" className="p-4">
+							<div className="flex items-start gap-3">
+								<div className="bg-nb-white p-2 border-3 border-nb-black shrink-0">
+									<Smartphone className="w-5 h-5" />
+								</div>
+								<p className="text-xs sm:text-sm font-medium flex-1">
+									<span className="font-black">
+										Push über ntfy wird in Kürze eingestellt.
+									</span>{" "}
+									Abonniere dein Prüfungsamt oben per E-Mail, um weiterhin
+									benachrichtigt zu werden. Bestehende Push-Abos funktionieren
+									bis zur Abschaltung weiter.
+								</p>
+							</div>
+						</Card>
+						<div className="grid gap-3">
+							{ntfySubscriptions.map((subscription) => {
+								const jpa = jpas.find((j) => j.id === subscription.jpaId);
+								return (
+									<Card key={subscription.id} variant="flat" className="p-4">
+										<div className="flex flex-wrap items-center gap-3">
+											<div className="flex-1 min-w-0">
+												<p className="font-black text-sm uppercase">
+													{jpa?.name ?? "Prüfungsamt"}
+												</p>
+												<code className="text-xs font-bold break-all text-nb-black/60">
+													{subscription.ntfyTopic}
+												</code>
+											</div>
+											<Button
+												variant="destructive"
+												size="sm"
+												onClick={() =>
+													deleteNtfySubscription.mutate({
+														id: subscription.id,
+													})
+												}
+												disabled={deleteNtfySubscription.isPending}
+												className="shrink-0"
+											>
+												Abbestellen
+											</Button>
+										</div>
+									</Card>
+								);
+							})}
+						</div>
+					</div>
+				)}
+
+				{/* Signup modal */}
+				{signupJpa && (
+					<EmailSignupModal
+						open={signupJpa !== null}
+						onClose={() => setSignupJpa(null)}
+						jpaId={signupJpa.id}
+						jpaName={signupJpa.name}
 					/>
 				)}
 			</div>
 		</div>
+	);
+}
+
+/**
+ * The way back in for a lost manage link. The reply is deliberately identical
+ * whether the address is known or not, so the copy promises a mail only "if
+ * you are subscribed".
+ */
+function ResendManageLinkCard() {
+	const [email, setEmail] = useState("");
+	const resend = trpc.email.resendManageLink.useMutation();
+
+	const canSubmit = email.includes("@") && !resend.isPending;
+
+	return (
+		<Card variant="flat" className="mt-8 sm:mt-10 p-4 sm:p-6">
+			<div className="flex items-start gap-3 sm:gap-4">
+				<div className="bg-nb-teal p-2 border-3 border-nb-black shrink-0">
+					<Mail className="w-5 h-5" />
+				</div>
+				<div className="flex-1 min-w-0">
+					<h2 className="font-black text-sm sm:text-base uppercase mb-1">
+						Bereits angemeldet?
+					</h2>
+					{resend.isSuccess ? (
+						<p className="text-xs sm:text-sm font-medium">
+							Wenn diese Adresse angemeldet ist, findest du gleich eine E-Mail
+							mit deinem Verwaltungslink im Postfach.
+						</p>
+					) : (
+						<>
+							<p className="text-xs sm:text-sm font-medium mb-3">
+								Wir schicken dir deinen Verwaltungslink erneut zu.
+							</p>
+							<form
+								className="flex flex-col sm:flex-row gap-2 sm:gap-3"
+								onSubmit={(event) => {
+									event.preventDefault();
+									if (canSubmit) resend.mutate({ email });
+								}}
+							>
+								<Input
+									type="email"
+									autoComplete="email"
+									placeholder="deine@email.de"
+									value={email}
+									onChange={(event) => setEmail(event.target.value)}
+									className="h-10 text-sm sm:max-w-xs"
+								/>
+								<Button type="submit" size="sm" disabled={!canSubmit}>
+									{resend.isPending ? (
+										<Loader2 className="w-4 h-4 animate-spin" />
+									) : (
+										"Link senden"
+									)}
+								</Button>
+							</form>
+						</>
+					)}
+				</div>
+			</div>
+		</Card>
 	);
 }

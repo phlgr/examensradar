@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { History, Plus, Smartphone, Zap } from "lucide-react";
+import { History, Mail, MailCheck, Zap } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { LinkButton } from "@/components/ui/link-button";
 
@@ -8,28 +8,29 @@ export const Route = createFileRoute("/")({ component: LandingPage });
 function LandingPage() {
 	const steps = [
 		{
-			icon: <Smartphone className="w-6 h-6 sm:w-8 sm:h-8" />,
-			title: "1. ntfy einrichten",
-			description: "Installiere die ntfy App auf deinem Smartphone.",
+			icon: <Mail className="w-6 h-6 sm:w-8 sm:h-8" />,
+			title: "1. E-Mail eintragen",
+			description:
+				"Wähle dein Justizprüfungsamt und trag deine E-Mail-Adresse ein. Keine App, kein Konto.",
 			color: "bg-nb-coral",
 		},
 		{
-			icon: <Plus className="w-6 h-6 sm:w-8 sm:h-8" />,
-			title: "2. JPA auswählen",
-			description: "Wähle dein Justizprüfungsamt und abonniere den Kanal.",
+			icon: <MailCheck className="w-6 h-6 sm:w-8 sm:h-8" />,
+			title: "2. Link bestätigen",
+			description:
+				"Klicke auf den Bestätigungslink in deinem Postfach — fertig.",
 			color: "bg-nb-teal",
 		},
 		{
 			icon: <Zap className="w-6 h-6 sm:w-8 sm:h-8" />,
 			title: "3. Benachrichtigt werden",
-			description:
-				"Erhalte sofort eine Push-Nachricht, wenn neue Ergebnisse da sind.",
+			description: "Erhalte sofort eine E-Mail, wenn neue Ergebnisse da sind.",
 			color: "bg-nb-yellow",
 		},
 	];
 
 	return (
-		<div className="min-h-screen">
+		<div className="flex-1">
 			{/* Hero Section */}
 			<section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 bg-nb-mint">
 				<div className="max-w-4xl mx-auto">

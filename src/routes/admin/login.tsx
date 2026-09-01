@@ -41,7 +41,7 @@ function AdminLoginPage() {
 	};
 
 	return (
-		<div className="min-h-screen flex items-center justify-center bg-nb-cream px-4">
+		<div className="flex-1 flex items-center justify-center bg-nb-cream px-4">
 			<Card className="w-full max-w-md p-6 sm:p-8">
 				<div className="text-center mb-6">
 					<div className="w-16 h-16 bg-nb-yellow border-4 border-nb-black flex items-center justify-center mx-auto mb-4 shadow-[var(--nb-shadow-sm)]">

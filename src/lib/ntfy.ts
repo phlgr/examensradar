@@ -76,26 +76,6 @@ async function publish(
 	};
 }
 
-export async function sendNtfyNotification(
-	notification: NtfyNotification,
-	baseUrl = "https://ntfy.sh",
-): Promise<boolean> {
-	try {
-		const { ok, status } = await publish(notification, baseUrl);
-
-		if (!ok) {
-			console.error(
-				`ntfy publish to ${notification.topic} failed with HTTP ${status}`,
-			);
-		}
-
-		return ok;
-	} catch (error) {
-		console.error("Failed to send ntfy notification:", error);
-		return false;
-	}
-}
-
 async function sendWithRetry(
 	notification: NtfyNotification,
 	baseUrl: string,
