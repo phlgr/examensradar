@@ -157,10 +157,11 @@ export const deleteSubscription = async (
 /**
  * Deliberately short: a confirm link that leaks later — scanner logs, a
  * forwarded mail — should already be dead, and whoever misses the window just
- * signs up again for a fresh link. The "15 Minuten" copy in
- * `renderConfirmMail` must match this value.
+ * signs up again for a fresh link. An hour rather than minutes because
+ * greylisting at German providers can defer first-contact delivery by up to
+ * ~30 minutes. The "eine Stunde" copy in `renderConfirmMail` must match.
  */
-const CONFIRM_TTL_MS = 15 * 60 * 1000;
+const CONFIRM_TTL_MS = 60 * 60 * 1000;
 
 const newToken = () => nanoid(32);
 

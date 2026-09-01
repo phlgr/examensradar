@@ -105,7 +105,7 @@ ${footerLink(unsubscribeUrl(tokens.unsubscribe), "Abmelden")} &middot; ${footerL
 
 /**
  * Double opt-in. Nothing is sent to an address until this link is clicked.
- * The "15 Minuten" urgency copy must match CONFIRM_TTL_MS in src/db/index.ts.
+ * The "eine Stunde" urgency copy must match CONFIRM_TTL_MS in src/db/index.ts.
  */
 export function renderConfirmMail(jpaName: string, token: string): MailContent {
 	const url = confirmUrl(token);
@@ -118,7 +118,7 @@ Bestätige deine E-Mail-Adresse, damit wir dich benachrichtigen können, sobald 
 
 E-Mail bestätigen: ${url}
 
-Der Link ist aus Sicherheitsgründen nur 15 Minuten gültig — bestätige am
+Der Link ist aus Sicherheitsgründen nur eine Stunde gültig — bestätige am
 besten gleich jetzt.
 
 --
@@ -133,7 +133,7 @@ ohne Bestätigung senden wir dir nichts.
 					`Bestätige deine E-Mail-Adresse, damit wir dich benachrichtigen können, sobald das <strong>${escapeHtml(jpaName)}</strong> neue Examensergebnisse veröffentlicht.`,
 				) +
 				paragraph(
-					"Der Link ist aus Sicherheitsgründen nur <strong>15 Minuten</strong> gültig — bestätige am besten gleich jetzt.",
+					"Der Link ist aus Sicherheitsgründen nur <strong>eine Stunde</strong> gültig — bestätige am besten gleich jetzt.",
 				),
 			cta: { url, label: "E-Mail bestätigen" },
 			footer:
