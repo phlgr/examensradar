@@ -139,23 +139,6 @@ export const getSubscriptionCountsByJpa = async (): Promise<
 	return counts;
 };
 
-export const createSubscription = async (
-	deviceId: string,
-	jpaId: string,
-): Promise<Subscription> => {
-	const subscription = {
-		id: nanoid(),
-		deviceId,
-		jpaId,
-		ntfyTopic: `examensradar-${nanoid(10)}`,
-		setupCompletedAt: null,
-		createdAt: new Date(),
-	};
-
-	await db.insert(schema.subscription).values(subscription);
-	return subscription;
-};
-
 export const deleteSubscription = async (
 	id: string,
 	deviceId: string,
@@ -168,29 +151,6 @@ export const deleteSubscription = async (
 				eq(schema.subscription.deviceId, deviceId),
 			),
 		);
-};
-
-export const completeSubscriptionSetup = async (
-	subscriptionId: string,
-	deviceId: string,
-): Promise<Subscription> => {
-	const subscription = await db
-		.update(schema.subscription)
-		.set({ setupCompletedAt: new Date() })
-		.where(
-			and(
-				eq(schema.subscription.id, subscriptionId),
-				eq(schema.subscription.deviceId, deviceId),
-			),
-		)
-		.returning()
-		.get();
-
-	if (!subscription) {
-		throw new Error("Subscription not found");
-	}
-
-	return subscription;
 };
 
 // Email subscriber functions

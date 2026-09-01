@@ -6,10 +6,9 @@
  * *subscribed*, but not from being sent confirmation mail repeatedly, and a
  * flood of that lands us in spam folders as well as annoying the victim.
  *
- * State is in memory, matching src/lib/verification-codes.ts. It empties on
- * redeploy, which for a rate limiter means it fails open — acceptable here,
- * unlike for the codes it sits next to, where losing state loses a pending
- * signup. If the app is ever run multi-instance this needs to move to the DB.
+ * State is in memory. It empties on redeploy, which for a rate limiter means
+ * it fails open — acceptable for a throttle. If the app is ever run
+ * multi-instance this needs to move to the DB.
  */
 
 interface Window {
