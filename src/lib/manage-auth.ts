@@ -9,12 +9,6 @@
 
 const COOKIE_NAME = "examensradar_manage";
 
-/**
- * Outlives a subscriber's ~3-month lifecycle, so the cookie never expires
- * before the subscription becomes irrelevant on its own.
- */
-const MAX_AGE_SECONDS = 180 * 24 * 60 * 60;
-
 export function getManageTokenFromRequest(request: Request): string | null {
 	const cookieHeader = request.headers.get("cookie");
 	if (!cookieHeader) {
@@ -31,13 +25,18 @@ export function getManageTokenFromRequest(request: Request): string | null {
 	return null;
 }
 
-function serialize(value: string, maxAge: number): string {
+/**
+ * Deliberately a session cookie (no Max-Age): closing the browser is the
+ * sign-out, which is what actually happens on shared machines — and any mail
+ * footer signs the next visit back in with one click. This is why there is no
+ * explicit sign-out anywhere.
+ */
+export function buildManageCookie(token: string): string {
 	const options = [
-		`${COOKIE_NAME}=${value}`,
+		`${COOKIE_NAME}=${token}`,
 		"Path=/",
 		"HttpOnly",
 		"SameSite=Lax",
-		`Max-Age=${maxAge}`,
 	];
 
 	if (process.env.NODE_ENV === "production") {
@@ -45,12 +44,4 @@ function serialize(value: string, maxAge: number): string {
 	}
 
 	return options.join("; ");
-}
-
-export function buildManageCookie(token: string): string {
-	return serialize(token, MAX_AGE_SECONDS);
-}
-
-export function buildClearManageCookie(): string {
-	return serialize("", 0);
 }

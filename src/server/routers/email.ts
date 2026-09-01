@@ -21,7 +21,7 @@ import {
 	renderWelcomeMail,
 } from "@/lib/mail-templates";
 import { allowMailTo } from "@/lib/mail-throttle";
-import { buildClearManageCookie, buildManageCookie } from "@/lib/manage-auth";
+import { buildManageCookie } from "@/lib/manage-auth";
 import { manageProcedure, publicProcedure, router } from "../trpc";
 
 /**
@@ -179,15 +179,6 @@ export const emailRouter = router({
 			ctx.resHeaders.append("Set-Cookie", buildManageCookie(input.token));
 			return { ok: true };
 		}),
-
-	/**
-	 * Clears the cookie — nothing else. The subscription survives; any mail
-	 * footer signs the device back in. Matters on shared machines.
-	 */
-	signOut: publicProcedure.mutation(({ ctx }) => {
-		ctx.resHeaders.append("Set-Cookie", buildClearManageCookie());
-		return { ok: true };
-	}),
 
 	/** The caller's identity is the manage cookie; nothing here takes a token. */
 	me: manageProcedure.query(async ({ ctx }) => {

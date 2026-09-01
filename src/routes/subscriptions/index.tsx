@@ -4,7 +4,6 @@ import {
 	ExternalLink,
 	History,
 	Loader2,
-	LogOut,
 	Mail,
 	MailCheck,
 	Radar,
@@ -110,10 +109,6 @@ function SubscriptionsPage() {
 		},
 	});
 
-	const signOut = trpc.email.signOut.useMutation({
-		onSuccess: () => window.location.reload(),
-	});
-
 	// Exchanging a token or restoring — hold the spinner until the reload.
 	const exchanging = Boolean(restore || manage);
 	const loading = jpasQuery.isLoading || meQuery.isLoading || exchanging;
@@ -217,16 +212,6 @@ function SubscriptionsPage() {
 									{me.email}
 								</p>
 							</div>
-							<Button
-								variant="ghost"
-								size="sm"
-								onClick={() => signOut.mutate()}
-								disabled={signOut.isPending}
-								className="shrink-0 gap-1.5"
-							>
-								<LogOut className="w-4 h-4" />
-								Auf diesem Gerät abmelden
-							</Button>
 						</div>
 					</Card>
 				)}
