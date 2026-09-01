@@ -58,20 +58,18 @@ function SubscriptionsPage() {
 
 	// Manage token from a mail link: trade it for the httpOnly cookie, then
 	// scrub it from the URL the same way the restore param is scrubbed.
+	const signIn = trpc.email.signIn.useMutation();
+	// signIn.mutate is stable; the token is the only real trigger.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: run once per token
 	useEffect(() => {
 		if (!manage) return;
-		void fetch("/api/email/session", {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ token: manage }),
-		})
-			.then((response) => {
-				if (!response.ok) {
-					sessionStorage.setItem(INVALID_LINK_FLAG, "true");
-				}
-			})
-			.catch(() => sessionStorage.setItem(INVALID_LINK_FLAG, "true"))
-			.finally(() => window.location.replace("/subscriptions"));
+		signIn.mutate(
+			{ token: manage },
+			{
+				onError: () => sessionStorage.setItem(INVALID_LINK_FLAG, "true"),
+				onSettled: () => window.location.replace("/subscriptions"),
+			},
+		);
 	}, [manage]);
 
 	useEffect(() => {
@@ -112,10 +110,9 @@ function SubscriptionsPage() {
 		},
 	});
 
-	const signOut = async () => {
-		await fetch("/api/email/session", { method: "DELETE" });
-		window.location.reload();
-	};
+	const signOut = trpc.email.signOut.useMutation({
+		onSuccess: () => window.location.reload(),
+	});
 
 	// Exchanging a token or restoring — hold the spinner until the reload.
 	const exchanging = Boolean(restore || manage);
@@ -223,7 +220,8 @@ function SubscriptionsPage() {
 							<Button
 								variant="ghost"
 								size="sm"
-								onClick={signOut}
+								onClick={() => signOut.mutate()}
+								disabled={signOut.isPending}
 								className="shrink-0 gap-1.5"
 							>
 								<LogOut className="w-4 h-4" />

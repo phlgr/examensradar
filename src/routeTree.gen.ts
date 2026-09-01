@@ -19,7 +19,6 @@ import { Route as UnsubscribeTokenRouteImport } from './routes/unsubscribe/$toke
 import { Route as ApiAdminCheckRouteImport } from './routes/api/admin/check'
 import { Route as ApiAdminLoginRouteImport } from './routes/api/admin/login'
 import { Route as ApiAdminLogoutRouteImport } from './routes/api/admin/logout'
-import { Route as ApiEmailSessionRouteImport } from './routes/api/email/session'
 import { Route as ApiTrpcSplatRouteImport } from './routes/api/trpc/$'
 import { Route as ApiWebhookResultsRouteImport } from './routes/api/webhook/results'
 import { Route as ApiEmailUnsubscribeTokenRouteImport } from './routes/api/email/unsubscribe/$token'
@@ -74,11 +73,6 @@ const ApiAdminLogoutRoute = ApiAdminLogoutRouteImport.update({
   path: '/api/admin/logout',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiEmailSessionRoute = ApiEmailSessionRouteImport.update({
-  id: '/api/email/session',
-  path: '/api/email/session',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiTrpcSplatRoute = ApiTrpcSplatRouteImport.update({
   id: '/api/trpc/$',
   path: '/api/trpc/$',
@@ -107,7 +101,6 @@ export interface FileRoutesByFullPath {
   '/api/admin/check': typeof ApiAdminCheckRoute
   '/api/admin/login': typeof ApiAdminLoginRoute
   '/api/admin/logout': typeof ApiAdminLogoutRoute
-  '/api/email/session': typeof ApiEmailSessionRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/api/webhook/results': typeof ApiWebhookResultsRoute
   '/api/email/unsubscribe/$token': typeof ApiEmailUnsubscribeTokenRoute
@@ -123,7 +116,6 @@ export interface FileRoutesByTo {
   '/api/admin/check': typeof ApiAdminCheckRoute
   '/api/admin/login': typeof ApiAdminLoginRoute
   '/api/admin/logout': typeof ApiAdminLogoutRoute
-  '/api/email/session': typeof ApiEmailSessionRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/api/webhook/results': typeof ApiWebhookResultsRoute
   '/api/email/unsubscribe/$token': typeof ApiEmailUnsubscribeTokenRoute
@@ -140,7 +132,6 @@ export interface FileRoutesById {
   '/api/admin/check': typeof ApiAdminCheckRoute
   '/api/admin/login': typeof ApiAdminLoginRoute
   '/api/admin/logout': typeof ApiAdminLogoutRoute
-  '/api/email/session': typeof ApiEmailSessionRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/api/webhook/results': typeof ApiWebhookResultsRoute
   '/api/email/unsubscribe/$token': typeof ApiEmailUnsubscribeTokenRoute
@@ -158,7 +149,6 @@ export interface FileRouteTypes {
     | '/api/admin/check'
     | '/api/admin/login'
     | '/api/admin/logout'
-    | '/api/email/session'
     | '/api/trpc/$'
     | '/api/webhook/results'
     | '/api/email/unsubscribe/$token'
@@ -174,7 +164,6 @@ export interface FileRouteTypes {
     | '/api/admin/check'
     | '/api/admin/login'
     | '/api/admin/logout'
-    | '/api/email/session'
     | '/api/trpc/$'
     | '/api/webhook/results'
     | '/api/email/unsubscribe/$token'
@@ -190,7 +179,6 @@ export interface FileRouteTypes {
     | '/api/admin/check'
     | '/api/admin/login'
     | '/api/admin/logout'
-    | '/api/email/session'
     | '/api/trpc/$'
     | '/api/webhook/results'
     | '/api/email/unsubscribe/$token'
@@ -207,7 +195,6 @@ export interface RootRouteChildren {
   ApiAdminCheckRoute: typeof ApiAdminCheckRoute
   ApiAdminLoginRoute: typeof ApiAdminLoginRoute
   ApiAdminLogoutRoute: typeof ApiAdminLogoutRoute
-  ApiEmailSessionRoute: typeof ApiEmailSessionRoute
   ApiTrpcSplatRoute: typeof ApiTrpcSplatRoute
   ApiWebhookResultsRoute: typeof ApiWebhookResultsRoute
   ApiEmailUnsubscribeTokenRoute: typeof ApiEmailUnsubscribeTokenRoute
@@ -285,13 +272,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminLogoutRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/email/session': {
-      id: '/api/email/session'
-      path: '/api/email/session'
-      fullPath: '/api/email/session'
-      preLoaderRoute: typeof ApiEmailSessionRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/trpc/$': {
       id: '/api/trpc/$'
       path: '/api/trpc/$'
@@ -327,7 +307,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminCheckRoute: ApiAdminCheckRoute,
   ApiAdminLoginRoute: ApiAdminLoginRoute,
   ApiAdminLogoutRoute: ApiAdminLogoutRoute,
-  ApiEmailSessionRoute: ApiEmailSessionRoute,
   ApiTrpcSplatRoute: ApiTrpcSplatRoute,
   ApiWebhookResultsRoute: ApiWebhookResultsRoute,
   ApiEmailUnsubscribeTokenRoute: ApiEmailUnsubscribeTokenRoute,

@@ -7,19 +7,22 @@ import { getManageTokenFromRequest } from "@/lib/manage-auth";
 
 interface Context {
 	request: Request;
+	/** Response headers the fetch adapter merges in — how mutations set cookies. */
+	resHeaders: Headers;
 	deviceId: string | null;
 }
 
 export async function createContext(
 	opts: FetchCreateContextFnOptions & { context?: unknown },
 ): Promise<Context> {
-	const { req } = opts;
+	const { req, resHeaders } = opts;
 
 	// Extract device ID from header
 	const deviceId = req.headers.get("X-Device-ID");
 
 	return {
 		request: req,
+		resHeaders,
 		deviceId,
 	};
 }
@@ -64,7 +67,7 @@ export const deviceProcedure = t.procedure.use(async ({ ctx, next }) => {
 });
 
 /**
- * Requires the manage cookie set by /api/email/session. The subscriber it
+ * Requires the manage cookie set by `email.signIn`. The subscriber it
  * resolves to is the caller's identity — procedures behind this never take a
  * token or subscriber id as input.
  */

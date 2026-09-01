@@ -3,8 +3,8 @@
  *
  * The token itself is the credential (an opaque DB row, revocable). Mail links
  * carry it as `/subscriptions?manage=<token>`; the page trades it for this
- * httpOnly cookie via /api/email/session and scrubs the URL, so it stays out
- * of browser history, server logs and referrers from then on.
+ * httpOnly cookie via the `email.signIn` mutation and scrubs the URL, so it
+ * stays out of browser history, server logs and referrers from then on.
  */
 
 const COOKIE_NAME = "examensradar_manage";
