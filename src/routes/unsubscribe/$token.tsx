@@ -115,7 +115,7 @@ function UnsubscribePage() {
 
 function Shell({ children }: { children: React.ReactNode }) {
 	return (
-		<div className="min-h-screen flex items-center justify-center px-4 py-12 bg-nb-cream">
+		<div className="flex-1 flex items-center justify-center px-4 py-12 bg-nb-cream">
 			<Card className="w-full max-w-lg p-6 sm:p-10">
 				<div className="text-center space-y-4 sm:space-y-6">{children}</div>
 			</Card>

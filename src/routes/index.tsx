@@ -30,7 +30,7 @@ function LandingPage() {
 	];
 
 	return (
-		<div className="min-h-screen">
+		<div className="flex-1">
 			{/* Hero Section */}
 			<section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 bg-nb-mint">
 				<div className="max-w-4xl mx-auto">

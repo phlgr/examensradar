@@ -92,7 +92,7 @@ function AdminPage() {
 
 	if (isAuthenticated === null || jpasQuery.isLoading) {
 		return (
-			<div className="min-h-screen flex items-center justify-center bg-nb-cream">
+			<div className="flex-1 flex items-center justify-center bg-nb-cream">
 				<div className="w-12 h-12 border-4 border-nb-black border-t-nb-yellow animate-spin" />
 			</div>
 		);
@@ -106,7 +106,7 @@ function AdminPage() {
 	const subscriptionCounts = subscriptionCountsQuery.data ?? {};
 
 	return (
-		<div className="min-h-screen py-4 sm:py-8 px-4 bg-nb-cream">
+		<div className="flex-1 py-4 sm:py-8 px-4 bg-nb-cream">
 			<div className="max-w-4xl mx-auto">
 				<div className="mb-6 sm:mb-8 flex items-start justify-between gap-4">
 					<div>
