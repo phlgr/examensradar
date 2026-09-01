@@ -421,16 +421,27 @@ export const addEmailSubscription = async (
 	jpaId: string,
 	deviceId: string | null = null,
 ): Promise<void> => {
-	await db
-		.insert(schema.emailSubscription)
-		.values({
-			id: nanoid(),
-			subscriberId,
-			jpaId,
-			deviceId,
-			createdAt: new Date(),
-		})
-		.onConflictDoNothing();
+	const insert = db.insert(schema.emailSubscription).values({
+		id: nanoid(),
+		subscriberId,
+		jpaId,
+		deviceId,
+		createdAt: new Date(),
+	});
+
+	// A re-signup may come from a different device than the first attempt, and
+	// the latest device is the one whose push the confirmation must retire — so
+	// the remembered device moves with it. A device-less call (the manage page)
+	// never erases a recorded one.
+	await (deviceId
+		? insert.onConflictDoUpdate({
+				target: [
+					schema.emailSubscription.subscriberId,
+					schema.emailSubscription.jpaId,
+				],
+				set: { deviceId },
+			})
+		: insert.onConflictDoNothing());
 };
 
 export const removeEmailSubscription = async (

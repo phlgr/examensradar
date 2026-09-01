@@ -30,8 +30,8 @@ const TOKENS = {
 };
 
 const templates: Record<string, () => MailContent> = {
-	confirm: () => renderConfirmMail(JPA_NAME, CONFIRM_TOKEN),
-	welcome: () => renderWelcomeMail(JPA_NAME, TOKENS),
+	confirm: () => renderConfirmMail(CONFIRM_TOKEN),
+	welcome: () => renderWelcomeMail(TOKENS),
 	results: () => renderResultsMail(JPA_NAME, JPA_URL, TOKENS),
 	manage: () => renderManageLinkMail(TOKENS),
 };

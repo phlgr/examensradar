@@ -106,15 +106,23 @@ ${footerLink(unsubscribeUrl(tokens.unsubscribe), "Abmelden")} &middot; ${footerL
 /**
  * Double opt-in. Nothing is sent to an address until this link is clicked.
  * The "eine Stunde" urgency copy must match CONFIRM_TTL_MS in src/db/index.ts.
+ *
+ * The consent asked here is deliberately general — permission to mail this
+ * address about results, not about one named office. Confirming activates
+ * every office pending for the address, so naming just the office that
+ * triggered this mail would claim a narrower consent than the click grants;
+ * which offices those are is shown after confirmation and managed there.
  */
-export function renderConfirmMail(jpaName: string, token: string): MailContent {
+export function renderConfirmMail(token: string): MailContent {
 	const url = confirmUrl(token);
 
 	return {
 		subject: "Bitte bestätige deine E-Mail-Adresse",
 		text: `Nur noch ein Klick
 
-Bestätige deine E-Mail-Adresse, damit wir dich benachrichtigen können, sobald das ${jpaName} neue Examensergebnisse veröffentlicht.
+Bestätige, dass wir dir E-Mails senden dürfen, sobald eines deiner gewählten
+Prüfungsämter neue Examensergebnisse veröffentlicht. Welche Prüfungsämter du
+beobachtest, siehst du nach der Bestätigung und kannst es jederzeit anpassen.
 
 E-Mail bestätigen: ${url}
 
@@ -130,7 +138,7 @@ ohne Bestätigung senden wir dir nichts.
 			heading: "Nur noch ein Klick",
 			body:
 				paragraph(
-					`Bestätige deine E-Mail-Adresse, damit wir dich benachrichtigen können, sobald das <strong>${escapeHtml(jpaName)}</strong> neue Examensergebnisse veröffentlicht.`,
+					"Bestätige, dass wir dir E-Mails senden dürfen, sobald eines deiner gewählten Prüfungsämter neue Examensergebnisse veröffentlicht. Welche Prüfungsämter du beobachtest, siehst du nach der Bestätigung und kannst es jederzeit anpassen.",
 				) +
 				paragraph(
 					"Der Link ist aus Sicherheitsgründen nur <strong>eine Stunde</strong> gültig — bestätige am besten gleich jetzt.",
@@ -143,15 +151,14 @@ ohne Bestätigung senden wir dir nichts.
 }
 
 /** Sent once double opt-in completes. Its real job is delivering the manage link. */
-export function renderWelcomeMail(
-	jpaName: string,
-	tokens: MailTokens,
-): MailContent {
+export function renderWelcomeMail(tokens: MailTokens): MailContent {
 	return {
 		subject: "Alles bereit — wir halten dich auf dem Laufenden",
 		text: `Alles bereit
 
-Wir benachrichtigen dich, sobald das ${jpaName} neue Examensergebnisse veröffentlicht.
+Wir benachrichtigen dich, sobald eines deiner Prüfungsämter neue
+Examensergebnisse veröffentlicht. Welche das sind, siehst und änderst du
+über den Link unten.
 
 Abo verwalten: ${manageUrl(tokens.manage)}
 
@@ -164,7 +171,7 @@ Abmelden: ${unsubscribeUrl(tokens.unsubscribe)}
 		html: layout({
 			heading: "Alles bereit",
 			body: paragraph(
-				`Wir benachrichtigen dich, sobald das <strong>${escapeHtml(jpaName)}</strong> neue Examensergebnisse veröffentlicht.`,
+				"Wir benachrichtigen dich, sobald eines deiner Prüfungsämter neue Examensergebnisse veröffentlicht. Welche das sind, siehst und änderst du über den Link unten.",
 			),
 			cta: { url: manageUrl(tokens.manage), label: "Abo verwalten" },
 			footer: `Bewahre diese E-Mail auf — über den Link kannst du dein Abo jederzeit verwalten oder beenden.<br>

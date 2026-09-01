@@ -100,6 +100,31 @@ test("confirming retires only the superseded ntfy subscription", async () => {
 	expect(remaining()).toEqual([untouched.id]);
 });
 
+test("a re-signup's device supersedes the remembered one", async () => {
+	const office = await jpa("device-swap");
+	const pending = await upsertPendingSubscriber("devices@example.com", null);
+
+	const recordedDevice = () =>
+		(
+			setup
+				.query(
+					"SELECT device_id FROM email_subscription WHERE subscriber_id = ?",
+				)
+				.get(pending.id) as { device_id: string | null }
+		).device_id;
+
+	// First attempt from one device, retry from another: the latest device is
+	// the one whose push the confirmation will retire.
+	await addEmailSubscription(pending.id, office.id, "device-old");
+	expect(recordedDevice()).toBe("device-old");
+	await addEmailSubscription(pending.id, office.id, "device-new");
+	expect(recordedDevice()).toBe("device-new");
+
+	// A device-less add (the manage page) must not erase the record.
+	await addEmailSubscription(pending.id, office.id);
+	expect(recordedDevice()).toBe("device-new");
+});
+
 test("normalizeEmail folds case and whitespace", () => {
 	expect(normalizeEmail("  Philipp@Example.DE ")).toBe("philipp@example.de");
 });

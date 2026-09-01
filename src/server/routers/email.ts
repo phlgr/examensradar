@@ -94,7 +94,7 @@ export const emailRouter = router({
 			await addEmailSubscription(subscriber.id, jpa.id, ctx.deviceId);
 
 			dispatch({
-				...renderConfirmMail(jpa.name, subscriber.confirmToken),
+				...renderConfirmMail(subscriber.confirmToken),
 				to: email,
 			});
 
@@ -139,21 +139,19 @@ export const emailRouter = router({
 				});
 			}
 
-			const jpas = await getSubscriberJpas(subscriber.id);
-			const first = jpas[0];
-
 			// Delivers the manage link into the inbox, which is the only durable
 			// way back in once the confirmation page is closed.
-			if (first) {
-				dispatch({
-					...renderWelcomeMail(first.jpaName, tokensFor(subscriber)),
-					to: subscriber.email,
-				});
-			}
+			dispatch({
+				...renderWelcomeMail(tokensFor(subscriber)),
+				to: subscriber.email,
+			});
 
+			// The consent just given was general; the names show what it activated.
 			return {
 				manageToken: subscriber.manageToken,
-				jpaNames: jpas.map((jpa) => jpa.jpaName),
+				jpaNames: (await getSubscriberJpas(subscriber.id)).map(
+					(jpa) => jpa.jpaName,
+				),
 			};
 		}),
 
