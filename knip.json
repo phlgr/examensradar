@@ -1,6 +1,10 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
-  "entry": ["src/client.tsx", "src/**/*.test.{ts,tsx}"],
+  "entry": [
+    "src/client.tsx",
+    "src/server/plugins/*.ts",
+    "src/**/*.test.{ts,tsx}"
+  ],
   "ignoreDependencies": [
     "@tanstack/router-plugin"
   ],

@@ -12,12 +12,43 @@ export const jpa = sqliteTable("jpa", {
 	slug: text("slug").notNull().unique(),
 	name: text("name").notNull(),
 	websiteUrl: text("website_url"),
+	/**
+	 * Where the in-app scraper looks for new results. Separate from
+	 * `websiteUrl` because the page students should open is not always the page
+	 * whose change means "results are out". Scraping is on iff both `scrapeUrl`
+	 * and `scrapeSelector` are set.
+	 */
+	scrapeUrl: text("scrape_url"),
+	/** CSS selector narrowing the page to the section worth watching. */
+	scrapeSelector: text("scrape_selector"),
 	notificationsDisabled: integer("notifications_disabled", {
 		mode: "boolean",
 	})
 		.notNull()
 		.default(false),
 	createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+});
+
+/**
+ * One row per scraped JPA: the content baseline plus check bookkeeping.
+ *
+ * `contentHash` doubles as the concurrency guard. Every observed change is
+ * claimed with a compare-and-swap on it, and only the winner notifies — so two
+ * server instances overlapping during a zero-downtime deploy can both scrape,
+ * but nobody gets notified twice. Null means "no baseline yet": the first
+ * successful scrape only stores the hash and never notifies, because we cannot
+ * know whether the content is new.
+ */
+export const scrapeState = sqliteTable("scrape_state", {
+	jpaId: text("jpa_id")
+		.primaryKey()
+		.references(() => jpa.id, { onDelete: "cascade" }),
+	contentHash: text("content_hash"),
+	lastCheckedAt: integer("last_checked_at", { mode: "timestamp_ms" }).notNull(),
+	lastChangedAt: integer("last_changed_at", { mode: "timestamp_ms" }),
+	/** Consecutive failures; reset by any successful check. */
+	errorCount: integer("error_count").notNull().default(0),
+	lastError: text("last_error"),
 });
 
 export const subscription = sqliteTable(
@@ -180,4 +211,5 @@ export const schema = {
 	emailSubscription,
 	notificationLog,
 	adminSession,
+	scrapeState,
 };

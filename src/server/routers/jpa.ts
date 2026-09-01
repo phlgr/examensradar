@@ -6,6 +6,7 @@ import {
 	getJpaBySlug,
 	getJpas,
 	getNotificationHistory,
+	getScrapeStates,
 	getSubscriptionCountsByJpa,
 	updateJpa,
 } from "@/db";
@@ -34,6 +35,8 @@ export const jpaRouter = router({
 				name: z.string().min(1),
 				slug: z.string().min(1),
 				websiteUrl: z.string().url().nullable().optional(),
+				scrapeUrl: z.string().url().nullable().optional(),
+				scrapeSelector: z.string().min(1).nullable().optional(),
 			}),
 		)
 		.mutation(async ({ input }) => {
@@ -47,6 +50,8 @@ export const jpaRouter = router({
 				name: z.string().min(1).optional(),
 				slug: z.string().min(1).optional(),
 				websiteUrl: z.string().url().nullable().optional(),
+				scrapeUrl: z.string().url().nullable().optional(),
+				scrapeSelector: z.string().min(1).nullable().optional(),
 				notificationsDisabled: z.boolean().optional(),
 			}),
 		)
@@ -66,6 +71,11 @@ export const jpaRouter = router({
 	getSubscriptionCounts: adminProcedure.query(async () => {
 		const counts = await getSubscriptionCountsByJpa();
 		return Object.fromEntries(counts);
+	}),
+
+	getScrapeStates: adminProcedure.query(async () => {
+		const states = await getScrapeStates();
+		return Object.fromEntries(states.map((state) => [state.jpaId, state]));
 	}),
 
 	getHistory: publicProcedure.query(async () => {

@@ -1,5 +1,14 @@
 import { Database } from "bun:sqlite";
-import { and, desc, eq, inArray, isNotNull, isNull, or } from "drizzle-orm";
+import {
+	and,
+	desc,
+	eq,
+	inArray,
+	isNotNull,
+	isNull,
+	or,
+	sql,
+} from "drizzle-orm";
 import { drizzle } from "drizzle-orm/bun-sqlite";
 import { nanoid } from "nanoid";
 import * as schema from "./schema.ts";
@@ -43,12 +52,16 @@ export const createJpa = async (data: {
 	name: string;
 	slug: string;
 	websiteUrl?: string | null;
+	scrapeUrl?: string | null;
+	scrapeSelector?: string | null;
 }): Promise<JPA> => {
 	const jpa = {
 		id: nanoid(),
 		name: data.name,
 		slug: data.slug,
 		websiteUrl: data.websiteUrl ?? null,
+		scrapeUrl: data.scrapeUrl ?? null,
+		scrapeSelector: data.scrapeSelector ?? null,
 		notificationsDisabled: false,
 		createdAt: new Date(),
 	};
@@ -62,6 +75,8 @@ export const updateJpa = async (
 		name?: string;
 		slug?: string;
 		websiteUrl?: string | null;
+		scrapeUrl?: string | null;
+		scrapeSelector?: string | null;
 		notificationsDisabled?: boolean;
 	},
 ): Promise<void> => {
@@ -70,6 +85,105 @@ export const updateJpa = async (
 
 export const deleteJpa = async (id: string): Promise<void> => {
 	await db.delete(schema.jpa).where(eq(schema.jpa.id, id));
+};
+
+// Scrape state functions
+type ScrapeState = typeof schema.scrapeState.$inferSelect;
+
+export const getScrapableJpas = async (): Promise<JPA[]> => {
+	return db
+		.select()
+		.from(schema.jpa)
+		.where(
+			and(
+				isNotNull(schema.jpa.scrapeUrl),
+				isNotNull(schema.jpa.scrapeSelector),
+			),
+		)
+		.all();
+};
+
+export const getScrapeStates = async (): Promise<ScrapeState[]> => {
+	return db.select().from(schema.scrapeState).all();
+};
+
+/** Fetches the JPA's scrape state, creating the empty baseline row on first contact. */
+export const ensureScrapeState = async (
+	jpaId: string,
+): Promise<ScrapeState> => {
+	await db
+		.insert(schema.scrapeState)
+		.values({ jpaId, contentHash: null, lastCheckedAt: new Date() })
+		.onConflictDoNothing();
+
+	const state = await db
+		.select()
+		.from(schema.scrapeState)
+		.where(eq(schema.scrapeState.jpaId, jpaId))
+		.get();
+
+	if (!state) throw new Error(`scrape state missing for JPA ${jpaId}`);
+	return state;
+};
+
+/**
+ * Compare-and-swap on the content baseline: moves it from `oldHash` to
+ * `newHash` and reports whether this caller won. Everything downstream of a
+ * detected change (the notification fan-out above all) must be gated on the
+ * returned boolean — two overlapping server instances both see the change, but
+ * only one claim succeeds, so subscribers are only notified once.
+ *
+ * `oldHash === null` claims the initial baseline instead.
+ */
+export const claimScrapeChange = async (
+	jpaId: string,
+	oldHash: string | null,
+	newHash: string,
+): Promise<boolean> => {
+	const now = new Date();
+	const claimed = await db
+		.update(schema.scrapeState)
+		.set({
+			contentHash: newHash,
+			lastCheckedAt: now,
+			// The initial baseline is not a change — nothing was compared.
+			...(oldHash === null ? {} : { lastChangedAt: now }),
+			errorCount: 0,
+			lastError: null,
+		})
+		.where(
+			and(
+				eq(schema.scrapeState.jpaId, jpaId),
+				oldHash === null
+					? isNull(schema.scrapeState.contentHash)
+					: eq(schema.scrapeState.contentHash, oldHash),
+			),
+		)
+		.returning()
+		.all();
+
+	return claimed.length > 0;
+};
+
+export const recordScrapeSuccess = async (jpaId: string): Promise<void> => {
+	await db
+		.update(schema.scrapeState)
+		.set({ lastCheckedAt: new Date(), errorCount: 0, lastError: null })
+		.where(eq(schema.scrapeState.jpaId, jpaId));
+};
+
+export const recordScrapeError = async (
+	jpaId: string,
+	message: string,
+): Promise<void> => {
+	await db
+		.update(schema.scrapeState)
+		.set({
+			lastCheckedAt: new Date(),
+			errorCount: sql`${schema.scrapeState.errorCount} + 1`,
+			lastError: message,
+		})
+		.where(eq(schema.scrapeState.jpaId, jpaId));
 };
 
 // Subscription functions (now using deviceId instead of userId)

@@ -20,7 +20,11 @@ const config = defineConfig({
 		}),
 		tailwindcss(),
 		tanstackStart(),
-		nitro({ preset: "bun" }),
+		nitro({
+			preset: "bun",
+			// Boots the JPA scraper loop at server start (gated by SCRAPER_ENABLED).
+			plugins: ["./src/server/plugins/scraper.ts"],
+		}),
 		viteReact(),
 	],
 });
