@@ -14,6 +14,21 @@ type Jpa = Awaited<ReturnType<typeof getScrapableJpas>>[number];
 type Notify = typeof queueResultsNotifications;
 
 /**
+ * What a single check concluded — the scheduler only logs it, while the
+ * admin's "Jetzt prüfen" button shows it verbatim.
+ */
+export type CheckOutcome =
+	| { result: "not-configured" }
+	| { result: "error"; message: string }
+	| { result: "unchanged" }
+	/** Someone else (an overlapping instance) claimed this change first. */
+	| { result: "already-claimed" }
+	| { result: "baseline" }
+	/** Content changed, but the JPA's notifications are paused. */
+	| { result: "paused" }
+	| { result: "notified"; push: number; mail: number };
+
+/**
  * One JPA, one check: fetch → narrow → hash → compare against the stored
  * baseline. Every downstream effect of "the content changed" sits behind the
  * compare-and-swap in claimScrapeChange, so overlapping instances (during a
@@ -22,8 +37,9 @@ type Notify = typeof queueResultsNotifications;
 export async function checkJpa(
 	jpa: Jpa,
 	notify: Notify = queueResultsNotifications,
-): Promise<void> {
-	if (!jpa.scrapeUrl || !jpa.scrapeSelector) return;
+): Promise<CheckOutcome> {
+	if (!jpa.scrapeUrl || !jpa.scrapeSelector)
+		return { result: "not-configured" };
 
 	const state = await ensureScrapeState(jpa.id);
 
@@ -37,27 +53,27 @@ export async function checkJpa(
 		const message = error instanceof Error ? error.message : String(error);
 		await recordScrapeError(jpa.id, message);
 		console.error(`[scraper] ${jpa.slug}: check failed: ${message}`);
-		return;
+		return { result: "error", message };
 	}
 
 	if (content === null) {
 		const message = `selector matched nothing: ${jpa.scrapeSelector}`;
 		await recordScrapeError(jpa.id, message);
 		console.error(`[scraper] ${jpa.slug}: ${message}`);
-		return;
+		return { result: "error", message };
 	}
 
 	const hash = hashContent(content);
 
 	if (hash === state.contentHash) {
 		await recordScrapeSuccess(jpa.id);
-		return;
+		return { result: "unchanged" };
 	}
 
 	const claimed = await claimScrapeChange(jpa.id, state.contentHash, hash);
 	if (!claimed) {
 		console.log(`[scraper] ${jpa.slug}: change already claimed elsewhere`);
-		return;
+		return { result: "already-claimed" };
 	}
 
 	if (state.contentHash === null) {
@@ -65,7 +81,7 @@ export async function checkJpa(
 		// so it only becomes the baseline. Notifying here would mass-push a false
 		// positive on every fresh deployment.
 		console.log(`[scraper] ${jpa.slug}: baseline stored`);
-		return;
+		return { result: "baseline" };
 	}
 
 	const outcome = await notify(jpa);
@@ -74,6 +90,9 @@ export async function checkJpa(
 			? `[scraper] ${jpa.slug}: changed, but notifications are paused`
 			: `[scraper] ${jpa.slug}: changed — queued ${outcome.push} push, ${outcome.mail} mail`,
 	);
+	return outcome.status === "disabled"
+		? { result: "paused" }
+		: { result: "notified", push: outcome.push, mail: outcome.mail };
 }
 
 async function runScrapeCycle(): Promise<void> {

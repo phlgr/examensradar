@@ -64,8 +64,9 @@ test("first scrape stores a baseline and never notifies", async () => {
 	const notify = notifyMock();
 
 	serveHtml(page("Ergebnisse Mai 2026"));
-	await checkJpa(jpa, notify);
+	const outcome = await checkJpa(jpa, notify);
 
+	expect(outcome.result).toBe("baseline");
 	expect(notify).not.toHaveBeenCalled();
 	const state = await ensureScrapeState(jpa.id);
 	expect(state.contentHash).not.toBeNull();
@@ -91,8 +92,8 @@ test("changed content notifies exactly once", async () => {
 	await checkJpa(jpa, notify);
 
 	serveHtml(page("Neue Ergebnisse!"));
-	await checkJpa(jpa, notify);
-	await checkJpa(jpa, notify);
+	expect((await checkJpa(jpa, notify)).result).toBe("notified");
+	expect((await checkJpa(jpa, notify)).result).toBe("unchanged");
 
 	expect(notify).toHaveBeenCalledTimes(1);
 	const state = await ensureScrapeState(jpa.id);

@@ -7,6 +7,7 @@ import {
 	Edit2,
 	LogOut,
 	Plus,
+	RefreshCw,
 	Trash2,
 	Users,
 } from "lucide-react";
@@ -15,6 +16,26 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useClipboard } from "@/hooks/use-clipboard";
 import { trpc } from "@/lib/trpc";
+import type { CheckOutcome } from "@/server/scraper";
+
+function describeScrapeOutcome(outcome: CheckOutcome): string {
+	switch (outcome.result) {
+		case "unchanged":
+			return "Keine Änderung.";
+		case "baseline":
+			return "Baseline gespeichert — ab jetzt wird verglichen.";
+		case "notified":
+			return `Änderung erkannt — ${outcome.push} Push und ${outcome.mail} Mails in Zustellung.`;
+		case "paused":
+			return "Änderung erkannt, aber Benachrichtigungen sind pausiert.";
+		case "already-claimed":
+			return "Änderung wurde bereits von einem anderen Lauf verarbeitet.";
+		case "error":
+			return `Fehler: ${outcome.message}`;
+		case "not-configured":
+			return "Scraper ist nicht konfiguriert.";
+	}
+}
 
 export const Route = createFileRoute("/admin/")({
 	component: AdminPage,
@@ -90,6 +111,25 @@ function AdminPage() {
 	const toggleNotifications = trpc.jpa.update.useMutation({
 		onSuccess: () => {
 			jpasQuery.refetch();
+		},
+	});
+
+	const [scrapeResults, setScrapeResults] = useState<Record<string, string>>(
+		{},
+	);
+	const scrapeNow = trpc.jpa.scrapeNow.useMutation({
+		onSuccess: (outcome, variables) => {
+			setScrapeResults((prev) => ({
+				...prev,
+				[variables.id]: describeScrapeOutcome(outcome),
+			}));
+			scrapeStatesQuery.refetch();
+		},
+		onError: (error, variables) => {
+			setScrapeResults((prev) => ({
+				...prev,
+				[variables.id]: `Fehler: ${error.message}`,
+			}));
 		},
 	});
 
@@ -201,6 +241,29 @@ function AdminPage() {
 															{jpa.scrapeSelector}
 														</code>
 														<ScrapeStatus state={scrapeStates[jpa.id]} />
+														<div className="flex items-center gap-2 pt-1">
+															<Button
+																variant="secondary"
+																size="sm"
+																disabled={scrapeNow.isPending}
+																onClick={() => scrapeNow.mutate({ id: jpa.id })}
+															>
+																<RefreshCw
+																	className={`w-4 h-4 ${
+																		scrapeNow.isPending &&
+																		scrapeNow.variables?.id === jpa.id
+																			? "animate-spin"
+																			: ""
+																	}`}
+																/>
+																Jetzt prüfen
+															</Button>
+															{scrapeResults[jpa.id] && (
+																<p className="text-xs font-medium">
+																	{scrapeResults[jpa.id]}
+																</p>
+															)}
+														</div>
 													</div>
 												) : (
 													<p className="text-xs font-medium text-nb-black/60 mb-1">

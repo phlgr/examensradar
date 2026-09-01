@@ -1,3 +1,4 @@
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import {
 	createJpa,
@@ -10,6 +11,7 @@ import {
 	getSubscriptionCountsByJpa,
 	updateJpa,
 } from "@/db";
+import { checkJpa } from "../scraper";
 import { adminProcedure, publicProcedure, router } from "../trpc";
 
 export const jpaRouter = router({
@@ -77,6 +79,21 @@ export const jpaRouter = router({
 		const states = await getScrapeStates();
 		return Object.fromEntries(states.map((state) => [state.jpaId, state]));
 	}),
+
+	/**
+	 * Runs the exact check the scheduler runs, immediately. Safe next to a
+	 * concurrently ticking loop — the compare-and-swap in checkJpa means a real
+	 * change still notifies at most once, whoever sees it first.
+	 */
+	scrapeNow: adminProcedure
+		.input(z.object({ id: z.string() }))
+		.mutation(async ({ input }) => {
+			const jpa = await getJpaById(input.id);
+			if (!jpa) {
+				throw new TRPCError({ code: "NOT_FOUND", message: "JPA not found" });
+			}
+			return checkJpa(jpa);
+		}),
 
 	getHistory: publicProcedure.query(async () => {
 		return getNotificationHistory();
