@@ -129,7 +129,8 @@ test("confirming makes the address mailable and consumes the link", async () => 
 	if (!confirmed) throw new Error("expected the confirmation to succeed");
 
 	expect(confirmed.confirmedAt).toBeInstanceOf(Date);
-	expect(confirmed.confirmToken).toBeNull();
+	// Kept, so /confirm can recognize an already-used link.
+	expect(confirmed.confirmToken).toBe(token);
 	expect(confirmed.consentIp).toBe("1.2.3.4");
 
 	const mailable = await getMailableSubscribersByJpa(office.id);
@@ -137,8 +138,32 @@ test("confirming makes the address mailable and consumes the link", async () => 
 	expect(mailable[0]?.email).toBe("confirm@example.com");
 	expect(mailable[0]?.manageToken).toBe(confirmed.manageToken);
 
-	// Single use: the same link must not confirm twice.
+	// A re-click is a no-op that still reports success.
+	const again = await confirmSubscriber(token);
+	expect(again?.id).toBe(confirmed.id);
+	expect(again?.confirmedAt?.getTime()).toBe(confirmed.confirmedAt?.getTime());
+});
+
+test("a stale confirm link cannot undo a later unsubscribe", async () => {
+	const office = await jpa("stale-link");
+	const pending = await upsertPendingSubscriber("stale@example.com", null);
+	await addEmailSubscription(pending.id, office.id);
+
+	const token = pending.confirmToken as string;
+	const confirmed = await confirmSubscriber(token);
+	if (!confirmed) throw new Error("expected the confirmation to succeed");
+
+	await unsubscribeSubscriber(confirmed.id);
+	// The guard compares millisecond timestamps; make the ordering explicit so
+	// a fast test run cannot land both writes in the same tick.
+	setup.run(
+		"UPDATE subscriber SET unsubscribed_at = consent_at + 5 WHERE email = ?",
+		["stale@example.com"],
+	);
+
+	// The link predates the opt-out, so it must be refused outright.
 	expect(await confirmSubscriber(token)).toBeNull();
+	expect(await getMailableSubscribersByJpa(office.id)).toEqual([]);
 });
 
 test("an expired confirmation link is refused", async () => {

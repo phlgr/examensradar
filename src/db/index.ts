@@ -296,31 +296,55 @@ const retireSupersededNtfySubscriptions = async (
 	return retired;
 };
 
-/**
- * Completes double opt-in. Clearing the token makes the link single-use, and
- * clearing `unsubscribedAt`/`bouncedAt` is the point: a fresh confirmed opt-in
- * supersedes an earlier suppression, and only the address owner can produce one.
- */
-export const confirmSubscriber = async (
+export const getSubscriberByConfirmToken = async (
 	token: string,
 ): Promise<Subscriber | null> => {
-	const subscriber = await db
+	const result = await db
 		.select()
 		.from(schema.subscriber)
 		.where(eq(schema.subscriber.confirmToken, token))
 		.get();
+	return result || null;
+};
+
+/**
+ * Completes double opt-in. Clearing `unsubscribedAt`/`bouncedAt` is the point:
+ * a fresh confirmed opt-in supersedes an earlier suppression, and only the
+ * address owner can produce one.
+ *
+ * The token is deliberately KEPT after use (it rotates on every signup and
+ * dies with `confirmExpiresAt` anyway), so /confirm can recognize an
+ * already-used link and show "bestätigt" instead of an error. Two guards make
+ * that safe: a re-click on an active subscriber is a pure no-op, and a link
+ * minted *before* a later unsubscribe is refused — an old mail must never be
+ * able to undo an explicit opt-out.
+ */
+export const confirmSubscriber = async (
+	token: string,
+): Promise<Subscriber | null> => {
+	const subscriber = await getSubscriberByConfirmToken(token);
 
 	if (!subscriber) return null;
 
 	const expiresAt = subscriber.confirmExpiresAt;
 	if (expiresAt && expiresAt.getTime() < Date.now()) return null;
 
+	const unsubscribedAfterMint =
+		subscriber.unsubscribedAt &&
+		subscriber.consentAt &&
+		subscriber.unsubscribedAt.getTime() > subscriber.consentAt.getTime();
+	if (unsubscribedAfterMint) return null;
+
+	const alreadyActive =
+		subscriber.confirmedAt &&
+		!subscriber.unsubscribedAt &&
+		!subscriber.bouncedAt;
+	if (alreadyActive) return subscriber;
+
 	const confirmed = await db
 		.update(schema.subscriber)
 		.set({
 			confirmedAt: subscriber.confirmedAt ?? new Date(),
-			confirmToken: null,
-			confirmExpiresAt: null,
 			unsubscribedAt: null,
 			bouncedAt: null,
 		})

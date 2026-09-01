@@ -4,6 +4,7 @@ import {
 	addEmailSubscription,
 	confirmSubscriber,
 	getJpaById,
+	getSubscriberByConfirmToken,
 	getSubscriberByEmail,
 	getSubscriberByManageToken,
 	getSubscriberJpas,
@@ -104,6 +105,38 @@ export const emailRouter = router({
 			);
 
 			return { ok: true };
+		}),
+
+	/**
+	 * What /confirm/:token should show on load: `pending` renders the button,
+	 * `confirmed` renders the done state (a re-opened link is not an error),
+	 * `invalid` covers unknown, expired and superseded-by-unsubscribe links.
+	 * Returning the manage token for a confirmed link grants nothing new — the
+	 * confirm mutation already hands it to whoever holds this token.
+	 */
+	confirmState: publicProcedure
+		.input(z.object({ token: tokenInput }))
+		.query(async ({ input }) => {
+			const subscriber = await getSubscriberByConfirmToken(input.token);
+			const expired =
+				subscriber?.confirmExpiresAt &&
+				subscriber.confirmExpiresAt.getTime() < Date.now();
+
+			if (!subscriber || expired) return { state: "invalid" as const };
+
+			if (subscriber.confirmedAt && !subscriber.unsubscribedAt) {
+				return {
+					state: "confirmed" as const,
+					manageToken: subscriber.manageToken,
+					jpaNames: (await getSubscriberJpas(subscriber.id)).map(
+						(jpa) => jpa.jpaName,
+					),
+				};
+			}
+
+			return subscriber.confirmedAt
+				? { state: "invalid" as const }
+				: { state: "pending" as const };
 		}),
 
 	confirm: publicProcedure
