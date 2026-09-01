@@ -1,7 +1,9 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import type { FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
 import superjson from "superjson";
+import { getSubscriberByManageToken } from "@/db";
 import { getAdminTokenFromRequest, verifyAdminToken } from "@/lib/admin-auth";
+import { getManageTokenFromRequest } from "@/lib/manage-auth";
 
 interface Context {
 	request: Request;
@@ -57,6 +59,30 @@ export const deviceProcedure = t.procedure.use(async ({ ctx, next }) => {
 		ctx: {
 			...ctx,
 			deviceId,
+		},
+	});
+});
+
+/**
+ * Requires the manage cookie set by /api/email/session. The subscriber it
+ * resolves to is the caller's identity — procedures behind this never take a
+ * token or subscriber id as input.
+ */
+export const manageProcedure = t.procedure.use(async ({ ctx, next }) => {
+	const token = getManageTokenFromRequest(ctx.request);
+	const subscriber = token ? await getSubscriberByManageToken(token) : null;
+
+	if (!subscriber) {
+		throw new TRPCError({
+			code: "UNAUTHORIZED",
+			message: "Dieser Link ist nicht mehr gültig.",
+		});
+	}
+
+	return next({
+		ctx: {
+			...ctx,
+			subscriber,
 		},
 	});
 });

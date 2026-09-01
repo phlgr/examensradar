@@ -10,29 +10,23 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as SubscriptionsIndexRouteImport } from './routes/subscriptions/index'
-import { Route as HistoryIndexRouteImport } from './routes/history/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
-import { Route as ApiWebhookResultsRouteImport } from './routes/api/webhook/results'
-import { Route as ApiTrpcSplatRouteImport } from './routes/api/trpc/$'
-import { Route as ApiAdminLogoutRouteImport } from './routes/api/admin/logout'
-import { Route as ApiAdminLoginRouteImport } from './routes/api/admin/login'
+import { Route as ConfirmTokenRouteImport } from './routes/confirm/$token'
+import { Route as HistoryIndexRouteImport } from './routes/history/index'
+import { Route as SubscriptionsIndexRouteImport } from './routes/subscriptions/index'
+import { Route as UnsubscribeTokenRouteImport } from './routes/unsubscribe/$token'
 import { Route as ApiAdminCheckRouteImport } from './routes/api/admin/check'
+import { Route as ApiAdminLoginRouteImport } from './routes/api/admin/login'
+import { Route as ApiAdminLogoutRouteImport } from './routes/api/admin/logout'
+import { Route as ApiEmailSessionRouteImport } from './routes/api/email/session'
+import { Route as ApiTrpcSplatRouteImport } from './routes/api/trpc/$'
+import { Route as ApiWebhookResultsRouteImport } from './routes/api/webhook/results'
+import { Route as ApiEmailUnsubscribeTokenRouteImport } from './routes/api/email/unsubscribe/$token'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SubscriptionsIndexRoute = SubscriptionsIndexRouteImport.update({
-  id: '/subscriptions/',
-  path: '/subscriptions/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const HistoryIndexRoute = HistoryIndexRouteImport.update({
-  id: '/history/',
-  path: '/history/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
@@ -45,24 +39,24 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
   path: '/admin/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiWebhookResultsRoute = ApiWebhookResultsRouteImport.update({
-  id: '/api/webhook/results',
-  path: '/api/webhook/results',
+const ConfirmTokenRoute = ConfirmTokenRouteImport.update({
+  id: '/confirm/$token',
+  path: '/confirm/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiTrpcSplatRoute = ApiTrpcSplatRouteImport.update({
-  id: '/api/trpc/$',
-  path: '/api/trpc/$',
+const HistoryIndexRoute = HistoryIndexRouteImport.update({
+  id: '/history/',
+  path: '/history/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiAdminLogoutRoute = ApiAdminLogoutRouteImport.update({
-  id: '/api/admin/logout',
-  path: '/api/admin/logout',
+const SubscriptionsIndexRoute = SubscriptionsIndexRouteImport.update({
+  id: '/subscriptions/',
+  path: '/subscriptions/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiAdminLoginRoute = ApiAdminLoginRouteImport.update({
-  id: '/api/admin/login',
-  path: '/api/admin/login',
+const UnsubscribeTokenRoute = UnsubscribeTokenRouteImport.update({
+  id: '/unsubscribe/$token',
+  path: '/unsubscribe/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAdminCheckRoute = ApiAdminCheckRouteImport.update({
@@ -70,94 +64,153 @@ const ApiAdminCheckRoute = ApiAdminCheckRouteImport.update({
   path: '/api/admin/check',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminLoginRoute = ApiAdminLoginRouteImport.update({
+  id: '/api/admin/login',
+  path: '/api/admin/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminLogoutRoute = ApiAdminLogoutRouteImport.update({
+  id: '/api/admin/logout',
+  path: '/api/admin/logout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiEmailSessionRoute = ApiEmailSessionRouteImport.update({
+  id: '/api/email/session',
+  path: '/api/email/session',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiTrpcSplatRoute = ApiTrpcSplatRouteImport.update({
+  id: '/api/trpc/$',
+  path: '/api/trpc/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiWebhookResultsRoute = ApiWebhookResultsRouteImport.update({
+  id: '/api/webhook/results',
+  path: '/api/webhook/results',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiEmailUnsubscribeTokenRoute =
+  ApiEmailUnsubscribeTokenRouteImport.update({
+    id: '/api/email/unsubscribe/$token',
+    path: '/api/email/unsubscribe/$token',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin/login': typeof AdminLoginRoute
+  '/confirm/$token': typeof ConfirmTokenRoute
+  '/unsubscribe/$token': typeof UnsubscribeTokenRoute
   '/admin/': typeof AdminIndexRoute
   '/history/': typeof HistoryIndexRoute
   '/subscriptions/': typeof SubscriptionsIndexRoute
   '/api/admin/check': typeof ApiAdminCheckRoute
   '/api/admin/login': typeof ApiAdminLoginRoute
   '/api/admin/logout': typeof ApiAdminLogoutRoute
+  '/api/email/session': typeof ApiEmailSessionRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/api/webhook/results': typeof ApiWebhookResultsRoute
+  '/api/email/unsubscribe/$token': typeof ApiEmailUnsubscribeTokenRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin/login': typeof AdminLoginRoute
+  '/confirm/$token': typeof ConfirmTokenRoute
+  '/unsubscribe/$token': typeof UnsubscribeTokenRoute
   '/admin': typeof AdminIndexRoute
   '/history': typeof HistoryIndexRoute
   '/subscriptions': typeof SubscriptionsIndexRoute
   '/api/admin/check': typeof ApiAdminCheckRoute
   '/api/admin/login': typeof ApiAdminLoginRoute
   '/api/admin/logout': typeof ApiAdminLogoutRoute
+  '/api/email/session': typeof ApiEmailSessionRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/api/webhook/results': typeof ApiWebhookResultsRoute
+  '/api/email/unsubscribe/$token': typeof ApiEmailUnsubscribeTokenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin/login': typeof AdminLoginRoute
+  '/confirm/$token': typeof ConfirmTokenRoute
+  '/unsubscribe/$token': typeof UnsubscribeTokenRoute
   '/admin/': typeof AdminIndexRoute
   '/history/': typeof HistoryIndexRoute
   '/subscriptions/': typeof SubscriptionsIndexRoute
   '/api/admin/check': typeof ApiAdminCheckRoute
   '/api/admin/login': typeof ApiAdminLoginRoute
   '/api/admin/logout': typeof ApiAdminLogoutRoute
+  '/api/email/session': typeof ApiEmailSessionRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/api/webhook/results': typeof ApiWebhookResultsRoute
+  '/api/email/unsubscribe/$token': typeof ApiEmailUnsubscribeTokenRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/admin/login'
+    | '/confirm/$token'
+    | '/unsubscribe/$token'
     | '/admin/'
     | '/history/'
     | '/subscriptions/'
     | '/api/admin/check'
     | '/api/admin/login'
     | '/api/admin/logout'
+    | '/api/email/session'
     | '/api/trpc/$'
     | '/api/webhook/results'
+    | '/api/email/unsubscribe/$token'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/admin/login'
+    | '/confirm/$token'
+    | '/unsubscribe/$token'
     | '/admin'
     | '/history'
     | '/subscriptions'
     | '/api/admin/check'
     | '/api/admin/login'
     | '/api/admin/logout'
+    | '/api/email/session'
     | '/api/trpc/$'
     | '/api/webhook/results'
+    | '/api/email/unsubscribe/$token'
   id:
     | '__root__'
     | '/'
     | '/admin/login'
+    | '/confirm/$token'
+    | '/unsubscribe/$token'
     | '/admin/'
     | '/history/'
     | '/subscriptions/'
     | '/api/admin/check'
     | '/api/admin/login'
     | '/api/admin/logout'
+    | '/api/email/session'
     | '/api/trpc/$'
     | '/api/webhook/results'
+    | '/api/email/unsubscribe/$token'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminLoginRoute: typeof AdminLoginRoute
+  ConfirmTokenRoute: typeof ConfirmTokenRoute
+  UnsubscribeTokenRoute: typeof UnsubscribeTokenRoute
   AdminIndexRoute: typeof AdminIndexRoute
   HistoryIndexRoute: typeof HistoryIndexRoute
   SubscriptionsIndexRoute: typeof SubscriptionsIndexRoute
   ApiAdminCheckRoute: typeof ApiAdminCheckRoute
   ApiAdminLoginRoute: typeof ApiAdminLoginRoute
   ApiAdminLogoutRoute: typeof ApiAdminLogoutRoute
+  ApiEmailSessionRoute: typeof ApiEmailSessionRoute
   ApiTrpcSplatRoute: typeof ApiTrpcSplatRoute
   ApiWebhookResultsRoute: typeof ApiWebhookResultsRoute
+  ApiEmailUnsubscribeTokenRoute: typeof ApiEmailUnsubscribeTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -167,20 +220,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/subscriptions/': {
-      id: '/subscriptions/'
-      path: '/subscriptions'
-      fullPath: '/subscriptions/'
-      preLoaderRoute: typeof SubscriptionsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/history/': {
-      id: '/history/'
-      path: '/history'
-      fullPath: '/history/'
-      preLoaderRoute: typeof HistoryIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/': {
@@ -197,32 +236,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/webhook/results': {
-      id: '/api/webhook/results'
-      path: '/api/webhook/results'
-      fullPath: '/api/webhook/results'
-      preLoaderRoute: typeof ApiWebhookResultsRouteImport
+    '/confirm/$token': {
+      id: '/confirm/$token'
+      path: '/confirm/$token'
+      fullPath: '/confirm/$token'
+      preLoaderRoute: typeof ConfirmTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/trpc/$': {
-      id: '/api/trpc/$'
-      path: '/api/trpc/$'
-      fullPath: '/api/trpc/$'
-      preLoaderRoute: typeof ApiTrpcSplatRouteImport
+    '/history/': {
+      id: '/history/'
+      path: '/history'
+      fullPath: '/history/'
+      preLoaderRoute: typeof HistoryIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/admin/logout': {
-      id: '/api/admin/logout'
-      path: '/api/admin/logout'
-      fullPath: '/api/admin/logout'
-      preLoaderRoute: typeof ApiAdminLogoutRouteImport
+    '/subscriptions/': {
+      id: '/subscriptions/'
+      path: '/subscriptions'
+      fullPath: '/subscriptions/'
+      preLoaderRoute: typeof SubscriptionsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/admin/login': {
-      id: '/api/admin/login'
-      path: '/api/admin/login'
-      fullPath: '/api/admin/login'
-      preLoaderRoute: typeof ApiAdminLoginRouteImport
+    '/unsubscribe/$token': {
+      id: '/unsubscribe/$token'
+      path: '/unsubscribe/$token'
+      fullPath: '/unsubscribe/$token'
+      preLoaderRoute: typeof UnsubscribeTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/admin/check': {
@@ -232,20 +271,66 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminCheckRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/login': {
+      id: '/api/admin/login'
+      path: '/api/admin/login'
+      fullPath: '/api/admin/login'
+      preLoaderRoute: typeof ApiAdminLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/logout': {
+      id: '/api/admin/logout'
+      path: '/api/admin/logout'
+      fullPath: '/api/admin/logout'
+      preLoaderRoute: typeof ApiAdminLogoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/email/session': {
+      id: '/api/email/session'
+      path: '/api/email/session'
+      fullPath: '/api/email/session'
+      preLoaderRoute: typeof ApiEmailSessionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/trpc/$': {
+      id: '/api/trpc/$'
+      path: '/api/trpc/$'
+      fullPath: '/api/trpc/$'
+      preLoaderRoute: typeof ApiTrpcSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/webhook/results': {
+      id: '/api/webhook/results'
+      path: '/api/webhook/results'
+      fullPath: '/api/webhook/results'
+      preLoaderRoute: typeof ApiWebhookResultsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/email/unsubscribe/$token': {
+      id: '/api/email/unsubscribe/$token'
+      path: '/api/email/unsubscribe/$token'
+      fullPath: '/api/email/unsubscribe/$token'
+      preLoaderRoute: typeof ApiEmailUnsubscribeTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminLoginRoute: AdminLoginRoute,
+  ConfirmTokenRoute: ConfirmTokenRoute,
+  UnsubscribeTokenRoute: UnsubscribeTokenRoute,
   AdminIndexRoute: AdminIndexRoute,
   HistoryIndexRoute: HistoryIndexRoute,
   SubscriptionsIndexRoute: SubscriptionsIndexRoute,
   ApiAdminCheckRoute: ApiAdminCheckRoute,
   ApiAdminLoginRoute: ApiAdminLoginRoute,
   ApiAdminLogoutRoute: ApiAdminLogoutRoute,
+  ApiEmailSessionRoute: ApiEmailSessionRoute,
   ApiTrpcSplatRoute: ApiTrpcSplatRoute,
   ApiWebhookResultsRoute: ApiWebhookResultsRoute,
+  ApiEmailUnsubscribeTokenRoute: ApiEmailUnsubscribeTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

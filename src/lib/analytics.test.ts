@@ -4,11 +4,17 @@ import { maskAnalyticsUrl } from "./analytics";
 const BASE = "https://examensradar.de";
 
 test("redacts the token from credential-bearing paths", () => {
-	for (const route of ["confirm", "manage", "unsubscribe"]) {
+	for (const route of ["confirm", "unsubscribe"]) {
 		expect(maskAnalyticsUrl(`${BASE}/${route}/s3cr3t-t0ken-value`)).toBe(
 			`${BASE}/${route}/REDACTED`,
 		);
 	}
+});
+
+test("redacts the manage token from the query", () => {
+	expect(
+		maskAnalyticsUrl(`${BASE}/subscriptions?manage=s3cr3t-t0ken-value`),
+	).toBe(`${BASE}/subscriptions?manage=REDACTED`);
 });
 
 test("redacts the restore device id from the query", () => {
@@ -29,7 +35,7 @@ test("leaves ordinary URLs untouched", () => {
 
 test("does not redact the route index pages themselves", () => {
 	// No token segment to leak, so the path stays as-is.
-	expect(maskAnalyticsUrl(`${BASE}/manage`)).toBe(`${BASE}/manage`);
+	expect(maskAnalyticsUrl(`${BASE}/confirm`)).toBe(`${BASE}/confirm`);
 });
 
 test("keeps other query parameters while redacting restore", () => {

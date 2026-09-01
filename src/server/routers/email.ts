@@ -5,7 +5,6 @@ import {
 	confirmSubscriber,
 	getJpaById,
 	getSubscriberByEmail,
-	getSubscriberByManageToken,
 	getSubscriberJpas,
 	normalizeEmail,
 	removeEmailSubscription,
@@ -21,7 +20,7 @@ import {
 	renderWelcomeMail,
 } from "@/lib/mail-templates";
 import { allowMailTo } from "@/lib/mail-throttle";
-import { publicProcedure, router } from "../trpc";
+import { manageProcedure, publicProcedure, router } from "../trpc";
 
 /**
  * Mail is dispatched in the background so the form does not wait on SMTP, and
@@ -45,19 +44,6 @@ const tokensFor = (subscriber: {
 
 const emailInput = z.email().max(254);
 const tokenInput = z.string().min(16).max(64);
-
-async function requireSubscriber(token: string) {
-	const subscriber = await getSubscriberByManageToken(token);
-
-	if (!subscriber) {
-		throw new TRPCError({
-			code: "NOT_FOUND",
-			message: "Dieser Link ist nicht mehr gültig.",
-		});
-	}
-
-	return subscriber;
-}
 
 export const emailRouter = router({
 	/**
@@ -172,40 +158,41 @@ export const emailRouter = router({
 			return { ok: true };
 		}),
 
-	get: publicProcedure
-		.input(z.object({ token: tokenInput }))
-		.query(async ({ input }) => {
-			const subscriber = await requireSubscriber(input.token);
+	/** The caller's identity is the manage cookie; nothing here takes a token. */
+	me: manageProcedure.query(async ({ ctx }) => {
+		return {
+			email: ctx.subscriber.email,
+			confirmed: ctx.subscriber.confirmedAt !== null,
+			unsubscribed: ctx.subscriber.unsubscribedAt !== null,
+			jpas: await getSubscriberJpas(ctx.subscriber.id),
+		};
+	}),
 
-			return {
-				email: subscriber.email,
-				confirmed: subscriber.confirmedAt !== null,
-				unsubscribed: subscriber.unsubscribedAt !== null,
-				jpas: await getSubscriberJpas(subscriber.id),
-			};
-		}),
+	addJpa: manageProcedure
+		.input(z.object({ jpaId: z.string().min(1) }))
+		.mutation(async ({ ctx, input }) => {
+			const jpa = await getJpaById(input.jpaId);
 
-	addJpa: publicProcedure
-		.input(z.object({ token: tokenInput, jpaId: z.string().min(1) }))
-		.mutation(async ({ input }) => {
-			const subscriber = await requireSubscriber(input.token);
-			await addEmailSubscription(subscriber.id, input.jpaId);
+			if (!jpa) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Prüfungsamt nicht gefunden.",
+				});
+			}
+
+			await addEmailSubscription(ctx.subscriber.id, jpa.id);
 			return { ok: true };
 		}),
 
-	removeJpa: publicProcedure
-		.input(z.object({ token: tokenInput, jpaId: z.string().min(1) }))
-		.mutation(async ({ input }) => {
-			const subscriber = await requireSubscriber(input.token);
-			await removeEmailSubscription(subscriber.id, input.jpaId);
+	removeJpa: manageProcedure
+		.input(z.object({ jpaId: z.string().min(1) }))
+		.mutation(async ({ ctx, input }) => {
+			await removeEmailSubscription(ctx.subscriber.id, input.jpaId);
 			return { ok: true };
 		}),
 
-	unsubscribe: publicProcedure
-		.input(z.object({ token: tokenInput }))
-		.mutation(async ({ input }) => {
-			const subscriber = await requireSubscriber(input.token);
-			await unsubscribeSubscriber(subscriber.id);
-			return { ok: true };
-		}),
+	unsubscribe: manageProcedure.mutation(async ({ ctx }) => {
+		await unsubscribeSubscriber(ctx.subscriber.id);
+		return { ok: true };
+	}),
 });

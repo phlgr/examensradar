@@ -225,6 +225,22 @@ export const getSubscriberByManageToken = async (
 };
 
 /**
+ * Looks up by the credential published via List-Unsubscribe. Callers must only
+ * ever unsubscribe with the result — this token deliberately grants nothing
+ * else, because Gmail and mail scanners get to see it.
+ */
+export const getSubscriberByUnsubscribeToken = async (
+	token: string,
+): Promise<Subscriber | null> => {
+	const result = await db
+		.select()
+		.from(schema.subscriber)
+		.where(eq(schema.subscriber.unsubscribeToken, token))
+		.get();
+	return result || null;
+};
+
+/**
  * Creates a pending subscriber, or puts an existing one back into pending with
  * a fresh token. Re-running double opt-in is what makes it safe to reset a
  * subscriber who had unsubscribed or hard-bounced: only the address owner can

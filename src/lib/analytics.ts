@@ -21,22 +21,24 @@ export function trackEvent(
 }
 
 /** First path segment of the routes whose second segment is a credential. */
-const TOKEN_ROUTES = new Set(["confirm", "manage", "unsubscribe"]);
+const TOKEN_ROUTES = new Set(["confirm", "unsubscribe"]);
+/** Query parameters that carry a credential (`?manage=` token, `?restore=` device id). */
+const TOKEN_PARAMS = ["manage", "restore"];
 const REDACTED = "REDACTED";
 
 /**
  * Strips bearer credentials out of a URL before analytics sees it.
  *
- * `/manage/<token>` and its siblings put the credential in the path, and
- * `?restore=<deviceId>` puts one in the query — both are enough on their own to
- * act as the subscriber. Plausible captures pageviews automatically, so without
- * this every such visit would file the credential away in analytics storage,
- * where nothing treats it as a secret.
+ * `/confirm/<token>` and its siblings put the credential in the path, and
+ * `?manage=<token>` / `?restore=<deviceId>` put one in the query — each is
+ * enough on its own to act as the subscriber. Plausible captures pageviews
+ * automatically, so without this every such visit would file the credential
+ * away in analytics storage, where nothing treats it as a secret.
  *
- * The referrer needs the same treatment: navigating away from `/manage/<token>`
- * sends that URL as the referrer of the next pageview.
+ * The referrer needs the same treatment: navigating away from
+ * `/confirm/<token>` sends that URL as the referrer of the next pageview.
  *
- * Paths are kept in shape (`/manage/REDACTED`) so they still aggregate.
+ * Paths are kept in shape (`/confirm/REDACTED`) so they still aggregate.
  */
 export function maskAnalyticsUrl(raw: string): string {
 	let url: URL;
@@ -56,8 +58,10 @@ export function maskAnalyticsUrl(raw: string): string {
 		url.pathname = segments.join("/");
 	}
 
-	if (url.searchParams.has("restore")) {
-		url.searchParams.set("restore", REDACTED);
+	for (const param of TOKEN_PARAMS) {
+		if (url.searchParams.has(param)) {
+			url.searchParams.set(param, REDACTED);
+		}
 	}
 
 	return url.toString();

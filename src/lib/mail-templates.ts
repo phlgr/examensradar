@@ -29,8 +29,12 @@ export interface MailTokens {
 }
 
 // Route paths stay English like the rest of the app; only the copy is German.
-/** Entry point: sets the session cookie, then redirects to /subscriptions. */
-const restoreUrl = (token: string) => `${appUrl()}/restore/${token}`;
+/**
+ * The manage entry point. The page exchanges the query param for an httpOnly
+ * cookie and scrubs it from the URL, mirroring the ntfy `?restore=` pattern.
+ */
+const manageUrl = (token: string) =>
+	`${appUrl()}/subscriptions?manage=${token}`;
 const confirmUrl = (token: string) => `${appUrl()}/confirm/${token}`;
 /** The page a human lands on from the footer link. */
 const unsubscribeUrl = (token: string) => `${appUrl()}/unsubscribe/${token}`;
@@ -96,7 +100,7 @@ const footerLink = (url: string, label: string) =>
 /** Small print carried by every mail sent to a confirmed subscriber. */
 function subscriberFooter(tokens: MailTokens): string {
 	return `Du erhältst diese E-Mail, weil du dich auf examensradar.de für Benachrichtigungen dieses Prüfungsamts angemeldet hast.<br>
-${footerLink(unsubscribeUrl(tokens.unsubscribe), "Abmelden")} &middot; ${footerLink(restoreUrl(tokens.manage), "Abo verwalten")}`;
+${footerLink(unsubscribeUrl(tokens.unsubscribe), "Abmelden")} &middot; ${footerLink(manageUrl(tokens.manage), "Abo verwalten")}`;
 }
 
 /** Double opt-in. Nothing is sent to an address until this link is clicked. */
@@ -138,7 +142,7 @@ export function renderWelcomeMail(
 
 Wir benachrichtigen dich, sobald das ${jpaName} neue Examensergebnisse veröffentlicht.
 
-Abo verwalten: ${restoreUrl(tokens.manage)}
+Abo verwalten: ${manageUrl(tokens.manage)}
 
 --
 Bewahre diese E-Mail auf: über den Link oben kannst du dein Abo jederzeit
@@ -151,7 +155,7 @@ Abmelden: ${unsubscribeUrl(tokens.unsubscribe)}
 			body: paragraph(
 				`Wir benachrichtigen dich, sobald das <strong>${escapeHtml(jpaName)}</strong> neue Examensergebnisse veröffentlicht.`,
 			),
-			cta: { url: restoreUrl(tokens.manage), label: "Abo verwalten" },
+			cta: { url: manageUrl(tokens.manage), label: "Abo verwalten" },
 			footer: `Bewahre diese E-Mail auf — über den Link kannst du dein Abo jederzeit verwalten oder beenden.<br>
 ${footerLink(unsubscribeUrl(tokens.unsubscribe), "Abmelden")}`,
 		}),
@@ -178,7 +182,7 @@ Du erhältst diese E-Mail, weil du dich auf examensradar.de für
 Benachrichtigungen dieses Prüfungsamts angemeldet hast.
 
 Abmelden: ${unsubscribeUrl(tokens.unsubscribe)}
-Abo verwalten: ${restoreUrl(tokens.manage)}
+Abo verwalten: ${manageUrl(tokens.manage)}
 `,
 		html: layout({
 			heading: "Neue Ergebnisse verfügbar",
@@ -202,7 +206,7 @@ export function renderManageLinkMail(tokens: MailTokens): MailContent {
 
 Über diesen Link kannst du deine Benachrichtigungen ändern oder beenden.
 
-Abo verwalten: ${restoreUrl(tokens.manage)}
+Abo verwalten: ${manageUrl(tokens.manage)}
 
 --
 Du hast das nicht angefordert? Dann ignoriere diese E-Mail einfach.
@@ -214,7 +218,7 @@ Abmelden: ${unsubscribeUrl(tokens.unsubscribe)}
 			body: paragraph(
 				"Über diesen Link kannst du deine Benachrichtigungen ändern oder beenden.",
 			),
-			cta: { url: restoreUrl(tokens.manage), label: "Abo verwalten" },
+			cta: { url: manageUrl(tokens.manage), label: "Abo verwalten" },
 			footer: `Du hast das nicht angefordert? Dann ignoriere diese E-Mail einfach.<br>
 ${footerLink(unsubscribeUrl(tokens.unsubscribe), "Abmelden")}`,
 		}),
