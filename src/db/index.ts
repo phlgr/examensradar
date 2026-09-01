@@ -281,7 +281,7 @@ export const upsertPendingSubscriber = async (
  *
  * Returns how many were retired, for the log.
  */
-export const retireSupersededNtfySubscriptions = async (
+const retireSupersededNtfySubscriptions = async (
 	subscriberId: string,
 ): Promise<number> => {
 	const replacements = await db

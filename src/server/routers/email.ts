@@ -9,7 +9,6 @@ import {
 	getSubscriberJpas,
 	normalizeEmail,
 	removeEmailSubscription,
-	retireSupersededNtfySubscriptions,
 	unsubscribeSubscriber,
 	upsertPendingSubscriber,
 } from "@/db";
@@ -91,11 +90,12 @@ export const emailRouter = router({
 				!existing.bouncedAt;
 
 			if (existing && isActive) {
-				// The address is already proven; no second opt-in to run.
-				await addEmailSubscription(existing.id, jpa.id, ctx.deviceId);
-				await retireSupersededNtfySubscriptions(existing.id);
+				// The address is already proven, but the form is not: anyone can type
+				// a stranger's address here. So nothing changes from this path — the
+				// manage link goes into the inbox, and only its holder can alter what
+				// this address receives.
 				dispatch(email, {
-					...renderWelcomeMail(jpa.name, tokensFor(existing)),
+					...renderManageLinkMail(tokensFor(existing)),
 					to: email,
 				});
 
@@ -158,7 +158,11 @@ export const emailRouter = router({
 
 			const subscriber = await getSubscriberByEmail(email);
 
-			if (subscriber?.confirmedAt && !subscriber.unsubscribedAt) {
+			if (
+				subscriber?.confirmedAt &&
+				!subscriber.unsubscribedAt &&
+				!subscriber.bouncedAt
+			) {
 				dispatch(email, {
 					...renderManageLinkMail(tokensFor(subscriber)),
 					to: email,
