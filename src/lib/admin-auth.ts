@@ -3,6 +3,7 @@ import {
 	deleteAdminSession,
 	getAdminSessionByToken,
 } from "@/db";
+import { getCookie } from "@/lib/cookies";
 
 const COOKIE_NAME = "admin_session";
 const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -63,17 +64,5 @@ export function getAdminCookieName(): string {
  * Extract admin token from request headers (cookie)
  */
 export function getAdminTokenFromRequest(request: Request): string | null {
-	const cookieHeader = request.headers.get("cookie");
-	if (!cookieHeader) {
-		return null;
-	}
-
-	const cookies = cookieHeader.split(";").map((c) => c.trim());
-	for (const cookie of cookies) {
-		const [name, value] = cookie.split("=");
-		if (name === COOKIE_NAME) {
-			return value;
-		}
-	}
-	return null;
+	return getCookie(request, COOKIE_NAME);
 }

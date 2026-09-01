@@ -7,22 +7,12 @@
  * stays out of browser history, server logs and referrers from then on.
  */
 
+import { getCookie } from "@/lib/cookies";
+
 const COOKIE_NAME = "examensradar_manage";
 
 export function getManageTokenFromRequest(request: Request): string | null {
-	const cookieHeader = request.headers.get("cookie");
-	if (!cookieHeader) {
-		return null;
-	}
-
-	const cookies = cookieHeader.split(";").map((c) => c.trim());
-	for (const cookie of cookies) {
-		const [name, value] = cookie.split("=");
-		if (name === COOKIE_NAME && value) {
-			return value;
-		}
-	}
-	return null;
+	return getCookie(request, COOKIE_NAME);
 }
 
 function serialize(parts: string[]): string {

@@ -23,7 +23,9 @@ function ConfirmPage() {
 		onSuccess: () => trackEvent("email_confirmed"),
 	});
 
-	// Confirmed either just now (mutation) or on an earlier visit (query).
+	// Confirmed either just now (mutation, which alone carries the manage
+	// token) or on an earlier visit (query, which deliberately does not: a
+	// reopened link must not hand the credential to scanners or forwardees).
 	const done = confirm.isSuccess
 		? confirm.data
 		: stateQuery.data?.state === "confirmed"
@@ -54,10 +56,20 @@ function ConfirmPage() {
 						{done.jpaNames.length > 0 ? `: ${done.jpaNames.join(", ")}` : "."}
 					</p>
 				</div>
-				{/* The manage entry: /subscriptions trades the param for the cookie. */}
-				<a href={`/subscriptions?manage=${done.manageToken}`} className="block">
-					<Button className="w-full sm:w-auto">Abo verwalten</Button>
-				</a>
+				{"manageToken" in done ? (
+					// The manage entry: /subscriptions trades the param for the cookie.
+					<a
+						href={`/subscriptions?manage=${done.manageToken}`}
+						className="block"
+					>
+						<Button className="w-full sm:w-auto">Abo verwalten</Button>
+					</a>
+				) : (
+					<p className="font-medium text-sm sm:text-base">
+						Den Link zum Verwalten deines Abos findest du in deiner
+						Willkommens-E-Mail.
+					</p>
+				)}
 			</Shell>
 		);
 	}

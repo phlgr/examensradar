@@ -162,6 +162,16 @@ const newToken = () => nanoid(32);
 export const normalizeEmail = (email: string): string =>
 	email.trim().toLowerCase();
 
+/** Confirmed and not suppressed — the only state that may receive results mail. */
+export const isActiveSubscriber = (
+	subscriber: Pick<Subscriber, "confirmedAt" | "unsubscribedAt" | "bouncedAt">,
+): boolean =>
+	Boolean(
+		subscriber.confirmedAt &&
+			!subscriber.unsubscribedAt &&
+			!subscriber.bouncedAt,
+	);
+
 export const getSubscriberByEmail = async (
 	email: string,
 ): Promise<Subscriber | null> => {
@@ -205,28 +215,40 @@ export const getSubscriberByUnsubscribeToken = async (
  * a fresh token. Re-running double opt-in is what makes it safe to reset a
  * subscriber who had unsubscribed or hard-bounced: only the address owner can
  * complete it.
+ *
+ * Clearing `confirmedAt` is what makes "pending" a real row state: /confirm
+ * can tell an unused link from a used one without comparing timestamps. The
+ * suppression flags stay untouched until the new confirmation lands, so an
+ * abandoned re-signup never erases an opt-out. Refuses an active subscriber —
+ * resetting one to pending would silently stop their mail.
  */
 export const upsertPendingSubscriber = async (
 	email: string,
 	ip: string | null,
-): Promise<Subscriber> => {
+): Promise<Subscriber & { confirmToken: string }> => {
 	const now = new Date();
 	const existing = await getSubscriberByEmail(email);
+
+	if (existing && isActiveSubscriber(existing)) {
+		throw new Error("refusing to reset an active subscriber to pending");
+	}
 
 	const pending = {
 		confirmToken: newToken(),
 		confirmExpiresAt: new Date(now.getTime() + CONFIRM_TTL_MS),
+		confirmedAt: null,
 		consentIp: ip,
 		consentAt: now,
 	};
 
 	if (existing) {
-		return db
+		const updated = await db
 			.update(schema.subscriber)
 			.set(pending)
 			.where(eq(schema.subscriber.id, existing.id))
 			.returning()
 			.get();
+		return { ...updated, confirmToken: pending.confirmToken };
 	}
 
 	const subscriber = {
@@ -235,7 +257,6 @@ export const upsertPendingSubscriber = async (
 		manageToken: newToken(),
 		unsubscribeToken: newToken(),
 		...pending,
-		confirmedAt: null,
 		bouncedAt: null,
 		unsubscribedAt: null,
 		createdAt: now,
@@ -296,7 +317,7 @@ const retireSupersededNtfySubscriptions = async (
 	return retired;
 };
 
-export const getSubscriberByConfirmToken = async (
+const getSubscriberByConfirmToken = async (
 	token: string,
 ): Promise<Subscriber | null> => {
 	const result = await db
@@ -308,43 +329,57 @@ export const getSubscriberByConfirmToken = async (
 };
 
 /**
- * Completes double opt-in. Clearing `unsubscribedAt`/`bouncedAt` is the point:
- * a fresh confirmed opt-in supersedes an earlier suppression, and only the
- * address owner can produce one.
+ * The one classifier for confirm links, shared by what /confirm renders and
+ * what confirming checks, so the two can never disagree.
  *
- * The token is deliberately KEPT after use (it rotates on every signup and
- * dies with `confirmExpiresAt` anyway), so /confirm can recognize an
- * already-used link and show "bestätigt" instead of an error. Two guards make
- * that safe: a re-click on an active subscriber is a pure no-op, and a link
- * minted *before* a later unsubscribe is refused — an old mail must never be
- * able to undo an explicit opt-out.
+ * `pending` — the link is live and awaiting its button press.
+ * `confirmed` — the link was used and the subscriber is active. Reopening a
+ *   used link is not an error, but it grants nothing: the manage credential
+ *   only ever travels through the confirm mutation's pending → active
+ *   transition, never to whoever replays a used link later.
+ * `invalid` — unknown or rotated token, expired, or a used link whose
+ *   subscriber has since opted out: an old mail must never undo that.
+ */
+export type ConfirmTokenState =
+	| { state: "pending" | "confirmed"; subscriber: Subscriber }
+	| { state: "invalid"; subscriber: null };
+
+export const classifyConfirmToken = async (
+	token: string,
+): Promise<ConfirmTokenState> => {
+	const subscriber = await getSubscriberByConfirmToken(token);
+	const expired =
+		subscriber?.confirmExpiresAt &&
+		subscriber.confirmExpiresAt.getTime() < Date.now();
+
+	if (!subscriber || expired) return { state: "invalid", subscriber: null };
+	if (!subscriber.confirmedAt) return { state: "pending", subscriber };
+
+	return isActiveSubscriber(subscriber)
+		? { state: "confirmed", subscriber }
+		: { state: "invalid", subscriber: null };
+};
+
+/**
+ * Completes double opt-in for a `pending` link. Clearing
+ * `unsubscribedAt`/`bouncedAt` is the point: a fresh confirmed opt-in
+ * supersedes an earlier suppression, and only the address owner can produce
+ * one.
+ *
+ * The token is kept after use (it rotates on every signup and dies with
+ * `confirmExpiresAt` anyway) so /confirm can recognize an already-used link —
+ * but a used link is inert: anything except `pending` is refused here.
  */
 export const confirmSubscriber = async (
 	token: string,
 ): Promise<Subscriber | null> => {
-	const subscriber = await getSubscriberByConfirmToken(token);
-
-	if (!subscriber) return null;
-
-	const expiresAt = subscriber.confirmExpiresAt;
-	if (expiresAt && expiresAt.getTime() < Date.now()) return null;
-
-	const unsubscribedAfterMint =
-		subscriber.unsubscribedAt &&
-		subscriber.consentAt &&
-		subscriber.unsubscribedAt.getTime() > subscriber.consentAt.getTime();
-	if (unsubscribedAfterMint) return null;
-
-	const alreadyActive =
-		subscriber.confirmedAt &&
-		!subscriber.unsubscribedAt &&
-		!subscriber.bouncedAt;
-	if (alreadyActive) return subscriber;
+	const { state, subscriber } = await classifyConfirmToken(token);
+	if (state !== "pending") return null;
 
 	const confirmed = await db
 		.update(schema.subscriber)
 		.set({
-			confirmedAt: subscriber.confirmedAt ?? new Date(),
+			confirmedAt: new Date(),
 			unsubscribedAt: null,
 			bouncedAt: null,
 		})

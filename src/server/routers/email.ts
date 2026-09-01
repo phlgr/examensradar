@@ -2,19 +2,20 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import {
 	addEmailSubscription,
+	classifyConfirmToken,
 	confirmSubscriber,
 	getJpaById,
-	getSubscriberByConfirmToken,
 	getSubscriberByEmail,
 	getSubscriberByManageToken,
 	getSubscriberJpas,
+	isActiveSubscriber,
 	normalizeEmail,
 	removeEmailSubscription,
 	unsubscribeSubscriber,
 	upsertPendingSubscriber,
 } from "@/db";
 import { getClientIp } from "@/lib/client-ip";
-import { sendMail } from "@/lib/mail";
+import { type Mail, sendMail } from "@/lib/mail";
 import {
 	type MailTokens,
 	renderConfirmMail,
@@ -26,16 +27,11 @@ import { buildClearManageCookie, buildManageCookie } from "@/lib/manage-auth";
 import { manageProcedure, publicProcedure, router } from "../trpc";
 
 /**
- * Mail is dispatched in the background so the form does not wait on SMTP, and
- * so a slow or failing send cannot become a signal about whether the address
- * was already known.
+ * Fire-and-forget: the form must not wait on SMTP, so a slow or failing send
+ * cannot become a signal about whether the address was already known.
+ * `sendMail` handles its own failures and never rejects.
  */
-function dispatch(to: string, content: Parameters<typeof sendMail>[0] | null) {
-	if (!content) return;
-	void sendMail(content).catch((error) => {
-		console.error(`[email] background send to ${to} crashed`, error);
-	});
-}
+const dispatch = (mail: Mail) => void sendMail(mail);
 
 const tokensFor = (subscriber: {
 	manageToken: string;
@@ -44,6 +40,17 @@ const tokensFor = (subscriber: {
 	manage: subscriber.manageToken,
 	unsubscribe: subscriber.unsubscribeToken,
 });
+
+/** What `subscribe` and `resendManageLink` both do for an active address. */
+const dispatchManageLink = (subscriber: {
+	email: string;
+	manageToken: string;
+	unsubscribeToken: string;
+}) =>
+	dispatch({
+		...renderManageLinkMail(tokensFor(subscriber)),
+		to: subscriber.email,
+	});
 
 const emailInput = z.email().max(254);
 const tokenInput = z.string().min(16).max(64);
@@ -73,36 +80,23 @@ export const emailRouter = router({
 			if (!allowMailTo(email, ip)) return { ok: true };
 
 			const existing = await getSubscriberByEmail(email);
-			const isActive =
-				existing?.confirmedAt &&
-				!existing.unsubscribedAt &&
-				!existing.bouncedAt;
 
-			if (existing && isActive) {
+			if (existing && isActiveSubscriber(existing)) {
 				// The address is already proven, but the form is not: anyone can type
 				// a stranger's address here. So nothing changes from this path — the
 				// manage link goes into the inbox, and only its holder can alter what
 				// this address receives.
-				dispatch(email, {
-					...renderManageLinkMail(tokensFor(existing)),
-					to: email,
-				});
-
+				dispatchManageLink(existing);
 				return { ok: true };
 			}
 
 			const subscriber = await upsertPendingSubscriber(email, ip);
 			await addEmailSubscription(subscriber.id, jpa.id, ctx.deviceId);
 
-			dispatch(
-				email,
-				subscriber.confirmToken
-					? {
-							...renderConfirmMail(jpa.name, subscriber.confirmToken),
-							to: email,
-						}
-					: null,
-			);
+			dispatch({
+				...renderConfirmMail(jpa.name, subscriber.confirmToken),
+				to: email,
+			});
 
 			return { ok: true };
 		}),
@@ -111,32 +105,26 @@ export const emailRouter = router({
 	 * What /confirm/:token should show on load: `pending` renders the button,
 	 * `confirmed` renders the done state (a re-opened link is not an error),
 	 * `invalid` covers unknown, expired and superseded-by-unsubscribe links.
-	 * Returning the manage token for a confirmed link grants nothing new — the
-	 * confirm mutation already hands it to whoever holds this token.
+	 *
+	 * Deliberately never returns the manage token: this query is replayable by
+	 * mail scanners and anyone a confirm mail was forwarded to, for as long as
+	 * the link lives. The manage credential leaves exactly once, through the
+	 * confirm mutation's pending → active transition — afterwards the durable
+	 * way in is the welcome mail in the owner's inbox.
 	 */
 	confirmState: publicProcedure
 		.input(z.object({ token: tokenInput }))
 		.query(async ({ input }) => {
-			const subscriber = await getSubscriberByConfirmToken(input.token);
-			const expired =
-				subscriber?.confirmExpiresAt &&
-				subscriber.confirmExpiresAt.getTime() < Date.now();
+			const { state, subscriber } = await classifyConfirmToken(input.token);
 
-			if (!subscriber || expired) return { state: "invalid" as const };
+			if (state !== "confirmed") return { state };
 
-			if (subscriber.confirmedAt && !subscriber.unsubscribedAt) {
-				return {
-					state: "confirmed" as const,
-					manageToken: subscriber.manageToken,
-					jpaNames: (await getSubscriberJpas(subscriber.id)).map(
-						(jpa) => jpa.jpaName,
-					),
-				};
-			}
-
-			return subscriber.confirmedAt
-				? { state: "invalid" as const }
-				: { state: "pending" as const };
+			return {
+				state,
+				jpaNames: (await getSubscriberJpas(subscriber.id)).map(
+					(jpa) => jpa.jpaName,
+				),
+			};
 		}),
 
 	confirm: publicProcedure
@@ -157,7 +145,7 @@ export const emailRouter = router({
 			// Delivers the manage link into the inbox, which is the only durable
 			// way back in once the confirmation page is closed.
 			if (first) {
-				dispatch(subscriber.email, {
+				dispatch({
 					...renderWelcomeMail(first.jpaName, tokensFor(subscriber)),
 					to: subscriber.email,
 				});
@@ -179,15 +167,8 @@ export const emailRouter = router({
 
 			const subscriber = await getSubscriberByEmail(email);
 
-			if (
-				subscriber?.confirmedAt &&
-				!subscriber.unsubscribedAt &&
-				!subscriber.bouncedAt
-			) {
-				dispatch(email, {
-					...renderManageLinkMail(tokensFor(subscriber)),
-					to: email,
-				});
+			if (subscriber && isActiveSubscriber(subscriber)) {
+				dispatchManageLink(subscriber);
 			}
 
 			return { ok: true };

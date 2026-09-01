@@ -65,9 +65,9 @@ export const subscriber = sqliteTable("subscriber", {
 	unsubscribeToken: text("unsubscribe_token").notNull().unique(),
 	/**
 	 * Kept after use (rotated on every signup, dead once expired) so /confirm
-	 * can recognize an already-used link. Single-use is enforced behaviorally:
-	 * a second confirm is a no-op, and a link minted before a later unsubscribe
-	 * is refused — see `confirmSubscriber`.
+	 * can recognize an already-used link. A used link is inert: confirming is
+	 * only possible while `confirmedAt` is null, and the manage credential is
+	 * never handed to whoever replays it — see `classifyConfirmToken`.
 	 */
 	confirmToken: text("confirm_token").unique(),
 	confirmExpiresAt: integer("confirm_expires_at", { mode: "timestamp_ms" }),
