@@ -73,8 +73,8 @@ export function EmailSignupModal({
 						</p>
 						<Card variant="muted" className="p-3 sm:p-4 text-left">
 							<p className="text-xs sm:text-sm font-medium">
-								<strong>Keine E-Mail?</strong> Prüfe deinen Spam-Ordner. Du
-								kannst es in einer Stunde erneut versuchen.
+								<strong>Keine E-Mail?</strong> Prüfe deinen Spam-Ordner — oder
+								versuch es einfach gleich noch einmal.
 							</p>
 						</Card>
 					</div>
