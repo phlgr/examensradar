@@ -22,6 +22,20 @@
       "when": 1788192599663,
       "tag": "0002_public_sue_storm",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1788274126828,
+      "tag": "0003_wooden_ego",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1788274135395,
+      "tag": "0004_scrape-config-nrw",
+      "breakpoints": true
     }
   ]
 }

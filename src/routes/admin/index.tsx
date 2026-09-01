@@ -2,19 +2,37 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
 	Bell,
 	BellOff,
-	Check,
-	Copy,
 	Edit2,
 	LogOut,
 	Plus,
+	RefreshCw,
 	Trash2,
 	Users,
 } from "lucide-react";
 import { useEffect, useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { useClipboard } from "@/hooks/use-clipboard";
 import { trpc } from "@/lib/trpc";
+import type { CheckOutcome } from "@/server/scraper";
+
+function describeScrapeOutcome(outcome: CheckOutcome): string {
+	switch (outcome.result) {
+		case "unchanged":
+			return "Keine Änderung.";
+		case "baseline":
+			return "Baseline gespeichert — ab jetzt wird verglichen.";
+		case "notified":
+			return `Änderung erkannt — ${outcome.push} Push und ${outcome.mail} Mails in Zustellung.`;
+		case "paused":
+			return "Änderung erkannt, aber Benachrichtigungen sind pausiert.";
+		case "already-claimed":
+			return "Änderung wurde bereits von einem anderen Lauf verarbeitet.";
+		case "error":
+			return `Fehler: ${outcome.message}`;
+		case "not-configured":
+			return "Scraper ist nicht konfiguriert.";
+	}
+}
 
 export const Route = createFileRoute("/admin/")({
 	component: AdminPage,
@@ -51,22 +69,17 @@ function AdminPage() {
 	const { isAuthenticated, logout } = useAdminAuth();
 	const [editingJpa, setEditingJpa] = useState<string | null>(null);
 	const [showCreateForm, setShowCreateForm] = useState(false);
-	const { copy, isCopied } = useClipboard();
-
-	const webhookBaseUrl =
-		typeof window !== "undefined"
-			? `${window.location.origin}/api/webhook/results`
-			: "/api/webhook/results";
 
 	const jpasQuery = trpc.jpa.getAll.useQuery();
 	const subscriptionCountsQuery = trpc.jpa.getSubscriptionCounts.useQuery();
-	const webhookSecretQuery = trpc.admin.getWebhookSecret.useQuery(undefined, {
+	const scrapeStatesQuery = trpc.jpa.getScrapeStates.useQuery(undefined, {
 		enabled: isAuthenticated === true,
 	});
 
 	const createJpa = trpc.jpa.create.useMutation({
 		onSuccess: () => {
 			jpasQuery.refetch();
+			scrapeStatesQuery.refetch();
 			setShowCreateForm(false);
 		},
 	});
@@ -74,6 +87,8 @@ function AdminPage() {
 	const updateJpa = trpc.jpa.update.useMutation({
 		onSuccess: () => {
 			jpasQuery.refetch();
+			// Saving a changed scrape config resets and re-baselines on the server.
+			scrapeStatesQuery.refetch();
 			setEditingJpa(null);
 		},
 	});
@@ -87,6 +102,25 @@ function AdminPage() {
 	const toggleNotifications = trpc.jpa.update.useMutation({
 		onSuccess: () => {
 			jpasQuery.refetch();
+		},
+	});
+
+	const [scrapeResults, setScrapeResults] = useState<Record<string, string>>(
+		{},
+	);
+	const scrapeNow = trpc.jpa.scrapeNow.useMutation({
+		onSuccess: (outcome, variables) => {
+			setScrapeResults((prev) => ({
+				...prev,
+				[variables.id]: describeScrapeOutcome(outcome),
+			}));
+			scrapeStatesQuery.refetch();
+		},
+		onError: (error, variables) => {
+			setScrapeResults((prev) => ({
+				...prev,
+				[variables.id]: `Fehler: ${error.message}`,
+			}));
 		},
 	});
 
@@ -104,6 +138,7 @@ function AdminPage() {
 
 	const jpas = jpasQuery.data ?? [];
 	const subscriptionCounts = subscriptionCountsQuery.data ?? {};
+	const scrapeStates = scrapeStatesQuery.data ?? {};
 
 	return (
 		<div className="flex-1 py-4 sm:py-8 px-4 bg-nb-cream">
@@ -186,77 +221,47 @@ function AdminPage() {
 											)}
 											<div className="mt-3 pt-3 border-t-2 border-nb-black/10">
 												<p className="text-xs font-bold uppercase mb-2 text-nb-black/60">
-													Webhook
+													Scraper
 												</p>
-												<p className="text-xs font-bold mb-1">URL:</p>
-												<div className="flex items-center gap-2 mb-2">
-													<code className="flex-1 text-xs bg-nb-black/5 px-2 py-1 font-mono border border-nb-black/20 truncate">
-														{webhookBaseUrl}
-													</code>
-													<Button
-														variant="icon"
-														size="icon"
-														onClick={() =>
-															copy(webhookBaseUrl, `${jpa.slug}-url`)
-														}
-														title="URL kopieren"
-														className="shrink-0"
-													>
-														{isCopied(`${jpa.slug}-url`) ? (
-															<Check className="w-4 h-4 text-green-600" />
-														) : (
-															<Copy className="w-4 h-4" />
-														)}
-													</Button>
-												</div>
-												<p className="text-xs font-bold mb-1">Authorization:</p>
-												<div className="flex items-center gap-2 mb-2">
-													<code className="flex-1 text-xs bg-nb-black/5 px-2 py-1 font-mono border border-nb-black/20 truncate">
-														Bearer {webhookSecretQuery.data ?? "***"}
-													</code>
-													<Button
-														variant="icon"
-														size="icon"
-														onClick={() =>
-															copy(
-																`Bearer ${webhookSecretQuery.data ?? ""}`,
-																`${jpa.slug}-auth`,
-															)
-														}
-														title="Authorization kopieren"
-														className="shrink-0"
-													>
-														{isCopied(`${jpa.slug}-auth`) ? (
-															<Check className="w-4 h-4 text-green-600" />
-														) : (
-															<Copy className="w-4 h-4" />
-														)}
-													</Button>
-												</div>
-												<p className="text-xs font-bold mb-1">Body:</p>
-												<div className="flex items-center gap-2">
-													<code className="flex-1 text-xs bg-nb-black/5 px-2 py-1 font-mono border border-nb-black/20">
-														{`{"jpa_slug": "${jpa.slug}"}`}
-													</code>
-													<Button
-														variant="icon"
-														size="icon"
-														onClick={() =>
-															copy(
-																JSON.stringify({ jpa_slug: jpa.slug }),
-																`${jpa.slug}-body`,
-															)
-														}
-														title="Body kopieren"
-														className="shrink-0"
-													>
-														{isCopied(`${jpa.slug}-body`) ? (
-															<Check className="w-4 h-4 text-green-600" />
-														) : (
-															<Copy className="w-4 h-4" />
-														)}
-													</Button>
-												</div>
+												{jpa.scrapeUrl && jpa.scrapeSelector ? (
+													<div className="space-y-1 mb-1">
+														<code className="block text-xs bg-nb-black/5 px-2 py-1 font-mono border border-nb-black/20 truncate">
+															{jpa.scrapeUrl}
+														</code>
+														<code className="block text-xs bg-nb-black/5 px-2 py-1 font-mono border border-nb-black/20 truncate">
+															{jpa.scrapeSelector}
+														</code>
+														<ScrapeStatus state={scrapeStates[jpa.id]} />
+														<div className="flex items-center gap-2 pt-1">
+															<Button
+																variant="secondary"
+																size="sm"
+																disabled={scrapeNow.isPending}
+																onClick={() => scrapeNow.mutate({ id: jpa.id })}
+															>
+																<RefreshCw
+																	className={`w-4 h-4 ${
+																		scrapeNow.isPending &&
+																		scrapeNow.variables?.id === jpa.id
+																			? "animate-spin"
+																			: ""
+																	}`}
+																/>
+																Jetzt prüfen
+															</Button>
+															{scrapeResults[jpa.id] && (
+																<p className="text-xs font-medium">
+																	{scrapeResults[jpa.id]}
+																</p>
+															)}
+														</div>
+													</div>
+												) : (
+													<p className="text-xs font-medium text-nb-black/60 mb-1">
+														Nicht konfiguriert — Scrape-URL und Selektor beim
+														Bearbeiten setzen.
+													</p>
+												)}
 											</div>
 										</div>
 										<div className="flex gap-2">
@@ -325,17 +330,63 @@ function AdminPage() {
 	);
 }
 
+function ScrapeStatus({
+	state,
+}: {
+	state?: {
+		contentHash: string | null;
+		lastCheckedAt: Date;
+		lastChangedAt: Date | null;
+		errorCount: number;
+		lastError: string | null;
+	};
+}) {
+	if (!state) {
+		return (
+			<p className="text-xs font-medium text-nb-black/60">Noch nie geprüft.</p>
+		);
+	}
+
+	return (
+		<div className="text-xs font-medium space-y-0.5">
+			<p>
+				Zuletzt geprüft: {new Date(state.lastCheckedAt).toLocaleString("de-DE")}
+				{state.contentHash ? "" : " (noch keine Baseline)"}
+			</p>
+			{state.lastChangedAt && (
+				<p>
+					Letzte Änderung:{" "}
+					{new Date(state.lastChangedAt).toLocaleString("de-DE")}
+				</p>
+			)}
+			{state.errorCount > 0 && (
+				<p className="text-red-700 font-bold">
+					{state.errorCount} Fehler in Folge: {state.lastError}
+				</p>
+			)}
+		</div>
+	);
+}
+
 function JpaForm({
 	initialData,
 	onSubmit,
 	onCancel,
 	isLoading,
 }: {
-	initialData?: { name: string; slug: string; websiteUrl: string | null };
+	initialData?: {
+		name: string;
+		slug: string;
+		websiteUrl: string | null;
+		scrapeUrl: string | null;
+		scrapeSelector: string | null;
+	};
 	onSubmit: (data: {
 		name: string;
 		slug: string;
 		websiteUrl: string | null;
+		scrapeUrl: string | null;
+		scrapeSelector: string | null;
 	}) => void;
 	onCancel: () => void;
 	isLoading: boolean;
@@ -344,6 +395,10 @@ function JpaForm({
 	const [name, setName] = useState(initialData?.name ?? "");
 	const [slug, setSlug] = useState(initialData?.slug ?? "");
 	const [websiteUrl, setWebsiteUrl] = useState(initialData?.websiteUrl ?? "");
+	const [scrapeUrl, setScrapeUrl] = useState(initialData?.scrapeUrl ?? "");
+	const [scrapeSelector, setScrapeSelector] = useState(
+		initialData?.scrapeSelector ?? "",
+	);
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
@@ -351,6 +406,8 @@ function JpaForm({
 			name,
 			slug,
 			websiteUrl: websiteUrl || null,
+			scrapeUrl: scrapeUrl || null,
+			scrapeSelector: scrapeSelector || null,
 		});
 	};
 
@@ -403,6 +460,41 @@ function JpaForm({
 						className="w-full px-4 py-2 border-2 border-black font-medium focus:outline-none focus:ring-2 focus:ring-nb-coral"
 						placeholder="https://..."
 					/>
+				</div>
+				<div>
+					<label
+						htmlFor={`${id}-scrape-url`}
+						className="block text-sm font-bold mb-1"
+					>
+						Scrape-URL (optional)
+					</label>
+					<input
+						id={`${id}-scrape-url`}
+						type="url"
+						value={scrapeUrl}
+						onChange={(e) => setScrapeUrl(e.target.value)}
+						className="w-full px-4 py-2 border-2 border-black font-medium focus:outline-none focus:ring-2 focus:ring-nb-coral"
+						placeholder="https://..."
+					/>
+				</div>
+				<div>
+					<label
+						htmlFor={`${id}-scrape-selector`}
+						className="block text-sm font-bold mb-1"
+					>
+						CSS-Selektor (optional)
+					</label>
+					<input
+						id={`${id}-scrape-selector`}
+						type="text"
+						value={scrapeSelector}
+						onChange={(e) => setScrapeSelector(e.target.value)}
+						className="w-full px-4 py-2 border-2 border-black font-mono text-sm focus:outline-none focus:ring-2 focus:ring-nb-coral"
+						placeholder="article#mainArticle"
+					/>
+					<p className="text-xs font-medium text-nb-black/60 mt-1">
+						Überwacht wird nur, wenn Scrape-URL und Selektor gesetzt sind.
+					</p>
 				</div>
 				<div className="flex gap-2">
 					<Button type="submit" disabled={isLoading}>
