@@ -22,11 +22,19 @@ import { trackEvent } from "@/lib/analytics";
 import { setDeviceId } from "@/lib/device-id";
 import { trpc } from "@/lib/trpc";
 
+// Neither param may make validateSearch throw: mail clients truncate links,
+// and a throw here replaces the whole page with the raw router error instead
+// of the invalid-link banner. `.catch(undefined)` turns anything malformed
+// into "param absent".
 const searchSchema = z.object({
 	/** Legacy ntfy device restore from old push notifications. */
-	restore: z.uuid().optional(),
-	/** Manage token from mail links; exchanged for the httpOnly cookie. */
-	manage: z.string().min(16).max(64).optional(),
+	restore: z.uuid().optional().catch(undefined),
+	/**
+	 * Manage token from mail links; exchanged for the httpOnly cookie. No shape
+	 * check: a mangled token must still reach signIn, whose rejection is what
+	 * shows the invalid-link banner.
+	 */
+	manage: z.string().optional().catch(undefined),
 });
 
 export const Route = createFileRoute("/subscriptions/")({
