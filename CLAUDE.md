@@ -46,8 +46,7 @@ src/
 **Key patterns:**
 - Device-based auth via `X-Device-ID` header (UUID v4) - no user accounts
 - Three tRPC procedure types: `publicProcedure`, `deviceProcedure` (requires device ID), `adminProcedure` (requires admin session)
-- In-app scraper (`src/server/scraper.ts`, booted at server start by the nitro plugin in `src/server/plugins/scraper.ts`) polls each JPA's `scrapeUrl`/`scrapeSelector` and fans out via `src/server/notify-results.ts`; a compare-and-swap on `scrape_state.content_hash` guarantees a change is only notified once even with overlapping instances
-- `/api/webhook/results` remains as a manual escape hatch for triggering the same fan-out externally
+- In-app scraper (`src/server/scraper.ts`, booted at server start by the nitro plugin in `src/server/plugins/scraper.ts`) polls each JPA's `scrapeUrl`/`scrapeSelector` and fans out via `src/server/notify-results.ts`; a compare-and-swap on `scrape_state.content_hash` guarantees a change is only notified once even with overlapping instances. Manual triggering goes through the admin page's "Jetzt prüfen" (`jpa.scrapeNow`), which runs the same CAS-guarded check
 - Notifications sent via ntfy.sh HTTP API (see `src/lib/ntfy.ts`) and mail (see `src/lib/mail.ts`)
 
 **Database:** Bun SQLite with Drizzle ORM. Path: `./data/examensradar.db`

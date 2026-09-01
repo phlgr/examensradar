@@ -76,13 +76,12 @@ async function dispatch(
 
 /**
  * Fans a "new results" publication out to every subscriber of the JPA, on both
- * channels. Shared by the scraper (the normal path) and the webhook (the
- * manual escape hatch), so the two can never drift in what a notification is.
+ * channels. Only ever reached through checkJpa's compare-and-swap (scheduler
+ * tick or the admin's "Jetzt prüfen"), which is what guarantees a publication
+ * is delivered at most once.
  *
  * Returns as soon as the fan-out is queued. Waiting out ntfy.sh's per-IP burst
- * limit can take minutes, and no caller benefits from blocking on it — a
- * timed-out webhook caller might even retry and re-push to everyone who
- * already succeeded.
+ * limit can take minutes, and no caller benefits from blocking on it.
  */
 export async function queueResultsNotifications(
 	jpa: ResultsJpa,
