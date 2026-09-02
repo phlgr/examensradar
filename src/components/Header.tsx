@@ -15,11 +15,10 @@ function NavLink({
 			to={to}
 			aria-label={children}
 			title={children}
-			className="inline-flex items-center gap-2 h-10 px-2.5 sm:px-3 border-3 border-transparent font-black uppercase text-sm transition-colors hover:border-nb-black hover:bg-nb-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-nb-black focus-visible:ring-offset-2"
-			activeProps={{
-				className:
-					"border-nb-black bg-nb-black text-nb-white hover:bg-nb-black",
-			}}
+			// TanStack sets data-status="active" on the current route's link; the
+			// hover styles only apply to the others so the active pill stays
+			// black-on-white-text under the cursor.
+			className="inline-flex items-center gap-2 h-10 px-2.5 sm:px-3 border-3 border-transparent font-black uppercase text-sm transition-colors [&:not([data-status=active])]:hover:border-nb-black [&:not([data-status=active])]:hover:bg-nb-white data-[status=active]:border-nb-black data-[status=active]:bg-nb-black data-[status=active]:text-nb-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-nb-black focus-visible:ring-offset-2"
 		>
 			<Icon className="w-5 h-5 shrink-0" />
 			<span className="hidden md:inline">{children}</span>

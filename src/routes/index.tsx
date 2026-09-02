@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { NotificationPreview } from "@/components/landing/NotificationPreview";
 import { Reveal } from "@/components/landing/Reveal";
 import { SignupForm } from "@/components/landing/SignupForm";
+import { UpcomingReleases } from "@/components/landing/UpcomingReleases";
 import { buttonVariants } from "@/components/ui/button";
 import { summarizeReleases } from "@/lib/release-summary";
 import { trpc } from "@/lib/trpc";
@@ -47,10 +48,9 @@ function LandingPage() {
 	}, [jpasQuery.data, jpaId]);
 
 	const selectedJpa = jpasQuery.data?.find((jpa) => jpa.id === jpaId);
+	const summaries = summarizeReleases(historyQuery.data ?? [], new Date());
 	const summary = selectedJpa
-		? summarizeReleases(historyQuery.data ?? [], new Date()).find(
-				(s) => s.slug === selectedJpa.slug,
-			)
+		? summaries.find((s) => s.slug === selectedJpa.slug)
 		: undefined;
 
 	return (
@@ -148,6 +148,12 @@ function LandingPage() {
 					</ol>
 				</div>
 			</section>
+
+			{/* When? */}
+			<UpcomingReleases
+				summaries={summaries}
+				loading={historyQuery.isLoading}
+			/>
 
 			{/* Closing call */}
 			<section className="bg-nb-mint border-y-4 border-nb-black py-16 sm:py-20 px-4 sm:px-6">
