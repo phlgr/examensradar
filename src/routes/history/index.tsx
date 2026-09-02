@@ -332,8 +332,8 @@ function HistoryPage() {
 									Nach Prüfungsamt
 								</h2>
 								<p className="text-sm font-medium text-nb-black/60">
-									Sortiert nach der nächsten erwarteten Veröffentlichung. Tipp
-									auf ein Amt für Details.
+									Sortiert nach der nächsten erwarteten Veröffentlichung. Wähle
+									ein Amt aus, um Details zu sehen.
 								</p>
 							</div>
 							{summaries.length > SEARCH_THRESHOLD && (
