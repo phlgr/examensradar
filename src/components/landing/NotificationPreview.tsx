@@ -67,14 +67,15 @@ export function NotificationPreview({
 							Das <strong>{name}</strong> hat neue Examensergebnisse
 							veröffentlicht.
 						</p>
-						{/* Part of the mock-up, deliberately not a link: the page's one
-						    action is the signup form next to it. */}
-						<span
-							className="mt-5 inline-flex items-center h-11 px-5 bg-nb-yellow border-4 border-nb-black font-black uppercase text-sm shadow-[var(--nb-shadow-sm)] select-none"
-							aria-hidden
+						{/* Where the real mail links to the office, the preview keeps
+						    visitors on the site and answers "when?" instead. */}
+						<Link
+							to="/history"
+							className="mt-5 inline-flex items-center gap-2 h-11 px-5 bg-nb-yellow border-4 border-nb-black font-black uppercase text-sm shadow-[var(--nb-shadow-sm)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-nb-black focus-visible:ring-offset-2"
 						>
-							Ergebnisse ansehen
-						</span>
+							Zur Historie
+							<ArrowRight className="w-4 h-4" />
+						</Link>
 					</div>
 
 					<div className="px-4 sm:px-5 py-3 border-t-2 border-nb-black/10 text-xs font-medium text-nb-black/60">
@@ -95,23 +96,14 @@ export function NotificationPreview({
 			</div>
 
 			{prediction && (
-				<p className="mt-4 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-sm font-bold">
-					<span>
-						Nächste voraussichtlich am{" "}
-						<span className="bg-nb-teal px-1">
-							{formatDayMonth(prediction.date)}
-						</span>{" "}
-						<span className="font-medium text-nb-black/60">
-							· {CONFIDENCE_LABEL[prediction.confidence]}
-						</span>
+				<p className="mt-4 text-sm font-bold">
+					Nächste voraussichtlich am{" "}
+					<span className="bg-nb-teal px-1">
+						{formatDayMonth(prediction.date)}
+					</span>{" "}
+					<span className="font-medium text-nb-black/60">
+						· {CONFIDENCE_LABEL[prediction.confidence]}
 					</span>
-					<Link
-						to="/history"
-						className="inline-flex items-center gap-1 uppercase text-xs underline decoration-2 underline-offset-4 hover:bg-nb-yellow px-1 transition-colors"
-					>
-						Zur Historie
-						<ArrowRight className="w-3.5 h-3.5" />
-					</Link>
 				</p>
 			)}
 		</div>
