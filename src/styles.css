@@ -142,6 +142,12 @@
     @apply border-border;
   }
 
+  /* Keep the scrollbar's space reserved so the header doesn't jump between
+     pages that scroll and pages that don't. */
+  html {
+    scrollbar-gutter: stable;
+  }
+
   body {
     @apply bg-nb-cream text-nb-black font-mono m-0 antialiased;
   }
