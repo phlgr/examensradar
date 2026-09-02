@@ -1,5 +1,5 @@
-import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
+import { LinkButton } from "@/components/ui/link-button";
 import {
 	CONFIDENCE_LABEL,
 	formatDayMonth,
@@ -15,6 +15,11 @@ import { cn } from "@/lib/utils";
 const SIZE = 400;
 const CENTER = SIZE / 2;
 const RADIUS = 176;
+
+/** More dots than this and the labels start colliding. */
+const MAX_BLIPS = 6;
+/** Rows in the legend before it collapses into "und N weitere". */
+const MAX_ROWS = 4;
 
 /** Distance rings: days from today → fraction of the radius. */
 const RINGS = [
@@ -239,6 +244,8 @@ interface RadarProps {
 export function Radar({ entries, loading, className }: RadarProps) {
 	const summaries = entries ? summarizeReleases(entries, new Date()) : [];
 	const totalReleases = summaries.reduce((sum, s) => sum + s.releaseCount, 0);
+	const rows = summaries.slice(0, MAX_ROWS);
+	const hiddenRows = summaries.length - rows.length;
 
 	return (
 		<div
@@ -255,7 +262,7 @@ export function Radar({ entries, loading, className }: RadarProps) {
 			</div>
 
 			<div className="px-3 pt-3 sm:px-6 sm:pt-4">
-				<RadarScreen summaries={summaries} />
+				<RadarScreen summaries={summaries.slice(0, MAX_BLIPS)} />
 			</div>
 
 			<ul className="mt-2 border-t-2 border-nb-black/10">
@@ -269,7 +276,7 @@ export function Radar({ entries, loading, className }: RadarProps) {
 						Noch keine Veröffentlichungen erfasst.
 					</li>
 				)}
-				{summaries.map((summary) => {
+				{rows.map((summary) => {
 					const overdue = summary.daysUntil !== null && summary.daysUntil < 0;
 					return (
 						<li
@@ -309,19 +316,23 @@ export function Radar({ entries, loading, className }: RadarProps) {
 				})}
 			</ul>
 
-			<div className="flex items-center justify-between gap-3 px-4 py-3 border-t-2 border-nb-black/10 text-xs font-bold">
-				<span className="text-nb-black/60">
+			{hiddenRows > 0 && (
+				<p className="px-4 py-3 border-t-2 border-nb-black/10 text-sm font-medium text-nb-black/60">
+					und {hiddenRows} weitere{" "}
+					{hiddenRows === 1 ? "Prüfungsamt" : "Prüfungsämter"}
+				</p>
+			)}
+
+			<div className="px-4 py-4 border-t-4 border-nb-black bg-nb-cream">
+				<LinkButton to="/history" className="w-full">
+					Zur Historie
+					<ArrowRight className="w-5 h-5" />
+				</LinkButton>
+				<p className="mt-3 text-xs font-medium text-nb-black/60 text-center">
 					{totalReleases > 0
-						? `Grundlage: ${totalReleases} erfasste Veröffentlichungen`
-						: "Grundlage sind die bisherigen Veröffentlichungen."}
-				</span>
-				<Link
-					to="/history"
-					className="inline-flex items-center gap-1 uppercase whitespace-nowrap underline decoration-2 underline-offset-4 hover:bg-nb-yellow px-1 transition-colors"
-				>
-					Alle Termine
-					<ArrowRight className="w-3.5 h-3.5" />
-				</Link>
+						? `Prognose auf Grundlage von ${totalReleases} erfassten Veröffentlichungen`
+						: "Prognosen entstehen aus den bisherigen Veröffentlichungen."}
+				</p>
 			</div>
 		</div>
 	);

@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { CalendarClock, ExternalLink } from "lucide-react";
+import { CalendarClock, ChevronDown, ExternalLink } from "lucide-react";
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { LinkButton } from "@/components/ui/link-button";
 import {
 	CONFIDENCE_LABEL,
@@ -17,6 +19,9 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/history/")({
 	component: HistoryPage,
 });
+
+/** Above this many offices the list gets a search field. */
+const SEARCH_THRESHOLD = 6;
 
 const WEEKDAYS = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"] as const;
 const WEEKDAYS_FULL = [
@@ -82,7 +87,7 @@ function Overview({ summaries }: { summaries: JpaReleaseSummary[] }) {
 	const weekday = mostCommonWeekday(weekdayCounts);
 
 	return (
-		<Card className="p-5 sm:p-6 mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-end gap-5 sm:gap-10">
+		<Card className="p-5 sm:p-6 mb-8 sm:mb-10 flex flex-col sm:flex-row sm:items-end gap-5 sm:gap-10">
 			<div className="flex-1">
 				<p className="font-display-wide text-4xl sm:text-5xl leading-none">
 					{total}
@@ -113,123 +118,171 @@ function Overview({ summaries }: { summaries: JpaReleaseSummary[] }) {
 	);
 }
 
-function JpaSection({ summary }: { summary: JpaReleaseSummary }) {
+/**
+ * One office as a native <details>: the summary row carries what most people
+ * came for (the next expected date), the body the pattern behind it. Native
+ * disclosure keeps a long list scannable without any state of our own.
+ */
+function JpaDetails({
+	summary,
+	defaultOpen,
+}: {
+	summary: JpaReleaseSummary;
+	defaultOpen: boolean;
+}) {
 	const { prediction, daysUntil } = summary;
 	const overdue = daysUntil !== null && daysUntil < 0;
 
 	return (
-		<Card className="p-5 sm:p-6">
-			<div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 mb-5">
-				<h2 className="text-xl sm:text-2xl font-black uppercase leading-tight">
-					{summary.name}
-				</h2>
-				{summary.websiteUrl && (
-					<a
-						href={summary.websiteUrl}
-						target="_blank"
-						rel="noopener noreferrer"
-						className="text-xs font-bold uppercase inline-flex items-center gap-1 underline decoration-2 underline-offset-4 hover:bg-nb-yellow transition-colors"
-					>
-						Website des Prüfungsamts
-						<ExternalLink className="w-3.5 h-3.5 shrink-0" />
-					</a>
-				)}
-			</div>
-
-			<div className="grid gap-5 md:grid-cols-[1fr_1fr]">
-				{/* Next release */}
-				<div
-					className={cn(
-						"border-4 border-nb-black p-4 sm:p-5",
-						prediction
-							? overdue
-								? "bg-nb-coral"
-								: "bg-nb-teal"
-							: "bg-nb-cream",
-					)}
-				>
-					<p className="text-[11px] font-black uppercase tracking-wider mb-2">
-						Nächste Veröffentlichung
+		<details
+			open={defaultOpen}
+			className="group bg-nb-white border-4 border-nb-black shadow-[var(--nb-shadow)]"
+		>
+			<summary className="list-none cursor-pointer select-none p-4 sm:p-5 flex flex-wrap items-center gap-x-5 gap-y-2 hover:bg-nb-cream transition-colors [&::-webkit-details-marker]:hidden">
+				<div className="flex-1 min-w-[12rem]">
+					<h2 className="font-black uppercase text-base sm:text-lg leading-tight">
+						{summary.name}
+					</h2>
+					<p className="text-xs font-medium text-nb-black/60 mt-0.5">
+						zuletzt am {formatDayMonth(summary.lastRelease)}
 					</p>
+				</div>
+				<p className="text-sm font-bold">
 					{prediction && daysUntil !== null ? (
 						<>
-							<p className="font-display-wide text-3xl sm:text-4xl leading-none">
+							voraussichtlich{" "}
+							<span
+								className={cn(
+									"px-1 border-2 border-nb-black",
+									overdue ? "bg-nb-coral" : "bg-nb-teal",
+								)}
+							>
 								{formatDayMonth(prediction.date)}
-							</p>
-							<p className="font-bold mt-2">{relativeLabel(daysUntil)}</p>
-							<p className="text-xs font-medium mt-1 text-nb-black/70">
-								Wahrscheinlich zwischen dem{" "}
-								{formatDayMonthShort(prediction.windowStart)} und dem{" "}
-								{formatDayMonthShort(prediction.windowEnd)} ·{" "}
-								{CONFIDENCE_LABEL[prediction.confidence]}
-							</p>
+							</span>{" "}
+							<span className="font-medium text-nb-black/60">
+								{relativeLabel(daysUntil)}
+							</span>
 						</>
 					) : (
-						<p className="text-sm font-medium">
-							Für eine Prognose brauchen wir mindestens zwei Veröffentlichungen.
-							Bisher ist eine erfasst.
+						<span className="font-medium text-nb-black/60">
+							noch keine Prognose
+						</span>
+					)}
+				</p>
+				<ChevronDown
+					className="w-5 h-5 shrink-0 transition-transform group-open:rotate-180"
+					aria-hidden
+				/>
+			</summary>
+
+			<div className="border-t-4 border-nb-black p-4 sm:p-5">
+				<div className="grid gap-5 md:grid-cols-2">
+					<div
+						className={cn(
+							"border-4 border-nb-black p-4 sm:p-5",
+							prediction
+								? overdue
+									? "bg-nb-coral"
+									: "bg-nb-teal"
+								: "bg-nb-cream",
+						)}
+					>
+						<p className="text-[11px] font-black uppercase tracking-wider mb-2">
+							Nächste Veröffentlichung
 						</p>
+						{prediction && daysUntil !== null ? (
+							<>
+								<p className="font-display-wide text-3xl sm:text-4xl leading-none">
+									{formatDayMonth(prediction.date)}
+								</p>
+								<p className="font-bold mt-2">{relativeLabel(daysUntil)}</p>
+								<p className="text-xs font-medium mt-1 text-nb-black/70">
+									Wahrscheinlich zwischen dem{" "}
+									{formatDayMonthShort(prediction.windowStart)} und dem{" "}
+									{formatDayMonthShort(prediction.windowEnd)} ·{" "}
+									{CONFIDENCE_LABEL[prediction.confidence]}
+								</p>
+							</>
+						) : (
+							<p className="text-sm font-medium">
+								Für eine Prognose brauchen wir mindestens zwei
+								Veröffentlichungen. Bisher ist eine erfasst.
+							</p>
+						)}
+					</div>
+
+					<div className="flex flex-col justify-between gap-4">
+						<dl className="text-sm space-y-2">
+							<div>
+								<dt className="text-[11px] font-black uppercase tracking-wider text-nb-black/50">
+									Zuletzt
+								</dt>
+								<dd className="font-bold">
+									{summary.lastRelease.toLocaleString("de-DE", {
+										dateStyle: "long",
+										timeStyle: "short",
+									})}{" "}
+									Uhr
+								</dd>
+							</div>
+							<div>
+								<dt className="text-[11px] font-black uppercase tracking-wider text-nb-black/50">
+									Typisch
+								</dt>
+								<dd className="font-bold">
+									{prediction
+										? `${monthPositionLabel(prediction.medianOffsetDays)}, `
+										: ""}
+									gegen {summary.typicalHour} Uhr
+								</dd>
+							</div>
+						</dl>
+						<WeekdayBar weekdayCounts={summary.weekdayCounts} />
+					</div>
+				</div>
+
+				<div className="mt-5 pt-4 border-t-2 border-nb-black/10 flex flex-wrap items-start justify-between gap-3">
+					<div>
+						<p className="text-[11px] font-black uppercase tracking-wider text-nb-black/50 mb-2">
+							Bisherige Veröffentlichungen
+						</p>
+						<ul className="flex flex-wrap gap-2">
+							{summary.dates.map((date) => (
+								<li
+									key={date.getTime()}
+									className="text-xs font-bold border-2 border-nb-black px-2 py-1 bg-nb-white"
+								>
+									{date.toLocaleString("de-DE", {
+										day: "numeric",
+										month: "short",
+										year: "numeric",
+										hour: "2-digit",
+										minute: "2-digit",
+									})}
+								</li>
+							))}
+						</ul>
+					</div>
+					{summary.websiteUrl && (
+						<a
+							href={summary.websiteUrl}
+							target="_blank"
+							rel="noopener noreferrer"
+							className="text-xs font-bold uppercase inline-flex items-center gap-1 underline decoration-2 underline-offset-4 hover:bg-nb-yellow transition-colors"
+						>
+							Website des Prüfungsamts
+							<ExternalLink className="w-3.5 h-3.5 shrink-0" />
+						</a>
 					)}
 				</div>
-
-				{/* Pattern */}
-				<div className="flex flex-col justify-between gap-4">
-					<dl className="text-sm space-y-2">
-						<div>
-							<dt className="text-[11px] font-black uppercase tracking-wider text-nb-black/50">
-								Zuletzt
-							</dt>
-							<dd className="font-bold">
-								{summary.lastRelease.toLocaleString("de-DE", {
-									dateStyle: "long",
-									timeStyle: "short",
-								})}{" "}
-								Uhr
-							</dd>
-						</div>
-						<div>
-							<dt className="text-[11px] font-black uppercase tracking-wider text-nb-black/50">
-								Typisch
-							</dt>
-							<dd className="font-bold">
-								{prediction
-									? `${monthPositionLabel(prediction.medianOffsetDays)}, `
-									: ""}
-								gegen {summary.typicalHour} Uhr
-							</dd>
-						</div>
-					</dl>
-					<WeekdayBar weekdayCounts={summary.weekdayCounts} />
-				</div>
 			</div>
-
-			<div className="mt-5 pt-4 border-t-2 border-nb-black/10">
-				<p className="text-[11px] font-black uppercase tracking-wider text-nb-black/50 mb-2">
-					Bisherige Veröffentlichungen
-				</p>
-				<ul className="flex flex-wrap gap-2">
-					{summary.dates.map((date) => (
-						<li
-							key={date.getTime()}
-							className="text-xs font-bold border-2 border-nb-black px-2 py-1 bg-nb-white"
-						>
-							{date.toLocaleString("de-DE", {
-								day: "numeric",
-								month: "short",
-								year: "numeric",
-								hour: "2-digit",
-								minute: "2-digit",
-							})}
-						</li>
-					))}
-				</ul>
-			</div>
-		</Card>
+		</details>
 	);
 }
 
 function HistoryPage() {
 	const historyQuery = trpc.jpa.getHistory.useQuery();
+	const [search, setSearch] = useState("");
 
 	if (historyQuery.isLoading) {
 		return (
@@ -240,6 +293,10 @@ function HistoryPage() {
 	}
 
 	const summaries = summarizeReleases(historyQuery.data ?? [], new Date());
+	const needle = search.trim().toLowerCase();
+	const visible = needle
+		? summaries.filter((s) => s.name.toLowerCase().includes(needle))
+		: summaries;
 
 	return (
 		<div className="flex-1 py-8 sm:py-12 px-4 sm:px-6 bg-nb-cream">
@@ -268,11 +325,46 @@ function HistoryPage() {
 				) : (
 					<>
 						<Overview summaries={summaries} />
-						<div className="space-y-6">
-							{summaries.map((summary) => (
-								<JpaSection key={summary.slug} summary={summary} />
-							))}
+
+						<div className="flex flex-wrap items-end justify-between gap-3 mb-4">
+							<div>
+								<h2 className="text-xl sm:text-2xl font-black uppercase">
+									Nach Prüfungsamt
+								</h2>
+								<p className="text-sm font-medium text-nb-black/60">
+									Sortiert nach der nächsten erwarteten Veröffentlichung. Tipp
+									auf ein Amt für Details.
+								</p>
+							</div>
+							{summaries.length > SEARCH_THRESHOLD && (
+								<Input
+									type="search"
+									placeholder="Prüfungsamt suchen"
+									aria-label="Prüfungsamt suchen"
+									value={search}
+									onChange={(event) => setSearch(event.target.value)}
+									className="h-10 text-sm sm:max-w-xs"
+								/>
+							)}
 						</div>
+
+						{visible.length === 0 ? (
+							<Card variant="flat" className="p-6 text-center">
+								<p className="font-bold">
+									Kein Prüfungsamt passt zu „{search.trim()}“.
+								</p>
+							</Card>
+						) : (
+							<div className="space-y-4">
+								{visible.map((summary, index) => (
+									<JpaDetails
+										key={summary.slug}
+										summary={summary}
+										defaultOpen={index === 0}
+									/>
+								))}
+							</div>
+						)}
 					</>
 				)}
 

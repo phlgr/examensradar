@@ -46,6 +46,9 @@ export const Route = createFileRoute("/subscriptions/")({
 	component: SubscriptionsPage,
 });
 
+/** Above this many offices the list gets a search field. */
+const SEARCH_THRESHOLD = 6;
+
 const RESTORED_FLAG = "examensradar_restored";
 const INVALID_LINK_FLAG = "examensradar_link_invalid";
 
@@ -53,6 +56,7 @@ function SubscriptionsPage() {
 	const { restore, manage } = Route.useSearch();
 	const [showRestoredBanner, setShowRestoredBanner] = useState(false);
 	const [showInvalidLink, setShowInvalidLink] = useState(false);
+	const [search, setSearch] = useState("");
 	const [signupJpa, setSignupJpa] = useState<{
 		id: string;
 		name: string;
@@ -149,6 +153,10 @@ function SubscriptionsPage() {
 		managing ? me.jpas.map((jpa) => jpa.jpaId) : [],
 	);
 	const ntfySubscriptions = ntfySubscriptionsQuery.data ?? [];
+	const needle = search.trim().toLowerCase();
+	const visibleJpas = needle
+		? jpas.filter((jpa) => jpa.name.toLowerCase().includes(needle))
+		: jpas;
 	const predictionBySlug = new Map(
 		summarizeReleases(historyQuery.data ?? [], new Date()).map((summary) => [
 			summary.slug,
@@ -257,11 +265,29 @@ function SubscriptionsPage() {
 
 				{/* JPA list */}
 				<section className="space-y-4">
-					<h2 className="text-xl sm:text-2xl font-black uppercase">
-						Justizprüfungsämter
-					</h2>
+					<div className="flex flex-wrap items-end justify-between gap-3">
+						<h2 className="text-xl sm:text-2xl font-black uppercase">
+							Justizprüfungsämter
+						</h2>
+						{jpas.length > SEARCH_THRESHOLD && (
+							<Input
+								type="search"
+								placeholder="Prüfungsamt suchen"
+								aria-label="Prüfungsamt suchen"
+								value={search}
+								onChange={(event) => setSearch(event.target.value)}
+								className="h-10 text-sm sm:max-w-xs"
+							/>
+						)}
+					</div>
 
-					{jpas.length === 0 ? (
+					{visibleJpas.length === 0 && jpas.length > 0 ? (
+						<Card variant="flat" className="p-6 text-center">
+							<p className="font-bold">
+								Kein Prüfungsamt passt zu „{search.trim()}“.
+							</p>
+						</Card>
+					) : jpas.length === 0 ? (
 						<Card className="p-8 text-center">
 							<p className="font-bold">
 								Derzeit sind keine Prüfungsämter hinterlegt.
@@ -269,7 +295,7 @@ function SubscriptionsPage() {
 						</Card>
 					) : (
 						<div className="grid gap-4">
-							{jpas.map((jpa) => {
+							{visibleJpas.map((jpa) => {
 								const isSubscribed = subscribedJpaIds.has(jpa.id);
 								const isMutating =
 									(addJpa.isPending && addJpa.variables?.jpaId === jpa.id) ||
