@@ -303,14 +303,14 @@ function HistoryPage() {
 	return (
 		<div className="flex-1 py-8 sm:py-12 px-4 sm:px-6 bg-nb-cream">
 			<div className="max-w-4xl mx-auto">
-				<div className="mb-8 sm:mb-10 max-w-2xl">
+				<div className="mb-8 sm:mb-10">
 					<h1
 						lang="de"
-						className="font-display-wide uppercase text-3xl sm:text-5xl leading-none mb-4 break-words [hyphens:auto]"
+						className="font-display-wide uppercase text-3xl sm:text-5xl leading-none mb-4 break-words [hyphens:auto] sm:[hyphens:manual]"
 					>
 						Wann kommen die Ergebnisse?
 					</h1>
-					<p className="font-bold text-base sm:text-lg">
+					<p className="font-bold text-base sm:text-lg max-w-2xl">
 						Hier siehst du, wann die Justizprüfungsämter bisher
 						Examensergebnisse veröffentlicht haben – und wann die nächsten
 						voraussichtlich kommen.

@@ -167,14 +167,14 @@ function SubscriptionsPage() {
 	return (
 		<div className="flex-1 py-8 sm:py-12 px-4 sm:px-6 bg-nb-cream">
 			<div className="max-w-4xl mx-auto">
-				<div className="mb-8 sm:mb-10 max-w-2xl">
+				<div className="mb-8 sm:mb-10">
 					<h1
 						lang="de"
-						className="font-display-wide uppercase text-3xl sm:text-5xl leading-none mb-4 break-words [hyphens:auto]"
+						className="font-display-wide uppercase text-3xl sm:text-5xl leading-none mb-4 break-words [hyphens:auto] sm:[hyphens:manual]"
 					>
 						{managing ? "Deine Benachrichtigungen" : "Benachrichtigungen"}
 					</h1>
-					<p className="font-bold text-base sm:text-lg">
+					<p className="font-bold text-base sm:text-lg max-w-2xl">
 						{managing
 							? "Wähle aus, über welche Prüfungsämter du informiert werden möchtest. Sobald eines davon neue Ergebnisse veröffentlicht, bekommst du eine E-Mail."
 							: "Abonniere dein Justizprüfungsamt und bekomme eine E-Mail, sobald es neue Examensergebnisse veröffentlicht."}
