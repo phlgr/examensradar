@@ -6,6 +6,9 @@ import { Reveal } from "@/components/landing/Reveal";
 import { SignupForm } from "@/components/landing/SignupForm";
 import { UpcomingReleases } from "@/components/landing/UpcomingReleases";
 import { buttonVariants } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { DisplayHeading, SectionIntro } from "@/components/ui/heading";
+import { IconBox } from "@/components/ui/icon-box";
 import { summarizeReleases } from "@/lib/release-summary";
 import { trpc } from "@/lib/trpc";
 import { cn } from "@/lib/utils";
@@ -18,23 +21,23 @@ const STEPS = [
 		title: "Prüfungsamt wählen",
 		description:
 			"Wähle dein Justizprüfungsamt aus und trag deine E-Mail-Adresse ein. Das dauert keine Minute.",
-		color: "bg-nb-coral",
+		color: "coral",
 	},
 	{
 		icon: MailCheck,
 		title: "E-Mail bestätigen",
 		description:
 			"Wir schicken dir einen Bestätigungslink. Ein Klick genügt, dann ist alles eingerichtet.",
-		color: "bg-nb-teal",
+		color: "teal",
 	},
 	{
 		icon: Zap,
 		title: "Benachrichtigung erhalten",
 		description:
 			"Sobald das Prüfungsamt neue Ergebnisse veröffentlicht, bekommst du eine E-Mail von uns.",
-		color: "bg-nb-yellow",
+		color: "yellow",
 	},
-];
+] as const;
 
 function LandingPage() {
 	const jpasQuery = trpc.jpa.getAll.useQuery();
@@ -59,8 +62,10 @@ function LandingPage() {
 			<section className="bg-graph-paper border-b-4 border-nb-black">
 				<div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14 lg:py-20 grid gap-10 lg:gap-12 lg:grid-cols-[1.05fr_0.95fr] items-center">
 					<div>
-						<h1
-							className="animate-rise font-display-wide uppercase text-[clamp(2.25rem,9.5vw,4rem)] lg:text-[3.9rem] leading-[0.95] mb-6"
+						<DisplayHeading
+							as="h1"
+							size="hero"
+							className="animate-rise"
 							style={{ animationDelay: "0ms" }}
 						>
 							Schluss mit
@@ -71,7 +76,7 @@ function LandingPage() {
 								</span>
 								-Drücken.
 							</span>
-						</h1>
+						</DisplayHeading>
 
 						<p
 							className="animate-rise text-base sm:text-lg font-bold max-w-xl mb-8"
@@ -99,6 +104,7 @@ function LandingPage() {
 						<NotificationPreview
 							jpa={selectedJpa}
 							prediction={summary?.prediction ?? null}
+							daysUntil={summary?.daysUntil ?? null}
 							lastRelease={summary?.lastRelease ?? null}
 							loading={historyQuery.isLoading}
 						/>
@@ -109,30 +115,30 @@ function LandingPage() {
 			{/* How it works */}
 			<section className="bg-nb-cream py-14 sm:py-20 px-4 sm:px-6">
 				<div className="max-w-6xl mx-auto">
-					<Reveal className="mb-10 sm:mb-14 max-w-2xl">
-						<h2 className="font-display-wide uppercase text-4xl sm:text-5xl leading-none mb-4">
-							So funktioniert's
-						</h2>
-						<p className="font-bold text-base sm:text-lg">
+					<Reveal>
+						<SectionIntro
+							title="So funktioniert's"
+							className="mb-10 sm:mb-14 max-w-2xl"
+						>
 							Drei Schritte – danach musst du die Ergebnisseite nie wieder
 							selbst aufrufen.
-						</p>
+						</SectionIntro>
 					</Reveal>
 
 					<ol className="relative grid gap-6 md:grid-cols-3 md:gap-8 md:before:absolute md:before:top-10 md:before:left-8 md:before:right-8 md:before:h-1 md:before:bg-nb-black">
 						{STEPS.map((step, index) => (
 							<li key={step.title} className="relative">
 								<Reveal delay={index * 140} className="h-full">
-									<div className="h-full bg-nb-white border-4 border-nb-black shadow-[var(--nb-shadow)] p-5 sm:p-6 transition-transform duration-200 hover:-translate-y-1.5">
+									<Card className="h-full p-5 sm:p-6 transition-transform duration-200 hover:-translate-y-1.5">
 										<div className="flex items-end justify-between mb-5">
-											<div
-												className={cn(
-													"w-16 h-16 border-4 border-nb-black flex items-center justify-center shadow-[var(--nb-shadow-sm)] font-display-wide text-4xl leading-none",
-													step.color,
-												)}
+											<IconBox
+												color={step.color}
+												size="lg"
+												shadow
+												className="font-display-wide text-4xl leading-none"
 											>
 												{index + 1}
-											</div>
+											</IconBox>
 											<step.icon className="w-8 h-8 text-nb-black/40" />
 										</div>
 										<h3 className="text-lg sm:text-xl font-black uppercase mb-2 leading-tight">
@@ -141,7 +147,7 @@ function LandingPage() {
 										<p className="font-medium text-sm sm:text-base">
 											{step.description}
 										</p>
-									</div>
+									</Card>
 								</Reveal>
 							</li>
 						))}
@@ -158,17 +164,17 @@ function LandingPage() {
 			{/* Closing call */}
 			<section className="bg-nb-mint border-y-4 border-nb-black py-16 sm:py-20 px-4 sm:px-6">
 				<Reveal className="max-w-3xl mx-auto text-center">
-					<h2 className="font-display-wide uppercase text-[clamp(2rem,7vw,3rem)] lg:text-5xl leading-[0.95] mb-4">
-						Entspannt warten statt ständig neu laden.
-					</h2>
-					<p className="font-bold text-base sm:text-lg mb-8">
+					<SectionIntro
+						title="Entspannt warten statt ständig neu laden."
+						className="mb-8"
+					>
 						Trag dich ein – wir sagen dir Bescheid, wenn es so weit ist.
-					</p>
+					</SectionIntro>
 					<a
 						href="#anmelden"
 						className={cn(
-							buttonVariants({ size: "lg" }),
-							"bg-nb-black text-nb-white shadow-[6px_6px_0_0_var(--nb-white)] hover:shadow-none w-full sm:w-auto",
+							buttonVariants({ variant: "inverse", size: "lg" }),
+							"w-full sm:w-auto",
 						)}
 					>
 						Jetzt kostenlos anmelden

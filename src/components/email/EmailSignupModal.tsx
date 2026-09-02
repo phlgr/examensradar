@@ -2,6 +2,7 @@ import { Loader2, Mail, MailCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { IconBox } from "@/components/ui/icon-box";
 import { Input } from "@/components/ui/input";
 import {
 	Modal,
@@ -64,9 +65,9 @@ export function EmailSignupModal({
 			<ModalBody>
 				{subscribe.isSuccess ? (
 					<div className="space-y-4 sm:space-y-6 text-center">
-						<div className="bg-nb-mint w-16 h-16 sm:w-20 sm:h-20 border-4 border-nb-black shadow-[var(--nb-shadow)] mx-auto flex items-center justify-center">
-							<MailCheck className="w-8 h-8 sm:w-10 sm:h-10" />
-						</div>
+						<IconBox color="mint" size="lg" shadow className="mx-auto">
+							<MailCheck className="w-8 h-8" />
+						</IconBox>
 						<p className="font-medium text-sm sm:text-base">
 							Wir haben eine E-Mail an <strong>{email}</strong> geschickt.
 							Bestätige darin kurz deine Adresse – dann ist alles eingerichtet.
@@ -81,9 +82,9 @@ export function EmailSignupModal({
 				) : (
 					<div className="space-y-4 sm:space-y-6">
 						<div className="flex items-start gap-3 sm:gap-4">
-							<div className="bg-nb-yellow p-2 sm:p-3 border-3 sm:border-4 border-nb-black shadow-[var(--nb-shadow-sm)] shrink-0">
-								<Mail className="w-6 h-6 sm:w-8 sm:h-8" />
-							</div>
+							<IconBox shadow>
+								<Mail className="w-5 h-5" />
+							</IconBox>
 							<div className="flex-1 min-w-0">
 								<h3 className="text-base sm:text-lg font-black uppercase mb-2">
 									{jpaName}

@@ -1,13 +1,17 @@
-import { Link } from "@tanstack/react-router";
 import { ArrowRight, Radar } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { Card } from "@/components/ui/card";
+import { PredictionNote } from "@/components/ui/date-chip";
+import { Eyebrow } from "@/components/ui/heading";
+import { IconBox } from "@/components/ui/icon-box";
+import { LinkButton } from "@/components/ui/link-button";
 import type { ReleasePrediction } from "@/lib/prediction";
-import { CONFIDENCE_LABEL, formatDayMonth } from "@/lib/release-summary";
 import { cn } from "@/lib/utils";
 
 interface NotificationPreviewProps {
 	jpa: { id: string; name: string } | undefined;
 	prediction: ReleasePrediction | null;
+	daysUntil: number | null;
 	lastRelease: Date | null;
 	/** History still loading — keep the line's space, show a placeholder. */
 	loading: boolean;
@@ -15,15 +19,16 @@ interface NotificationPreviewProps {
 }
 
 /**
- * The email you will get, rendered as it lands in the inbox — subject, body
- * and button mirror `renderResultsMail`. When the visitor picks a different
- * office in the form, a fresh notification slides in; the initial load (and
- * the preselect once the office list arrives) is left to the hero's own
- * entrance animation so the card doesn't jump twice.
+ * The email you will get, rendered as it lands in the inbox — subject and body
+ * mirror `renderResultsMail`. When the visitor picks a different office in the
+ * form, a fresh notification slides in; the initial load (and the preselect
+ * once the office list arrives) is left to the hero's own entrance animation
+ * so the card doesn't jump twice.
  */
 export function NotificationPreview({
 	jpa,
 	prediction,
+	daysUntil,
 	lastRelease,
 	loading,
 	className,
@@ -53,17 +58,14 @@ export function NotificationPreview({
 					aria-hidden
 				/>
 
-				<div
+				<Card
 					key={swap}
-					className={cn(
-						"relative bg-nb-white border-4 border-nb-black shadow-[var(--nb-shadow)]",
-						swap > 0 && "animate-notify",
-					)}
+					className={cn("relative", swap > 0 && "animate-notify")}
 				>
 					<div className="flex items-center gap-3 px-4 py-3 border-b-4 border-nb-black">
-						<div className="bg-nb-yellow border-3 border-nb-black p-1.5 shrink-0">
+						<IconBox size="sm">
 							<Radar className="w-4 h-4" />
-						</div>
+						</IconBox>
 						<div className="flex-1 min-w-0 leading-tight">
 							<p className="font-black text-sm">Examensradar</p>
 							<p className="text-[11px] font-medium text-nb-black/50 truncate">
@@ -76,9 +78,7 @@ export function NotificationPreview({
 					</div>
 
 					<div className="px-4 sm:px-5 py-5">
-						<p className="text-[11px] font-black uppercase tracking-wider text-nb-black/50 mb-1">
-							Betreff
-						</p>
+						<Eyebrow className="mb-1">Betreff</Eyebrow>
 						<p className="font-black text-lg sm:text-xl leading-tight mb-4">
 							Neue Ergebnisse: {name}
 						</p>
@@ -88,13 +88,10 @@ export function NotificationPreview({
 						</p>
 						{/* Where the real mail links to the office, the preview keeps
 						    visitors on the site and answers "when?" instead. */}
-						<Link
-							to="/history"
-							className="mt-5 inline-flex items-center gap-2 h-11 px-5 bg-nb-yellow border-4 border-nb-black font-black uppercase text-sm shadow-[var(--nb-shadow-sm)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-nb-black focus-visible:ring-offset-2"
-						>
+						<LinkButton to="/history" size="sm" className="mt-5 h-11">
 							Zur Historie
 							<ArrowRight className="w-4 h-4" />
-						</Link>
+						</LinkButton>
 					</div>
 
 					<div className="px-4 sm:px-5 py-3 border-t-2 border-nb-black/10 text-xs font-medium text-nb-black/60">
@@ -111,22 +108,18 @@ export function NotificationPreview({
 							"So sieht die E-Mail aus, die du bekommst."
 						)}
 					</div>
-				</div>
+				</Card>
 			</div>
 
 			{/* Always rendered with reserved height, so the hero doesn't shift
 			    when the history query resolves. */}
 			<p className="mt-4 min-h-[2.75rem] text-sm font-bold">
-				{prediction ? (
-					<>
-						Nächste voraussichtlich am{" "}
-						<span className="bg-nb-teal px-1">
-							{formatDayMonth(prediction.date)}
-						</span>{" "}
-						<span className="font-medium text-nb-black/60">
-							· {CONFIDENCE_LABEL[prediction.confidence]}
-						</span>
-					</>
+				{prediction && daysUntil !== null ? (
+					<PredictionNote
+						prediction={prediction}
+						daysUntil={daysUntil}
+						prefix="Nächste voraussichtlich am"
+					/>
 				) : (
 					<span className="font-medium text-nb-black/60">
 						{loading

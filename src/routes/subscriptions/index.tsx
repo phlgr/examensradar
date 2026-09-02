@@ -12,18 +12,23 @@ import {
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { EmailSignupModal } from "@/components/email/EmailSignupModal";
+import {
+	JpaSearchEmpty,
+	JpaSearchInput,
+	useJpaSearch,
+} from "@/components/jpa-search";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { PredictionNote } from "@/components/ui/date-chip";
+import { Eyebrow, SectionIntro } from "@/components/ui/heading";
+import { IconBox } from "@/components/ui/icon-box";
 import { Input } from "@/components/ui/input";
-import { LinkButton } from "@/components/ui/link-button";
+import { PageSpinner } from "@/components/ui/spinner";
+import { TeaserCard } from "@/components/ui/teaser-card";
 import { trackEvent } from "@/lib/analytics";
 import { setDeviceId } from "@/lib/device-id";
-import {
-	CONFIDENCE_LABEL,
-	formatDayMonth,
-	summarizeReleases,
-} from "@/lib/release-summary";
+import { summarizeReleases } from "@/lib/release-summary";
 import { trpc } from "@/lib/trpc";
 
 // Neither param may make validateSearch throw: mail clients truncate links,
@@ -46,9 +51,6 @@ export const Route = createFileRoute("/subscriptions/")({
 	component: SubscriptionsPage,
 });
 
-/** Above this many offices the list gets a search field. */
-const SEARCH_THRESHOLD = 6;
-
 const RESTORED_FLAG = "examensradar_restored";
 const INVALID_LINK_FLAG = "examensradar_link_invalid";
 
@@ -56,7 +58,6 @@ function SubscriptionsPage() {
 	const { restore, manage } = Route.useSearch();
 	const [showRestoredBanner, setShowRestoredBanner] = useState(false);
 	const [showInvalidLink, setShowInvalidLink] = useState(false);
-	const [search, setSearch] = useState("");
 	const [signupJpa, setSignupJpa] = useState<{
 		id: string;
 		name: string;
@@ -106,8 +107,11 @@ function SubscriptionsPage() {
 	const meQuery = trpc.email.me.useQuery(undefined, { retry: false });
 	const ntfySubscriptionsQuery = trpc.subscription.getAll.useQuery();
 
+	const jpas = jpasQuery.data ?? [];
+	const search = useJpaSearch(jpas);
+
 	const jpaNameById = (id: string) =>
-		jpasQuery.data?.find((jpa) => jpa.id === id)?.name ?? id;
+		jpas.find((jpa) => jpa.id === id)?.name ?? id;
 
 	const addJpa = trpc.email.addJpa.useMutation({
 		onSuccess: (_data, variables) => {
@@ -136,50 +140,36 @@ function SubscriptionsPage() {
 
 	// Exchanging a token or restoring — hold the spinner until the reload.
 	const exchanging = Boolean(restore || manage);
-	const loading = jpasQuery.isLoading || meQuery.isLoading || exchanging;
-
-	if (loading) {
-		return (
-			<div className="flex-1 flex items-center justify-center bg-nb-cream">
-				<div className="w-12 h-12 border-4 border-nb-black border-t-nb-yellow animate-spin" />
-			</div>
-		);
+	if (jpasQuery.isLoading || meQuery.isLoading || exchanging) {
+		return <PageSpinner />;
 	}
 
-	const jpas = jpasQuery.data ?? [];
 	const me = meQuery.data ?? null;
 	const managing = me !== null && !me.unsubscribed;
 	const subscribedJpaIds = new Set(
 		managing ? me.jpas.map((jpa) => jpa.jpaId) : [],
 	);
 	const ntfySubscriptions = ntfySubscriptionsQuery.data ?? [];
-	const needle = search.trim().toLowerCase();
-	const visibleJpas = needle
-		? jpas.filter((jpa) => jpa.name.toLowerCase().includes(needle))
-		: jpas;
-	const predictionBySlug = new Map(
+	const summaryBySlug = new Map(
 		summarizeReleases(historyQuery.data ?? [], new Date()).map((summary) => [
 			summary.slug,
-			summary.prediction,
+			summary,
 		]),
 	);
 
 	return (
 		<div className="flex-1 py-8 sm:py-12 px-4 sm:px-6 bg-nb-cream">
 			<div className="max-w-4xl mx-auto">
-				<div className="mb-8 sm:mb-10">
-					<h1
-						lang="de"
-						className="font-display-wide uppercase text-3xl sm:text-5xl leading-none mb-4 break-words [hyphens:auto] sm:[hyphens:manual]"
-					>
-						{managing ? "Deine Benachrichtigungen" : "Benachrichtigungen"}
-					</h1>
-					<p className="font-bold text-base sm:text-lg max-w-2xl">
-						{managing
-							? "Wähle aus, über welche Prüfungsämter du informiert werden möchtest. Sobald eines davon neue Ergebnisse veröffentlicht, bekommst du eine E-Mail."
-							: "Abonniere dein Justizprüfungsamt und bekomme eine E-Mail, sobald es neue Examensergebnisse veröffentlicht."}
-					</p>
-				</div>
+				<SectionIntro
+					as="h1"
+					title={managing ? "Deine Benachrichtigungen" : "Benachrichtigungen"}
+					className="mb-8 sm:mb-10"
+					textClassName="max-w-2xl"
+				>
+					{managing
+						? "Wähle aus, über welche Prüfungsämter du informiert werden möchtest. Sobald eines davon neue Ergebnisse veröffentlicht, bekommst du eine E-Mail."
+						: "Abonniere dein Justizprüfungsamt und bekomme eine E-Mail, sobald es neue Examensergebnisse veröffentlicht."}
+				</SectionIntro>
 
 				{/* Invalid manage link */}
 				{showInvalidLink && (
@@ -198,9 +188,9 @@ function SubscriptionsPage() {
 				{showRestoredBanner && (
 					<Card variant="success" className="mb-6 sm:mb-8 p-4 sm:p-5">
 						<div className="flex items-center gap-3">
-							<div className="bg-nb-white p-2 border-3 border-nb-black shrink-0">
+							<IconBox color="white">
 								<CheckCircle className="w-5 h-5" />
-							</div>
+							</IconBox>
 							<div className="flex-1">
 								<p className="font-black text-sm uppercase">
 									Push-Benachrichtigungen wiederhergestellt
@@ -226,13 +216,11 @@ function SubscriptionsPage() {
 				{managing && (
 					<Card variant="primary" className="mb-6 sm:mb-8 p-4 sm:p-5">
 						<div className="flex flex-wrap items-center gap-3">
-							<div className="bg-nb-white p-2 border-3 border-nb-black shrink-0">
+							<IconBox color="white">
 								<MailCheck className="w-5 h-5" />
-							</div>
+							</IconBox>
 							<div className="flex-1 min-w-0">
-								<p className="text-[11px] font-black uppercase tracking-wider">
-									Angemeldet als
-								</p>
+								<Eyebrow muted={false}>Angemeldet als</Eyebrow>
 								<p className="text-sm sm:text-base font-bold break-all">
 									{me.email}
 								</p>
@@ -272,39 +260,31 @@ function SubscriptionsPage() {
 						<h2 className="text-xl sm:text-2xl font-black uppercase">
 							Justizprüfungsämter
 						</h2>
-						{jpas.length > SEARCH_THRESHOLD && (
-							<Input
-								type="search"
-								placeholder="Prüfungsamt suchen"
-								aria-label="Prüfungsamt suchen"
-								value={search}
-								onChange={(event) => setSearch(event.target.value)}
-								className="h-10 text-sm sm:max-w-xs"
+						{search.searchable && (
+							<JpaSearchInput
+								value={search.search}
+								onChange={search.setSearch}
 							/>
 						)}
 					</div>
 
-					{visibleJpas.length === 0 && jpas.length > 0 ? (
-						<Card variant="flat" className="p-6 text-center">
-							<p className="font-bold">
-								Kein Prüfungsamt passt zu „{search.trim()}“.
-							</p>
-						</Card>
-					) : jpas.length === 0 ? (
+					{jpas.length === 0 ? (
 						<Card className="p-8 text-center">
 							<p className="font-bold">
 								Derzeit sind keine Prüfungsämter hinterlegt.
 							</p>
 						</Card>
+					) : search.empty ? (
+						<JpaSearchEmpty query={search.search} />
 					) : (
 						<div className="grid gap-4">
-							{visibleJpas.map((jpa) => {
+							{search.visible.map((jpa) => {
 								const isSubscribed = subscribedJpaIds.has(jpa.id);
 								const isMutating =
 									(addJpa.isPending && addJpa.variables?.jpaId === jpa.id) ||
 									(removeJpa.isPending &&
 										removeJpa.variables?.jpaId === jpa.id);
-								const prediction = predictionBySlug.get(jpa.slug) ?? null;
+								const summary = summaryBySlug.get(jpa.slug);
 
 								return (
 									<Card
@@ -320,17 +300,15 @@ function SubscriptionsPage() {
 													</h3>
 													{isSubscribed && <Badge>Aktiv</Badge>}
 												</div>
-												{prediction && (
-													<p className="text-sm font-medium mt-1.5 flex items-center gap-1.5">
+												{summary?.prediction && summary.daysUntil !== null && (
+													<p className="mt-1.5 flex items-center gap-1.5">
 														<CalendarClock className="w-4 h-4 shrink-0 text-nb-black/50" />
-														<span>
-															Nächste Veröffentlichung voraussichtlich am{" "}
-															<strong>{formatDayMonth(prediction.date)}</strong>
-															<span className="text-nb-black/60">
-																{" "}
-																· {CONFIDENCE_LABEL[prediction.confidence]}
-															</span>
-														</span>
+														<PredictionNote
+															prediction={summary.prediction}
+															daysUntil={summary.daysUntil}
+															prefix="Nächste Veröffentlichung voraussichtlich am"
+															className="font-medium"
+														/>
 													</p>
 												)}
 												{jpa.websiteUrl && (
@@ -389,28 +367,17 @@ function SubscriptionsPage() {
 				{/* Lost-link re-entry */}
 				{!managing && <ResendManageLinkCard />}
 
-				{/* History teaser */}
-				<Card
-					variant="flat"
-					className="mt-8 sm:mt-10 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-4"
+				<TeaserCard
+					icon={CalendarClock}
+					title="Wann ist es so weit?"
+					to="/history"
+					action="Zur Historie"
+					className="mt-8 sm:mt-10"
 				>
-					<div className="w-10 h-10 bg-nb-yellow border-3 border-nb-black flex items-center justify-center shrink-0">
-						<CalendarClock className="w-5 h-5" />
-					</div>
-					<p className="text-sm font-medium flex-1 min-w-0">
-						<span className="font-black">Wann ist es so weit?</span> In der
-						Historie siehst du, wann die Prüfungsämter bisher veröffentlicht
-						haben – und wann die nächsten Ergebnisse voraussichtlich kommen.
-					</p>
-					<LinkButton
-						to="/history"
-						variant="secondary"
-						size="sm"
-						className="w-full sm:w-auto shrink-0"
-					>
-						Zur Historie
-					</LinkButton>
-				</Card>
+					In der Historie siehst du, wann die Prüfungsämter bisher
+					veröffentlicht haben – und wann die nächsten Ergebnisse
+					voraussichtlich kommen.
+				</TeaserCard>
 
 				{/* Legacy ntfy subscriptions */}
 				{ntfySubscriptions.length > 0 && (
@@ -420,9 +387,9 @@ function SubscriptionsPage() {
 						</h2>
 						<Card variant="muted" className="p-4 sm:p-5">
 							<div className="flex flex-col sm:flex-row items-start gap-3">
-								<div className="bg-nb-white p-2 border-3 border-nb-black shrink-0">
+								<IconBox color="white">
 									<Smartphone className="w-5 h-5" />
-								</div>
+								</IconBox>
 								<p className="text-sm font-medium flex-1 w-full">
 									<span className="font-black">
 										Die Push-Benachrichtigungen über ntfy werden zum 15.
@@ -497,9 +464,9 @@ function ResendManageLinkCard() {
 	return (
 		<Card variant="flat" className="mt-8 sm:mt-10 p-4 sm:p-6">
 			<div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
-				<div className="bg-nb-teal p-2 border-3 border-nb-black shrink-0">
+				<IconBox color="teal">
 					<Mail className="w-5 h-5" />
-				</div>
+				</IconBox>
 				<div className="flex-1 min-w-0 w-full">
 					<h2 className="font-black text-base uppercase mb-1">
 						Schon angemeldet?

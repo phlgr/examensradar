@@ -1,9 +1,13 @@
 import { ChevronDown, Loader2, MailCheck } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { eyebrowClass } from "@/components/ui/heading";
+import { IconBox } from "@/components/ui/icon-box";
 import { Input } from "@/components/ui/input";
 import { trackEvent } from "@/lib/analytics";
 import { trpc } from "@/lib/trpc";
+import { cn } from "@/lib/utils";
 
 interface SignupFormProps {
 	jpas: Array<{ id: string; name: string }> | undefined;
@@ -12,6 +16,8 @@ interface SignupFormProps {
 	jpaId: string;
 	onJpaChange: (jpaId: string) => void;
 }
+
+const labelClass = cn(eyebrowClass, "block mb-1");
 
 /**
  * The landing page's inline signup: pick an office, type an address, done.
@@ -38,13 +44,14 @@ export function SignupForm({
 
 	if (subscribe.isSuccess) {
 		return (
-			<div
+			<Card
 				id="anmelden"
-				className="bg-nb-mint border-4 border-nb-black shadow-[var(--nb-shadow)] p-5 sm:p-6 flex gap-4 items-start"
+				variant="success"
+				className="p-5 sm:p-6 flex gap-4 items-start"
 			>
-				<div className="bg-nb-white border-3 border-nb-black p-2 shrink-0 shadow-[var(--nb-shadow-sm)]">
+				<IconBox color="white" shadow>
 					<MailCheck className="w-6 h-6" />
-				</div>
+				</IconBox>
 				<div>
 					<p className="font-black uppercase text-lg">Fast geschafft</p>
 					<p className="font-medium text-sm mt-1">
@@ -57,91 +64,86 @@ export function SignupForm({
 						einfach noch einmal.
 					</p>
 				</div>
-			</div>
+			</Card>
 		);
 	}
 
 	return (
-		<form
-			id="anmelden"
-			className="bg-nb-white border-4 border-nb-black shadow-[var(--nb-shadow)] p-4 sm:p-5"
-			onSubmit={(event) => {
-				event.preventDefault();
-				if (canSubmit) subscribe.mutate({ email, jpaId });
-			}}
-		>
-			<div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:gap-x-0">
-				<div className="sm:col-span-2">
-					<label
-						htmlFor="signup-jpa"
-						className="block text-[11px] font-black uppercase tracking-wider mb-1"
-					>
-						Justizprüfungsamt
-					</label>
-					<span className="relative block">
-						<select
-							id="signup-jpa"
-							value={jpaId}
-							onChange={(event) => onJpaChange(event.target.value)}
-							disabled={loading || !jpas?.length}
-							className="h-12 w-full appearance-none bg-nb-white pl-4 pr-10 border-4 border-nb-black font-bold text-base focus:outline-none focus:bg-nb-cream disabled:opacity-50"
-						>
-							{loading && <option value="">Wird geladen …</option>}
-							{jpas?.map((jpa) => (
-								<option key={jpa.id} value={jpa.id}>
-									{jpa.name}
-								</option>
-							))}
-						</select>
-						<ChevronDown
-							className="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"
-							aria-hidden
+		<Card className="p-4 sm:p-5">
+			<form
+				id="anmelden"
+				onSubmit={(event) => {
+					event.preventDefault();
+					if (canSubmit) subscribe.mutate({ email, jpaId });
+				}}
+			>
+				<div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:gap-x-0">
+					<div className="sm:col-span-2">
+						<label htmlFor="signup-jpa" className={labelClass}>
+							Justizprüfungsamt
+						</label>
+						<span className="relative block">
+							<select
+								id="signup-jpa"
+								value={jpaId}
+								onChange={(event) => onJpaChange(event.target.value)}
+								disabled={loading || !jpas?.length}
+								className="h-12 w-full appearance-none bg-nb-white pl-4 pr-10 border-4 border-nb-black font-bold text-base focus:outline-none focus:bg-nb-cream disabled:opacity-50"
+							>
+								{loading && <option value="">Wird geladen …</option>}
+								{jpas?.map((jpa) => (
+									<option key={jpa.id} value={jpa.id}>
+										{jpa.name}
+									</option>
+								))}
+							</select>
+							<ChevronDown
+								className="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"
+								aria-hidden
+							/>
+						</span>
+					</div>
+
+					<div>
+						<label htmlFor="signup-email" className={labelClass}>
+							E-Mail-Adresse
+						</label>
+						<Input
+							id="signup-email"
+							type="email"
+							autoComplete="email"
+							required
+							placeholder="name@beispiel.de"
+							value={email}
+							onChange={(event) => setEmail(event.target.value)}
 						/>
-					</span>
+					</div>
+
+					<div className="sm:self-end">
+						<Button
+							type="submit"
+							disabled={!canSubmit}
+							className="w-full sm:w-auto h-12 shadow-none sm:border-l-0 hover:translate-x-0 hover:translate-y-0 hover:bg-nb-black hover:text-nb-yellow"
+						>
+							{subscribe.isPending ? (
+								<Loader2 className="w-5 h-5 animate-spin" />
+							) : (
+								"Benachrichtigen lassen"
+							)}
+						</Button>
+					</div>
 				</div>
 
-				<div>
-					<label
-						htmlFor="signup-email"
-						className="block text-[11px] font-black uppercase tracking-wider mb-1"
-					>
-						E-Mail-Adresse
-					</label>
-					<Input
-						id="signup-email"
-						type="email"
-						autoComplete="email"
-						required
-						placeholder="name@beispiel.de"
-						value={email}
-						onChange={(event) => setEmail(event.target.value)}
-					/>
-				</div>
-
-				<div className="sm:self-end">
-					<Button
-						type="submit"
-						disabled={!canSubmit}
-						className="w-full sm:w-auto h-12 shadow-none sm:border-l-0 hover:translate-x-0 hover:translate-y-0 hover:bg-nb-black hover:text-nb-yellow"
-					>
-						{subscribe.isPending ? (
-							<Loader2 className="w-5 h-5 animate-spin" />
-						) : (
-							"Benachrichtigen lassen"
-						)}
-					</Button>
-				</div>
-			</div>
-
-			<p className="mt-3 text-xs font-medium text-nb-black/60">
-				{subscribe.isError ? (
-					<span className="font-bold text-nb-coral">
-						Das hat leider nicht geklappt. Bitte versuch es noch einmal.
-					</span>
-				) : (
-					"Kostenlos. Du bekommst nur dann eine E-Mail, wenn neue Ergebnisse da sind, und kannst dich jederzeit abmelden."
-				)}
-			</p>
-		</form>
+				<p className="mt-3 text-xs font-medium text-nb-black/60">
+					{subscribe.isError ? (
+						<span className="font-bold text-nb-coral">
+							Das hat leider nicht geklappt. Bitte versuch es noch einmal.
+						</span>
+					) : (
+						"Kostenlos. Du bekommst nur dann eine E-Mail, wenn neue Ergebnisse da sind, und kannst dich jederzeit abmelden."
+					)}
+				</p>
+			</form>
+		</Card>
 	);
 }

@@ -1,5 +1,6 @@
 import { Link, type LinkProps } from "@tanstack/react-router";
 import { Bell, CalendarClock, type LucideIcon, Radar } from "lucide-react";
+import { IconBox } from "@/components/ui/icon-box";
 
 function NavLink({
 	to,
@@ -34,9 +35,9 @@ export default function Header() {
 					to="/"
 					className="flex items-center gap-2.5 cursor-pointer hover:-translate-y-0.5 transition-transform focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-nb-black focus-visible:ring-offset-2"
 				>
-					<div className="bg-nb-white p-1.5 border-3 border-nb-black shadow-[var(--nb-shadow-sm)]">
-						<Radar className="w-5 h-5 text-nb-black" />
-					</div>
+					<IconBox color="white" size="sm" shadow>
+						<Radar className="w-5 h-5" />
+					</IconBox>
 					<span className="font-display-wide uppercase text-lg sm:text-xl leading-none">
 						Examensradar
 					</span>
