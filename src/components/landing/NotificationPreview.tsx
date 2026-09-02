@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, Radar } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import type { ReleasePrediction } from "@/lib/prediction";
 import { CONFIDENCE_LABEL, formatDayMonth } from "@/lib/release-summary";
 import { cn } from "@/lib/utils";
@@ -13,8 +14,10 @@ interface NotificationPreviewProps {
 
 /**
  * The email you will get, rendered as it lands in the inbox — subject, body
- * and button mirror `renderResultsMail`. Keyed on the office so a change in
- * the form slides a fresh notification in.
+ * and button mirror `renderResultsMail`. When the visitor picks a different
+ * office in the form, a fresh notification slides in; the initial load (and
+ * the preselect once the office list arrives) is left to the hero's own
+ * entrance animation so the card doesn't jump twice.
  */
 export function NotificationPreview({
 	jpa,
@@ -23,6 +26,16 @@ export function NotificationPreview({
 	className,
 }: NotificationPreviewProps) {
 	const name = jpa?.name ?? "dein Justizprüfungsamt";
+
+	// Bumped only on a real office-to-office change; remounts the card.
+	const [swap, setSwap] = useState(0);
+	const previousId = useRef(jpa?.id);
+	useEffect(() => {
+		if (jpa?.id && previousId.current && previousId.current !== jpa.id) {
+			setSwap((n) => n + 1);
+		}
+		previousId.current = jpa?.id;
+	}, [jpa?.id]);
 
 	return (
 		<div className={cn("pt-6", className)}>
@@ -38,8 +51,11 @@ export function NotificationPreview({
 				/>
 
 				<div
-					key={jpa?.id ?? "none"}
-					className="animate-notify relative bg-nb-white border-4 border-nb-black shadow-[var(--nb-shadow)]"
+					key={swap}
+					className={cn(
+						"relative bg-nb-white border-4 border-nb-black shadow-[var(--nb-shadow)]",
+						swap > 0 && "animate-notify",
+					)}
 				>
 					<div className="flex items-center gap-3 px-4 py-3 border-b-4 border-nb-black">
 						<div className="bg-nb-yellow border-3 border-nb-black p-1.5 shrink-0">
