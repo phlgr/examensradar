@@ -138,37 +138,39 @@ function JpaDetails({
 			open={defaultOpen}
 			className="group bg-nb-white border-4 border-nb-black shadow-[var(--nb-shadow)]"
 		>
-			<summary className="list-none cursor-pointer select-none p-4 sm:p-5 flex flex-wrap items-center gap-x-5 gap-y-2 hover:bg-nb-cream transition-colors [&::-webkit-details-marker]:hidden">
-				<div className="flex-1 min-w-[12rem]">
-					<h2 className="font-black uppercase text-base sm:text-lg leading-tight">
-						{summary.name}
-					</h2>
-					<p className="text-xs font-medium text-nb-black/60 mt-0.5">
-						zuletzt am {formatDayMonth(summary.lastRelease)}
+			<summary className="list-none cursor-pointer select-none p-4 sm:p-5 flex items-center gap-4 hover:bg-nb-cream transition-colors [&::-webkit-details-marker]:hidden">
+				<div className="flex-1 min-w-0 sm:flex sm:items-center sm:gap-5">
+					<div className="sm:flex-1 min-w-0">
+						<h2 className="font-black uppercase text-base sm:text-lg leading-tight">
+							{summary.name}
+						</h2>
+						<p className="text-xs font-medium text-nb-black/60 mt-0.5">
+							zuletzt am {formatDayMonth(summary.lastRelease)}
+						</p>
+					</div>
+					<p className="mt-2 sm:mt-0 text-sm font-bold">
+						{prediction && daysUntil !== null ? (
+							<>
+								voraussichtlich{" "}
+								<span
+									className={cn(
+										"px-1 border-2 border-nb-black",
+										overdue ? "bg-nb-coral" : "bg-nb-teal",
+									)}
+								>
+									{formatDayMonth(prediction.date)}
+								</span>{" "}
+								<span className="font-medium text-nb-black/60">
+									{relativeLabel(daysUntil)}
+								</span>
+							</>
+						) : (
+							<span className="font-medium text-nb-black/60">
+								noch keine Prognose
+							</span>
+						)}
 					</p>
 				</div>
-				<p className="text-sm font-bold">
-					{prediction && daysUntil !== null ? (
-						<>
-							voraussichtlich{" "}
-							<span
-								className={cn(
-									"px-1 border-2 border-nb-black",
-									overdue ? "bg-nb-coral" : "bg-nb-teal",
-								)}
-							>
-								{formatDayMonth(prediction.date)}
-							</span>{" "}
-							<span className="font-medium text-nb-black/60">
-								{relativeLabel(daysUntil)}
-							</span>
-						</>
-					) : (
-						<span className="font-medium text-nb-black/60">
-							noch keine Prognose
-						</span>
-					)}
-				</p>
 				<ChevronDown
 					className="w-5 h-5 shrink-0 transition-transform group-open:rotate-180"
 					aria-hidden
@@ -302,7 +304,10 @@ function HistoryPage() {
 		<div className="flex-1 py-8 sm:py-12 px-4 sm:px-6 bg-nb-cream">
 			<div className="max-w-4xl mx-auto">
 				<div className="mb-8 sm:mb-10 max-w-2xl">
-					<h1 className="font-display-wide uppercase text-4xl sm:text-5xl leading-none mb-4">
+					<h1
+						lang="de"
+						className="font-display-wide uppercase text-3xl sm:text-5xl leading-none mb-4 break-words [hyphens:auto]"
+					>
 						Wann kommen die Ergebnisse?
 					</h1>
 					<p className="font-bold text-base sm:text-lg">

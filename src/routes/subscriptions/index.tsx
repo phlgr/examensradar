@@ -168,7 +168,10 @@ function SubscriptionsPage() {
 		<div className="flex-1 py-8 sm:py-12 px-4 sm:px-6 bg-nb-cream">
 			<div className="max-w-4xl mx-auto">
 				<div className="mb-8 sm:mb-10 max-w-2xl">
-					<h1 className="font-display-wide uppercase text-4xl sm:text-5xl leading-none mb-4">
+					<h1
+						lang="de"
+						className="font-display-wide uppercase text-3xl sm:text-5xl leading-none mb-4 break-words [hyphens:auto]"
+					>
 						{managing ? "Deine Benachrichtigungen" : "Benachrichtigungen"}
 					</h1>
 					<p className="font-bold text-base sm:text-lg">
@@ -416,11 +419,11 @@ function SubscriptionsPage() {
 							Push-Benachrichtigungen (ntfy)
 						</h2>
 						<Card variant="muted" className="p-4 sm:p-5">
-							<div className="flex items-start gap-3">
+							<div className="flex flex-col sm:flex-row items-start gap-3">
 								<div className="bg-nb-white p-2 border-3 border-nb-black shrink-0">
 									<Smartphone className="w-5 h-5" />
 								</div>
-								<p className="text-sm font-medium flex-1">
+								<p className="text-sm font-medium flex-1 w-full">
 									<span className="font-black">
 										Die Push-Benachrichtigungen über ntfy werden zum 15.
 										September 2026 eingestellt.
@@ -493,11 +496,11 @@ function ResendManageLinkCard() {
 
 	return (
 		<Card variant="flat" className="mt-8 sm:mt-10 p-4 sm:p-6">
-			<div className="flex items-start gap-3 sm:gap-4">
+			<div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
 				<div className="bg-nb-teal p-2 border-3 border-nb-black shrink-0">
 					<Mail className="w-5 h-5" />
 				</div>
-				<div className="flex-1 min-w-0">
+				<div className="flex-1 min-w-0 w-full">
 					<h2 className="font-black text-base uppercase mb-1">
 						Schon angemeldet?
 					</h2>
