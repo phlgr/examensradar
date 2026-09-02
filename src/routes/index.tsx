@@ -100,6 +100,7 @@ function LandingPage() {
 							jpa={selectedJpa}
 							prediction={summary?.prediction ?? null}
 							lastRelease={summary?.lastRelease ?? null}
+							loading={historyQuery.isLoading}
 						/>
 					</div>
 				</div>

@@ -9,6 +9,8 @@ interface NotificationPreviewProps {
 	jpa: { id: string; name: string } | undefined;
 	prediction: ReleasePrediction | null;
 	lastRelease: Date | null;
+	/** History still loading — keep the line's space, show a placeholder. */
+	loading: boolean;
 	className?: string;
 }
 
@@ -23,6 +25,7 @@ export function NotificationPreview({
 	jpa,
 	prediction,
 	lastRelease,
+	loading,
 	className,
 }: NotificationPreviewProps) {
 	const name = jpa?.name ?? "dein Justizprüfungsamt";
@@ -111,17 +114,27 @@ export function NotificationPreview({
 				</div>
 			</div>
 
-			{prediction && (
-				<p className="mt-4 text-sm font-bold">
-					Nächste voraussichtlich am{" "}
-					<span className="bg-nb-teal px-1">
-						{formatDayMonth(prediction.date)}
-					</span>{" "}
+			{/* Always rendered with reserved height, so the hero doesn't shift
+			    when the history query resolves. */}
+			<p className="mt-4 min-h-[2.75rem] text-sm font-bold">
+				{prediction ? (
+					<>
+						Nächste voraussichtlich am{" "}
+						<span className="bg-nb-teal px-1">
+							{formatDayMonth(prediction.date)}
+						</span>{" "}
+						<span className="font-medium text-nb-black/60">
+							· {CONFIDENCE_LABEL[prediction.confidence]}
+						</span>
+					</>
+				) : (
 					<span className="font-medium text-nb-black/60">
-						· {CONFIDENCE_LABEL[prediction.confidence]}
+						{loading
+							? "Prognose wird geladen …"
+							: "Für eine Prognose fehlen noch Daten."}
 					</span>
-				</p>
-			)}
+				)}
+			</p>
 		</div>
 	);
 }
