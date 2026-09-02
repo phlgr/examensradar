@@ -1,159 +1,232 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { History, Mail, MailCheck, Zap } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { LinkButton } from "@/components/ui/link-button";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Mail, MailCheck, Zap } from "lucide-react";
+import { buildTargets, Radar } from "@/components/landing/Radar";
+import { Reveal } from "@/components/landing/Reveal";
+import { SignupForm } from "@/components/landing/SignupForm";
+import { buttonVariants } from "@/components/ui/button";
+import { trpc } from "@/lib/trpc";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({ component: LandingPage });
 
+const STEPS = [
+	{
+		icon: Mail,
+		title: "Amt wählen, Mail eintragen",
+		description:
+			"Such dein Justizprüfungsamt aus und trag deine E-Mail-Adresse ein. Keine App, kein Konto, kein Passwort.",
+		color: "bg-nb-coral",
+	},
+	{
+		icon: MailCheck,
+		title: "Link im Postfach klicken",
+		description:
+			"Wir schicken dir einen Bestätigungslink. Ein Klick, und dein Prüfungsamt ist auf dem Radar.",
+		color: "bg-nb-teal",
+	},
+	{
+		icon: Zap,
+		title: "Mail bekommen, wenn es losgeht",
+		description:
+			"Der Radar prüft die Ergebnisseite rund um die Uhr. Ändert sie sich, landet die Nachricht in deinem Postfach.",
+		color: "bg-nb-yellow",
+	},
+];
+
+const STATIC_TICKER = [
+	"Keine App",
+	"Kein Konto",
+	"Eine Mail pro Veröffentlichung",
+	"Abmelden mit einem Klick",
+];
+
+const tickerDate = (date: Date) =>
+	date.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" });
+
 function LandingPage() {
-	const steps = [
-		{
-			icon: <Mail className="w-6 h-6 sm:w-8 sm:h-8" />,
-			title: "1. E-Mail eintragen",
-			description:
-				"Wähle dein Justizprüfungsamt und trag deine E-Mail-Adresse ein. Keine App, kein Konto.",
-			color: "bg-nb-coral",
-		},
-		{
-			icon: <MailCheck className="w-6 h-6 sm:w-8 sm:h-8" />,
-			title: "2. Link bestätigen",
-			description:
-				"Klicke auf den Bestätigungslink in deinem Postfach — fertig.",
-			color: "bg-nb-teal",
-		},
-		{
-			icon: <Zap className="w-6 h-6 sm:w-8 sm:h-8" />,
-			title: "3. Benachrichtigt werden",
-			description: "Erhalte sofort eine E-Mail, wenn neue Ergebnisse da sind.",
-			color: "bg-nb-yellow",
-		},
+	const jpasQuery = trpc.jpa.getAll.useQuery();
+	const historyQuery = trpc.jpa.getHistory.useQuery();
+
+	const jpaCount = jpasQuery.data?.length ?? 0;
+	const targets = historyQuery.data
+		? buildTargets(historyQuery.data, new Date())
+		: [];
+
+	const tickerItems = [
+		...targets.flatMap((target) => [
+			`${target.short}: zuletzt ${tickerDate(target.lastRelease)} um ${target.typicalHour} Uhr`,
+			...(target.prediction
+				? [
+						`${target.short}: nächste voraussichtlich ${tickerDate(target.prediction.date)}`,
+					]
+				: []),
+		]),
+		...STATIC_TICKER,
 	];
 
 	return (
 		<div className="flex-1">
-			{/* Hero Section */}
-			<section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 bg-nb-mint">
-				<div className="max-w-4xl mx-auto">
-					<Card className="pt-6 px-6 pb-3 sm:pt-8 sm:px-8 sm:pb-4 md:pt-12 md:px-12 md:pb-6">
-						<h1 className="text-4xl sm:text-5xl md:text-7xl font-black text-nb-black mb-4 sm:mb-6 uppercase leading-tight">
+			{/* Hero */}
+			<section className="bg-graph-paper border-b-4 border-nb-black">
+				<div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14 lg:py-20 grid gap-10 lg:gap-12 lg:grid-cols-[1.05fr_0.95fr] items-center">
+					<div>
+						<p
+							className="animate-rise inline-flex items-center gap-2 bg-nb-black text-nb-white text-[11px] font-black uppercase tracking-wider px-3 py-1.5 mb-6"
+							style={{ animationDelay: "0ms" }}
+						>
+							<span className="w-2 h-2 bg-nb-mint animate-blink" aria-hidden />
+							Radar aktiv
+							{jpaCount > 0 && (
+								<span className="text-white/60 font-bold normal-case tracking-normal">
+									· beobachtet{" "}
+									{jpaCount === 1
+										? "1 Prüfungsamt"
+										: `${jpaCount} Prüfungsämter`}
+								</span>
+							)}
+						</p>
+
+						<h1
+							className="animate-rise font-display-wide uppercase text-[clamp(2.25rem,9.5vw,4rem)] lg:text-[3.9rem] leading-[0.95] mb-6"
+							style={{ animationDelay: "80ms" }}
+						>
 							Schluss mit
 							<br />
-							<span className="bg-nb-coral px-2 inline-block -rotate-1">
-								F5-Drücken
+							<span className="whitespace-nowrap">
+								<span className="animate-keypress inline-block align-baseline bg-nb-white border-4 border-nb-black px-2 sm:px-3 leading-none py-1 mr-1 shadow-[0_8px_0_0_var(--nb-black)]">
+									F5
+								</span>
+								-Drücken.
 							</span>
 						</h1>
-						<p className="text-lg sm:text-xl md:text-2xl font-bold mb-6 sm:mb-8 max-w-2xl">
-							Wir benachrichtigen dich sofort, wenn das Justizprüfungsamt neue
-							Examensergebnisse veröffentlicht.
-						</p>
-						<div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-							<LinkButton
-								to="/subscriptions"
-								size="lg"
-								className="w-full sm:w-auto"
-							>
-								Jetzt starten
-							</LinkButton>
-							<LinkButton
-								to="/history"
-								variant="ghost"
-								size="sm"
-								className="w-full sm:w-auto gap-1.5"
-							>
-								<History className="w-4 h-4" />
-								Ergebnis-Historie
-							</LinkButton>
-						</div>
-					</Card>
-				</div>
-			</section>
 
-			{/* How it works */}
-			<section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 bg-nb-cream">
-				<div className="max-w-5xl mx-auto">
-					<h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-center mb-8 sm:mb-12 md:mb-16 uppercase">
-						So funktioniert's
-					</h2>
-					<div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-						{steps.map((step) => (
-							<Card key={step.title} hover>
-								<CardContent className="p-4 sm:p-6">
-									<div
-										className={`w-12 h-12 sm:w-16 sm:h-16 ${step.color} border-3 sm:border-4 border-nb-black flex items-center justify-center mb-3 sm:mb-4 shadow-[var(--nb-shadow-sm)]`}
-									>
-										{step.icon}
-									</div>
-									<h3 className="text-lg sm:text-xl font-black uppercase mb-2 sm:mb-3">
-										{step.title}
-									</h3>
-									<p className="font-medium text-sm sm:text-base">
-										{step.description}
-									</p>
-								</CardContent>
-							</Card>
-						))}
+						<p
+							className="animate-rise text-base sm:text-lg font-bold max-w-xl mb-8"
+							style={{ animationDelay: "160ms" }}
+						>
+							Examensradar beobachtet die Ergebnisseite deines
+							Justizprüfungsamts und schreibt dir eine E-Mail, sobald die
+							Examensergebnisse online sind. Du wartest, wir laden neu.
+						</p>
+
+						<div className="animate-rise" style={{ animationDelay: "240ms" }}>
+							<SignupForm jpas={jpasQuery.data} loading={jpasQuery.isLoading} />
+						</div>
+					</div>
+
+					<div className="animate-rise" style={{ animationDelay: "200ms" }}>
+						<Radar
+							entries={historyQuery.data}
+							loading={historyQuery.isLoading}
+						/>
 					</div>
 				</div>
 			</section>
 
-			{/* History Teaser */}
-			<section className="py-12 sm:py-16 px-4 sm:px-6 bg-nb-teal">
-				<div className="max-w-4xl mx-auto">
-					<Card variant="primary" className="p-6 sm:p-8">
-						<div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
-							<div className="w-14 h-14 bg-nb-black border-4 border-nb-black flex items-center justify-center shrink-0 shadow-[var(--nb-shadow-sm)]">
-								<History className="w-7 h-7 text-nb-yellow" />
-							</div>
-							<div className="flex-1">
-								<h2 className="text-xl sm:text-2xl font-black uppercase mb-1">
-									Wann veröffentlicht dein JPA?
-								</h2>
-								<p className="font-medium text-sm sm:text-base">
-									In der Historie siehst du, an welchen Tagen die Prüfungsämter
-									in der Vergangenheit Ergebnisse veröffentlicht haben —
-									inklusive typischem Tag und Uhrzeit.
-								</p>
-							</div>
-							<LinkButton
-								to="/history"
-								variant="default"
-								size="lg"
-								className="shrink-0 w-full sm:w-auto"
-							>
-								Zur Historie
-							</LinkButton>
-						</div>
-					</Card>
+			{/* Ticker */}
+			<div
+				className="bg-nb-black text-nb-yellow border-b-4 border-nb-black overflow-hidden py-3 group"
+				aria-hidden
+			>
+				<div className="flex w-max animate-marquee group-hover:[animation-play-state:paused]">
+					{[0, 1].map((copy) => (
+						<ul key={copy} className="flex shrink-0 items-center">
+							{tickerItems.map((item) => (
+								<li
+									key={`${copy}-${item}`}
+									className="flex items-center gap-6 pr-6 text-sm font-black uppercase whitespace-nowrap"
+								>
+									{item}
+									<span className="w-2.5 h-2.5 bg-nb-yellow" />
+								</li>
+							))}
+						</ul>
+					))}
+				</div>
+			</div>
+
+			{/* How it works */}
+			<section className="bg-nb-cream py-14 sm:py-20 px-4 sm:px-6">
+				<div className="max-w-6xl mx-auto">
+					<Reveal className="mb-10 sm:mb-14 max-w-2xl">
+						<h2 className="font-display-wide uppercase text-4xl sm:text-5xl leading-none mb-4">
+							So läuft's
+						</h2>
+						<p className="font-bold text-base sm:text-lg">
+							Drei Schritte, zwei Minuten, danach nie wieder die Ergebnisseite
+							neu laden.
+						</p>
+					</Reveal>
+
+					<ol className="relative grid gap-6 md:grid-cols-3 md:gap-8 md:before:absolute md:before:top-10 md:before:left-8 md:before:right-8 md:before:h-1 md:before:bg-nb-black">
+						{STEPS.map((step, index) => (
+							<li key={step.title} className="relative">
+								<Reveal delay={index * 140} className="h-full">
+									<div className="h-full bg-nb-white border-4 border-nb-black shadow-[var(--nb-shadow)] p-5 sm:p-6 transition-transform duration-200 hover:-translate-y-1.5">
+										<div className="flex items-end justify-between mb-5">
+											<div
+												className={cn(
+													"w-16 h-16 border-4 border-nb-black flex items-center justify-center shadow-[var(--nb-shadow-sm)] font-display-wide text-4xl leading-none",
+													step.color,
+												)}
+											>
+												{index + 1}
+											</div>
+											<step.icon className="w-8 h-8 text-nb-black/40" />
+										</div>
+										<h3 className="text-lg sm:text-xl font-black uppercase mb-2 leading-tight">
+											{step.title}
+										</h3>
+										<p className="font-medium text-sm sm:text-base">
+											{step.description}
+										</p>
+									</div>
+								</Reveal>
+							</li>
+						))}
+					</ol>
 				</div>
 			</section>
 
-			{/* CTA Section */}
-			<section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 bg-nb-coral">
-				<div className="max-w-3xl mx-auto">
-					<Card variant="primary" className="p-6 sm:p-8 md:p-12 text-center">
-						<h2 className="text-2xl sm:text-3xl md:text-4xl font-black uppercase mb-3 sm:mb-4">
-							Bereit für stressfreies Warten?
-						</h2>
-						<p className="text-base sm:text-lg font-bold mb-6 sm:mb-8">
-							Starte jetzt und verpasse keine Ergebnisveröffentlichung mehr.
-						</p>
-						<LinkButton
-							to="/subscriptions"
-							className="bg-nb-black text-nb-white shadow-[6px_6px_0px_0px_rgba(255,255,255,1)] hover:shadow-none w-full sm:w-auto"
-							size="lg"
-						>
-							Kostenlos starten
-						</LinkButton>
-					</Card>
-				</div>
+			{/* Final call */}
+			<section className="bg-nb-coral border-y-4 border-nb-black py-16 sm:py-24 px-4 sm:px-6 overflow-hidden">
+				<Reveal className="max-w-6xl mx-auto grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
+					<h2 className="font-display-wide uppercase text-[clamp(2.25rem,8vw,3.5rem)] lg:text-6xl leading-[0.95] max-w-3xl">
+						Der Radar läuft rund um die Uhr.{" "}
+						<span className="bg-nb-black text-nb-coral px-3 inline-block mt-3 -rotate-1">
+							Du musst nicht.
+						</span>
+					</h2>
+					<a
+						href="#anmelden"
+						className={cn(
+							buttonVariants({ size: "lg" }),
+							"bg-nb-black text-nb-white shadow-[6px_6px_0_0_var(--nb-white)] hover:shadow-none w-full sm:w-auto",
+						)}
+					>
+						Kostenlos eintragen
+					</a>
+				</Reveal>
 			</section>
 
 			{/* Footer */}
-			<footer className="py-6 px-6 bg-nb-black text-nb-white border-t-4 border-nb-black">
-				<div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-sm">
-					<p className="font-bold">
-						&copy; {new Date().getFullYear()} EXAMENSRADAR
-					</p>
+			<footer className="py-6 px-4 sm:px-6 bg-nb-black text-nb-white">
+				<div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm font-bold">
+					<p>&copy; {new Date().getFullYear()} EXAMENSRADAR</p>
+					<nav className="flex items-center gap-6 uppercase text-xs">
+						<Link
+							to="/history"
+							className="underline decoration-2 underline-offset-4 hover:text-nb-yellow"
+						>
+							Historie
+						</Link>
+						<Link
+							to="/subscriptions"
+							className="underline decoration-2 underline-offset-4 hover:text-nb-yellow"
+						>
+							Benachrichtigungen
+						</Link>
+					</nav>
 				</div>
 			</footer>
 		</div>
