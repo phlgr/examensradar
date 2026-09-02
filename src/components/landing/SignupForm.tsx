@@ -1,5 +1,5 @@
 import { ChevronDown, Loader2, MailCheck } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { trackEvent } from "@/lib/analytics";
@@ -8,6 +8,9 @@ import { trpc } from "@/lib/trpc";
 interface SignupFormProps {
 	jpas: Array<{ id: string; name: string }> | undefined;
 	loading: boolean;
+	/** Selected office; owned by the page so the preview can follow it. */
+	jpaId: string;
+	onJpaChange: (jpaId: string) => void;
 }
 
 /**
@@ -15,15 +18,13 @@ interface SignupFormProps {
  * Same procedure and same "we sent you a mail" promise as the modal on
  * /subscriptions — what actually happens is decided in the inbox.
  */
-export function SignupForm({ jpas, loading }: SignupFormProps) {
-	const [jpaId, setJpaId] = useState("");
+export function SignupForm({
+	jpas,
+	loading,
+	jpaId,
+	onJpaChange,
+}: SignupFormProps) {
 	const [email, setEmail] = useState("");
-
-	// Preselect the first office once the list is in, so a single-office
-	// deployment needs no extra click.
-	useEffect(() => {
-		if (!jpaId && jpas?.[0]) setJpaId(jpas[0].id);
-	}, [jpas, jpaId]);
 
 	const jpaName = jpas?.find((jpa) => jpa.id === jpaId)?.name ?? "";
 
@@ -81,7 +82,7 @@ export function SignupForm({ jpas, loading }: SignupFormProps) {
 						<select
 							id="signup-jpa"
 							value={jpaId}
-							onChange={(event) => setJpaId(event.target.value)}
+							onChange={(event) => onJpaChange(event.target.value)}
 							disabled={loading || !jpas?.length}
 							className="h-12 w-full appearance-none bg-nb-white pl-4 pr-10 border-4 border-nb-black font-bold text-base focus:outline-none focus:bg-nb-cream disabled:opacity-50"
 						>

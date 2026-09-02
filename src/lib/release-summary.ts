@@ -16,8 +16,6 @@ export interface HistoryEntry {
 export interface JpaReleaseSummary {
 	slug: string;
 	name: string;
-	/** "JPA NRW" / "OLG Hamm" — for tight spots like the radar labels. */
-	short: string;
 	websiteUrl: string | null;
 	/** Every recorded fire, newest first. */
 	dates: Date[];
@@ -32,13 +30,6 @@ export interface JpaReleaseSummary {
 }
 
 const MS_PER_DAY = 86_400_000;
-
-function shortJpaName(name: string): string {
-	return name
-		.replace(/^Landesjustizprüfungsamt\b/, "LJPA")
-		.replace(/^Justizprüfungsamt\b/, "JPA")
-		.replace(/^Oberlandesgericht\b/, "OLG");
-}
 
 function median(values: number[]): number {
 	const sorted = [...values].sort((a, b) => a - b);
@@ -86,7 +77,6 @@ export function summarizeReleases(
 		summaries.push({
 			slug,
 			name: group.name,
-			short: shortJpaName(group.name),
 			websiteUrl: group.websiteUrl,
 			dates,
 			lastRelease: dates[0],

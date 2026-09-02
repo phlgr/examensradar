@@ -1,9 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Mail, MailCheck, Zap } from "lucide-react";
-import { Radar } from "@/components/landing/Radar";
+import { useEffect, useState } from "react";
+import { NotificationPreview } from "@/components/landing/NotificationPreview";
 import { Reveal } from "@/components/landing/Reveal";
 import { SignupForm } from "@/components/landing/SignupForm";
 import { buttonVariants } from "@/components/ui/button";
+import { summarizeReleases } from "@/lib/release-summary";
 import { trpc } from "@/lib/trpc";
 import { cn } from "@/lib/utils";
 
@@ -36,6 +38,20 @@ const STEPS = [
 function LandingPage() {
 	const jpasQuery = trpc.jpa.getAll.useQuery();
 	const historyQuery = trpc.jpa.getHistory.useQuery();
+	const [jpaId, setJpaId] = useState("");
+
+	// Preselect the first office once the list is in, so a single-office
+	// deployment needs no extra click and the preview has something to show.
+	useEffect(() => {
+		if (!jpaId && jpasQuery.data?.[0]) setJpaId(jpasQuery.data[0].id);
+	}, [jpasQuery.data, jpaId]);
+
+	const selectedJpa = jpasQuery.data?.find((jpa) => jpa.id === jpaId);
+	const summary = selectedJpa
+		? summarizeReleases(historyQuery.data ?? [], new Date()).find(
+				(s) => s.slug === selectedJpa.slug,
+			)
+		: undefined;
 
 	return (
 		<div className="flex-1">
@@ -67,14 +83,23 @@ function LandingPage() {
 						</p>
 
 						<div className="animate-rise" style={{ animationDelay: "200ms" }}>
-							<SignupForm jpas={jpasQuery.data} loading={jpasQuery.isLoading} />
+							<SignupForm
+								jpas={jpasQuery.data}
+								loading={jpasQuery.isLoading}
+								jpaId={jpaId}
+								onJpaChange={setJpaId}
+							/>
 						</div>
 					</div>
 
-					<div className="animate-rise" style={{ animationDelay: "160ms" }}>
-						<Radar
-							entries={historyQuery.data}
-							loading={historyQuery.isLoading}
+					<div
+						className="animate-rise lg:pl-6"
+						style={{ animationDelay: "160ms" }}
+					>
+						<NotificationPreview
+							jpa={selectedJpa}
+							prediction={summary?.prediction ?? null}
+							lastRelease={summary?.lastRelease ?? null}
 						/>
 					</div>
 				</div>
