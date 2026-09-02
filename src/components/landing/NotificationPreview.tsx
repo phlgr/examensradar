@@ -1,11 +1,11 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, ExternalLink, Radar } from "lucide-react";
+import { ArrowRight, Radar } from "lucide-react";
 import type { ReleasePrediction } from "@/lib/prediction";
 import { CONFIDENCE_LABEL, formatDayMonth } from "@/lib/release-summary";
 import { cn } from "@/lib/utils";
 
 interface NotificationPreviewProps {
-	jpa: { id: string; name: string; websiteUrl: string | null } | undefined;
+	jpa: { id: string; name: string } | undefined;
 	prediction: ReleasePrediction | null;
 	lastRelease: Date | null;
 	className?: string;
@@ -67,21 +67,14 @@ export function NotificationPreview({
 							Das <strong>{name}</strong> hat neue Examensergebnisse
 							veröffentlicht.
 						</p>
-						{jpa?.websiteUrl ? (
-							<a
-								href={jpa.websiteUrl}
-								target="_blank"
-								rel="noopener noreferrer"
-								className="mt-5 inline-flex items-center gap-2 h-11 px-5 bg-nb-yellow border-4 border-nb-black font-black uppercase text-sm shadow-[var(--nb-shadow-sm)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all"
-							>
-								Ergebnisse ansehen
-								<ExternalLink className="w-4 h-4" />
-							</a>
-						) : (
-							<span className="mt-5 inline-flex items-center h-11 px-5 bg-nb-yellow border-4 border-nb-black font-black uppercase text-sm shadow-[var(--nb-shadow-sm)]">
-								Ergebnisse ansehen
-							</span>
-						)}
+						{/* Part of the mock-up, deliberately not a link: the page's one
+						    action is the signup form next to it. */}
+						<span
+							className="mt-5 inline-flex items-center h-11 px-5 bg-nb-yellow border-4 border-nb-black font-black uppercase text-sm shadow-[var(--nb-shadow-sm)] select-none"
+							aria-hidden
+						>
+							Ergebnisse ansehen
+						</span>
 					</div>
 
 					<div className="px-4 sm:px-5 py-3 border-t-2 border-nb-black/10 text-xs font-medium text-nb-black/60">
