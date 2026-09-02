@@ -45,14 +45,15 @@ export function SignupForm({ jpas, loading }: SignupFormProps) {
 					<MailCheck className="w-6 h-6" />
 				</div>
 				<div>
-					<p className="font-black uppercase text-lg">Schau in dein Postfach</p>
+					<p className="font-black uppercase text-lg">Fast geschafft</p>
 					<p className="font-medium text-sm mt-1">
-						Wir haben eine E-Mail an <strong>{email}</strong> geschickt. Öffne
-						den Link darin, um {jpaName} auf deinen Radar zu nehmen.
+						Wir haben eine E-Mail an <strong>{email}</strong> geschickt.
+						Bestätige darin kurz deine Adresse – danach benachrichtigen wir
+						dich, sobald {jpaName} neue Ergebnisse veröffentlicht.
 					</p>
 					<p className="text-xs font-medium mt-2 text-nb-black/60">
-						Keine Mail? Prüfe den Spam-Ordner oder versuch es gleich noch
-						einmal.
+						Keine E-Mail bekommen? Schau in deinen Spam-Ordner oder versuch es
+						einfach noch einmal.
 					</p>
 				</div>
 			</div>
@@ -74,7 +75,7 @@ export function SignupForm({ jpas, loading }: SignupFormProps) {
 						htmlFor="signup-jpa"
 						className="block text-[11px] font-black uppercase tracking-wider mb-1"
 					>
-						Dein Prüfungsamt
+						Justizprüfungsamt
 					</label>
 					<span className="relative block">
 						<select
@@ -84,7 +85,7 @@ export function SignupForm({ jpas, loading }: SignupFormProps) {
 							disabled={loading || !jpas?.length}
 							className="h-12 w-full appearance-none bg-nb-white pl-4 pr-10 border-4 border-nb-black font-bold text-base focus:outline-none focus:bg-nb-cream disabled:opacity-50"
 						>
-							{loading && <option value="">Lade Prüfungsämter …</option>}
+							{loading && <option value="">Wird geladen …</option>}
 							{jpas?.map((jpa) => (
 								<option key={jpa.id} value={jpa.id}>
 									{jpa.name}
@@ -103,14 +104,14 @@ export function SignupForm({ jpas, loading }: SignupFormProps) {
 						htmlFor="signup-email"
 						className="block text-[11px] font-black uppercase tracking-wider mb-1"
 					>
-						Deine E-Mail
+						E-Mail-Adresse
 					</label>
 					<Input
 						id="signup-email"
 						type="email"
 						autoComplete="email"
 						required
-						placeholder="du@uni.de"
+						placeholder="name@beispiel.de"
 						value={email}
 						onChange={(event) => setEmail(event.target.value)}
 					/>
@@ -125,7 +126,7 @@ export function SignupForm({ jpas, loading }: SignupFormProps) {
 						{subscribe.isPending ? (
 							<Loader2 className="w-5 h-5 animate-spin" />
 						) : (
-							"Radar an"
+							"Benachrichtigen lassen"
 						)}
 					</Button>
 				</div>
@@ -134,10 +135,10 @@ export function SignupForm({ jpas, loading }: SignupFormProps) {
 			<p className="mt-3 text-xs font-medium text-nb-black/60">
 				{subscribe.isError ? (
 					<span className="font-bold text-nb-coral">
-						Das hat nicht geklappt. Bitte versuch es noch einmal.
+						Das hat leider nicht geklappt. Bitte versuch es noch einmal.
 					</span>
 				) : (
-					"Kein Konto. Eine Mail pro Veröffentlichung. Abmelden mit einem Klick."
+					"Kostenlos. Du bekommst nur dann eine E-Mail, wenn neue Ergebnisse da sind, und kannst dich jederzeit abmelden."
 				)}
 			</p>
 		</form>

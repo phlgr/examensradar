@@ -56,8 +56,8 @@ export function EmailSignupModal({
 			<ModalHeader>
 				<ModalTitle>
 					{subscribe.isSuccess
-						? "Schau in dein Postfach"
-						: "Per E-Mail abonnieren"}
+						? "Fast geschafft"
+						: "Per E-Mail benachrichtigen lassen"}
 				</ModalTitle>
 			</ModalHeader>
 
@@ -68,13 +68,13 @@ export function EmailSignupModal({
 							<MailCheck className="w-8 h-8 sm:w-10 sm:h-10" />
 						</div>
 						<p className="font-medium text-sm sm:text-base">
-							Wir haben eine E-Mail an <strong>{email}</strong> geschickt. Öffne
-							den Link darin, um die Anmeldung abzuschließen.
+							Wir haben eine E-Mail an <strong>{email}</strong> geschickt.
+							Bestätige darin kurz deine Adresse – dann ist alles eingerichtet.
 						</p>
 						<Card variant="muted" className="p-3 sm:p-4 text-left">
 							<p className="text-xs sm:text-sm font-medium">
-								<strong>Keine E-Mail?</strong> Prüfe deinen Spam-Ordner — oder
-								versuch es einfach gleich noch einmal.
+								<strong>Keine E-Mail bekommen?</strong> Schau in deinen
+								Spam-Ordner oder versuch es einfach noch einmal.
 							</p>
 						</Card>
 					</div>
@@ -89,9 +89,9 @@ export function EmailSignupModal({
 									{jpaName}
 								</h3>
 								<p className="font-medium text-sm sm:text-base">
-									Trag deine E-Mail-Adresse ein — du bekommst eine Nachricht,
-									sobald neue Examensergebnisse veröffentlicht werden. Keine
-									App, kein Konto.
+									Trag deine E-Mail-Adresse ein. Sobald dieses Prüfungsamt neue
+									Examensergebnisse veröffentlicht, bekommst du eine E-Mail von
+									uns.
 								</p>
 							</div>
 						</div>
@@ -105,7 +105,7 @@ export function EmailSignupModal({
 							<Input
 								type="email"
 								autoComplete="email"
-								placeholder="deine@email.de"
+								placeholder="name@beispiel.de"
 								value={email}
 								onChange={(event) => setEmail(event.target.value)}
 							/>

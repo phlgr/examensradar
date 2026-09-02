@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Mail, MailCheck, Zap } from "lucide-react";
-import { buildTargets, Radar } from "@/components/landing/Radar";
+import { Radar } from "@/components/landing/Radar";
 import { Reveal } from "@/components/landing/Reveal";
 import { SignupForm } from "@/components/landing/SignupForm";
 import { buttonVariants } from "@/components/ui/button";
@@ -12,57 +12,30 @@ export const Route = createFileRoute("/")({ component: LandingPage });
 const STEPS = [
 	{
 		icon: Mail,
-		title: "Amt wählen, Mail eintragen",
+		title: "Prüfungsamt wählen",
 		description:
-			"Such dein Justizprüfungsamt aus und trag deine E-Mail-Adresse ein. Keine App, kein Konto, kein Passwort.",
+			"Wähle dein Justizprüfungsamt aus und trag deine E-Mail-Adresse ein. Das dauert keine Minute.",
 		color: "bg-nb-coral",
 	},
 	{
 		icon: MailCheck,
-		title: "Link im Postfach klicken",
+		title: "E-Mail bestätigen",
 		description:
-			"Wir schicken dir einen Bestätigungslink. Ein Klick, und dein Prüfungsamt ist auf dem Radar.",
+			"Wir schicken dir einen Bestätigungslink. Ein Klick genügt, dann ist alles eingerichtet.",
 		color: "bg-nb-teal",
 	},
 	{
 		icon: Zap,
-		title: "Mail bekommen, wenn es losgeht",
+		title: "Benachrichtigung erhalten",
 		description:
-			"Der Radar prüft die Ergebnisseite rund um die Uhr. Ändert sie sich, landet die Nachricht in deinem Postfach.",
+			"Sobald das Prüfungsamt neue Ergebnisse veröffentlicht, bekommst du eine E-Mail von uns.",
 		color: "bg-nb-yellow",
 	},
 ];
 
-const STATIC_TICKER = [
-	"Keine App",
-	"Kein Konto",
-	"Eine Mail pro Veröffentlichung",
-	"Abmelden mit einem Klick",
-];
-
-const tickerDate = (date: Date) =>
-	date.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" });
-
 function LandingPage() {
 	const jpasQuery = trpc.jpa.getAll.useQuery();
 	const historyQuery = trpc.jpa.getHistory.useQuery();
-
-	const jpaCount = jpasQuery.data?.length ?? 0;
-	const targets = historyQuery.data
-		? buildTargets(historyQuery.data, new Date())
-		: [];
-
-	const tickerItems = [
-		...targets.flatMap((target) => [
-			`${target.short}: zuletzt ${tickerDate(target.lastRelease)} um ${target.typicalHour} Uhr`,
-			...(target.prediction
-				? [
-						`${target.short}: nächste voraussichtlich ${tickerDate(target.prediction.date)}`,
-					]
-				: []),
-		]),
-		...STATIC_TICKER,
-	];
 
 	return (
 		<div className="flex-1">
@@ -70,25 +43,9 @@ function LandingPage() {
 			<section className="bg-graph-paper border-b-4 border-nb-black">
 				<div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14 lg:py-20 grid gap-10 lg:gap-12 lg:grid-cols-[1.05fr_0.95fr] items-center">
 					<div>
-						<p
-							className="animate-rise inline-flex items-center gap-2 bg-nb-black text-nb-white text-[11px] font-black uppercase tracking-wider px-3 py-1.5 mb-6"
-							style={{ animationDelay: "0ms" }}
-						>
-							<span className="w-2 h-2 bg-nb-mint animate-blink" aria-hidden />
-							Radar aktiv
-							{jpaCount > 0 && (
-								<span className="text-white/60 font-bold normal-case tracking-normal">
-									· beobachtet{" "}
-									{jpaCount === 1
-										? "1 Prüfungsamt"
-										: `${jpaCount} Prüfungsämter`}
-								</span>
-							)}
-						</p>
-
 						<h1
 							className="animate-rise font-display-wide uppercase text-[clamp(2.25rem,9.5vw,4rem)] lg:text-[3.9rem] leading-[0.95] mb-6"
-							style={{ animationDelay: "80ms" }}
+							style={{ animationDelay: "0ms" }}
 						>
 							Schluss mit
 							<br />
@@ -102,19 +59,19 @@ function LandingPage() {
 
 						<p
 							className="animate-rise text-base sm:text-lg font-bold max-w-xl mb-8"
-							style={{ animationDelay: "160ms" }}
+							style={{ animationDelay: "100ms" }}
 						>
-							Examensradar beobachtet die Ergebnisseite deines
-							Justizprüfungsamts und schreibt dir eine E-Mail, sobald die
-							Examensergebnisse online sind. Du wartest, wir laden neu.
+							Examensradar prüft die Ergebnisseite deines Justizprüfungsamts für
+							dich und schickt dir eine E-Mail, sobald neue Examensergebnisse
+							veröffentlicht sind.
 						</p>
 
-						<div className="animate-rise" style={{ animationDelay: "240ms" }}>
+						<div className="animate-rise" style={{ animationDelay: "200ms" }}>
 							<SignupForm jpas={jpasQuery.data} loading={jpasQuery.isLoading} />
 						</div>
 					</div>
 
-					<div className="animate-rise" style={{ animationDelay: "200ms" }}>
+					<div className="animate-rise" style={{ animationDelay: "160ms" }}>
 						<Radar
 							entries={historyQuery.data}
 							loading={historyQuery.isLoading}
@@ -123,38 +80,16 @@ function LandingPage() {
 				</div>
 			</section>
 
-			{/* Ticker */}
-			<div
-				className="bg-nb-black text-nb-yellow border-b-4 border-nb-black overflow-hidden py-3 group"
-				aria-hidden
-			>
-				<div className="flex w-max animate-marquee group-hover:[animation-play-state:paused]">
-					{[0, 1].map((copy) => (
-						<ul key={copy} className="flex shrink-0 items-center">
-							{tickerItems.map((item) => (
-								<li
-									key={`${copy}-${item}`}
-									className="flex items-center gap-6 pr-6 text-sm font-black uppercase whitespace-nowrap"
-								>
-									{item}
-									<span className="w-2.5 h-2.5 bg-nb-yellow" />
-								</li>
-							))}
-						</ul>
-					))}
-				</div>
-			</div>
-
 			{/* How it works */}
 			<section className="bg-nb-cream py-14 sm:py-20 px-4 sm:px-6">
 				<div className="max-w-6xl mx-auto">
 					<Reveal className="mb-10 sm:mb-14 max-w-2xl">
 						<h2 className="font-display-wide uppercase text-4xl sm:text-5xl leading-none mb-4">
-							So läuft's
+							So funktioniert's
 						</h2>
 						<p className="font-bold text-base sm:text-lg">
-							Drei Schritte, zwei Minuten, danach nie wieder die Ergebnisseite
-							neu laden.
+							Drei Schritte – danach musst du die Ergebnisseite nie wieder
+							selbst aufrufen.
 						</p>
 					</Reveal>
 
@@ -188,15 +123,15 @@ function LandingPage() {
 				</div>
 			</section>
 
-			{/* Final call */}
-			<section className="bg-nb-coral border-y-4 border-nb-black py-16 sm:py-24 px-4 sm:px-6 overflow-hidden">
-				<Reveal className="max-w-6xl mx-auto grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
-					<h2 className="font-display-wide uppercase text-[clamp(2.25rem,8vw,3.5rem)] lg:text-6xl leading-[0.95] max-w-3xl">
-						Der Radar läuft rund um die Uhr.{" "}
-						<span className="bg-nb-black text-nb-coral px-3 inline-block mt-3 -rotate-1">
-							Du musst nicht.
-						</span>
+			{/* Closing call */}
+			<section className="bg-nb-mint border-y-4 border-nb-black py-16 sm:py-20 px-4 sm:px-6">
+				<Reveal className="max-w-3xl mx-auto text-center">
+					<h2 className="font-display-wide uppercase text-[clamp(2rem,7vw,3rem)] lg:text-5xl leading-[0.95] mb-4">
+						Entspannt warten statt ständig neu laden.
 					</h2>
+					<p className="font-bold text-base sm:text-lg mb-8">
+						Trag dich ein – wir sagen dir Bescheid, wenn es so weit ist.
+					</p>
 					<a
 						href="#anmelden"
 						className={cn(
@@ -204,7 +139,7 @@ function LandingPage() {
 							"bg-nb-black text-nb-white shadow-[6px_6px_0_0_var(--nb-white)] hover:shadow-none w-full sm:w-auto",
 						)}
 					>
-						Kostenlos eintragen
+						Jetzt kostenlos anmelden
 					</a>
 				</Reveal>
 			</section>
@@ -212,7 +147,7 @@ function LandingPage() {
 			{/* Footer */}
 			<footer className="py-6 px-4 sm:px-6 bg-nb-black text-nb-white">
 				<div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm font-bold">
-					<p>&copy; {new Date().getFullYear()} EXAMENSRADAR</p>
+					<p>&copy; {new Date().getFullYear()} Examensradar</p>
 					<nav className="flex items-center gap-6 uppercase text-xs">
 						<Link
 							to="/history"
