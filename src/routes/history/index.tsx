@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Bell, CalendarClock, ChevronDown, ExternalLink } from "lucide-react";
+import { useState } from "react";
 import {
 	JpaSearchEmpty,
 	JpaSearchInput,
@@ -81,7 +82,9 @@ function WeekdayBar({ weekdayCounts }: { weekdayCounts: Map<number, number> }) {
 }
 
 function Overview({ summaries }: { summaries: JpaReleaseSummary[] }) {
-	const total = summaries.reduce((sum, s) => sum + s.dates.length, 0);
+	// Publication events, not raw notifications — a page edited twice in one
+	// week is still one publication.
+	const total = summaries.reduce((sum, s) => sum + s.releaseCount, 0);
 	const weekdayCounts = new Map<number, number>();
 	for (const summary of summaries) {
 		for (const [weekday, count] of summary.weekdayCounts) {
@@ -134,21 +137,30 @@ function JpaDetails({
 }) {
 	const { prediction, daysUntil } = summary;
 	const overdue = daysUntil !== null && daysUntil < 0;
+	// Owned per office (keyed by slug), so re-sorting the list after a search
+	// never overrides what the reader opened or closed.
+	const [open, setOpen] = useState(defaultOpen);
 
 	return (
 		<Card>
-			<details open={defaultOpen} className="group">
+			<details
+				open={open}
+				onToggle={(event) => setOpen(event.currentTarget.open)}
+				className="group"
+			>
+				{/* <summary> only allows phrasing content, so everything in the row
+				    is a span; the office name is the disclosure's own label. */}
 				<summary className="list-none cursor-pointer select-none p-4 sm:p-5 flex items-center gap-4 hover:bg-nb-cream transition-colors [&::-webkit-details-marker]:hidden">
-					<div className="flex-1 min-w-0 sm:flex sm:items-center sm:gap-5">
-						<div className="sm:flex-1 min-w-0">
-							<h2 className="font-black uppercase text-base sm:text-lg leading-tight">
+					<span className="flex-1 min-w-0 sm:flex sm:items-center sm:gap-5">
+						<span className="block sm:flex-1 min-w-0">
+							<span className="block font-black uppercase text-base sm:text-lg leading-tight">
 								{summary.name}
-							</h2>
-							<p className="text-xs font-medium text-nb-black/60 mt-0.5">
+							</span>
+							<span className="block text-xs font-medium text-nb-black/60 mt-0.5">
 								zuletzt am {formatDayMonth(summary.lastRelease)}
-							</p>
-						</div>
-						<p className="mt-2 sm:mt-0 text-sm font-bold">
+							</span>
+						</span>
+						<span className="block mt-2 sm:mt-0 text-sm font-bold">
 							{prediction && daysUntil !== null ? (
 								<PredictionNote
 									prediction={prediction}
@@ -162,8 +174,8 @@ function JpaDetails({
 									noch keine Prognose
 								</span>
 							)}
-						</p>
-					</div>
+						</span>
+					</span>
 					<ChevronDown
 						className="w-5 h-5 shrink-0 transition-transform group-open:rotate-180"
 						aria-hidden
@@ -201,7 +213,10 @@ function JpaDetails({
 							) : (
 								<p className="text-sm font-medium">
 									Für eine Prognose brauchen wir mindestens zwei
-									Veröffentlichungen. Bisher ist eine erfasst.
+									Veröffentlichungen. Bisher ist eine erfasst
+									{summary.dates.length > 1
+										? ` (${summary.dates.length} Meldungen innerhalb einer Woche).`
+										: "."}
 								</p>
 							)}
 						</div>
@@ -238,7 +253,7 @@ function JpaDetails({
 
 					<div className="mt-5 pt-4 border-t-2 border-nb-black/10 flex flex-wrap items-start justify-between gap-3">
 						<div>
-							<Eyebrow className="mb-2">Bisherige Veröffentlichungen</Eyebrow>
+							<Eyebrow className="mb-2">Erfasste Meldungen</Eyebrow>
 							<ul className="flex flex-wrap gap-2">
 								{summary.dates.map((date) => (
 									<li

@@ -233,7 +233,7 @@ function SubscriptionsPage() {
 								className="shrink-0 gap-1.5"
 							>
 								<LogOut className="w-4 h-4" />
-								Abmelden
+								Ausloggen
 							</Button>
 						</div>
 					</Card>
@@ -246,10 +246,9 @@ function SubscriptionsPage() {
 							Du erhältst derzeit keine E-Mails
 						</p>
 						<p className="text-sm font-medium mt-1">
-							Du hast dich von allen Benachrichtigungen abgemeldet. Wenn du
-							wieder informiert werden möchtest, abonniere ein Prüfungsamt
-							einfach erneut – wir schicken dir dann einen neuen
-							Bestätigungslink.
+							Du hast alle Benachrichtigungen abbestellt. Wenn du wieder
+							informiert werden möchtest, abonniere ein Prüfungsamt einfach
+							erneut – wir schicken dir dann einen neuen Bestätigungslink.
 						</p>
 					</Card>
 				)}
@@ -353,7 +352,7 @@ function SubscriptionsPage() {
 													size="sm"
 												>
 													<Mail className="w-4 h-4" />
-													Abonnieren
+													Benachrichtigen lassen
 												</Button>
 											)}
 										</div>

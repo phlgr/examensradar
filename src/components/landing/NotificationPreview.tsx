@@ -33,7 +33,9 @@ export function NotificationPreview({
 	loading,
 	className,
 }: NotificationPreviewProps) {
-	const name = jpa?.name ?? "dein Justizprüfungsamt";
+	// Generic but grammatical stand-in until the office list arrives:
+	// "Das Justizprüfungsamt hat …" reads fine, "Das dein …" does not.
+	const name = jpa?.name ?? "Justizprüfungsamt";
 
 	// Bumped only on a real office-to-office change; remounts the card.
 	const [swap, setSwap] = useState(0);

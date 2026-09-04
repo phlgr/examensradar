@@ -142,7 +142,7 @@ export function EmailSignupModal({
 									Sende...
 								</>
 							) : (
-								"Abonnieren"
+								"Benachrichtigen lassen"
 							)}
 						</Button>
 					</>

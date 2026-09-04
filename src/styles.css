@@ -146,6 +146,8 @@
      pages that scroll and pages that don't. */
   html {
     scrollbar-gutter: stable;
+    /* Anchor jumps (#anmelden) must clear the sticky 4rem header. */
+    scroll-padding-top: 5rem;
   }
 
   body {

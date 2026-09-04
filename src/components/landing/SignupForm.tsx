@@ -1,5 +1,5 @@
 import { ChevronDown, Loader2, MailCheck } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { eyebrowClass } from "@/components/ui/heading";
@@ -12,6 +12,8 @@ import { cn } from "@/lib/utils";
 interface SignupFormProps {
 	jpas: Array<{ id: string; name: string }> | undefined;
 	loading: boolean;
+	/** The office list failed to load — say so instead of a dead form. */
+	error: boolean;
 	/** Selected office; owned by the page so the preview can follow it. */
 	jpaId: string;
 	onJpaChange: (jpaId: string) => void;
@@ -27,10 +29,12 @@ const labelClass = cn(eyebrowClass, "block mb-1");
 export function SignupForm({
 	jpas,
 	loading,
+	error,
 	jpaId,
 	onJpaChange,
 }: SignupFormProps) {
 	const [email, setEmail] = useState("");
+	const successRef = useRef<HTMLDivElement>(null);
 
 	const jpaName = jpas?.find((jpa) => jpa.id === jpaId)?.name ?? "";
 
@@ -39,15 +43,28 @@ export function SignupForm({
 			trackEvent("email_subscribe", { jpa: jpaName, source: "landing" }),
 	});
 
+	// The form (and the focused submit button) is replaced on success; move
+	// focus onto the confirmation so keyboard and screen-reader users land on it.
+	useEffect(() => {
+		if (subscribe.isSuccess) successRef.current?.focus();
+	}, [subscribe.isSuccess]);
+
 	const canSubmit =
-		jpaId !== "" && email.includes("@") && !subscribe.isPending && !loading;
+		jpaId !== "" &&
+		email.includes("@") &&
+		!subscribe.isPending &&
+		!loading &&
+		!error;
 
 	if (subscribe.isSuccess) {
 		return (
 			<Card
 				id="anmelden"
+				ref={successRef}
+				tabIndex={-1}
+				role="status"
 				variant="success"
-				className="p-5 sm:p-6 flex gap-4 items-start"
+				className="p-5 sm:p-6 flex gap-4 items-start focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-nb-black focus-visible:ring-offset-2"
 			>
 				<IconBox color="white" shadow>
 					<MailCheck className="w-6 h-6" />
@@ -87,10 +104,11 @@ export function SignupForm({
 								id="signup-jpa"
 								value={jpaId}
 								onChange={(event) => onJpaChange(event.target.value)}
-								disabled={loading || !jpas?.length}
+								disabled={loading || error || !jpas?.length}
 								className="h-12 w-full appearance-none bg-nb-white pl-4 pr-10 border-4 border-nb-black font-bold text-base focus:outline-none focus:bg-nb-cream disabled:opacity-50"
 							>
 								{loading && <option value="">Wird geladen …</option>}
+								{error && <option value="">Nicht verfügbar</option>}
 								{jpas?.map((jpa) => (
 									<option key={jpa.id} value={jpa.id}>
 										{jpa.name}
@@ -135,12 +153,17 @@ export function SignupForm({
 				</div>
 
 				<p className="mt-3 text-xs font-medium text-nb-black/60">
-					{subscribe.isError ? (
-						<span className="font-bold text-nb-coral">
+					{error ? (
+						<span role="alert" className="font-bold text-nb-coral">
+							Die Prüfungsämter konnten nicht geladen werden. Bitte lade die
+							Seite neu.
+						</span>
+					) : subscribe.isError ? (
+						<span role="alert" className="font-bold text-nb-coral">
 							Das hat leider nicht geklappt. Bitte versuch es noch einmal.
 						</span>
 					) : (
-						"Kostenlos. Du bekommst nur dann eine E-Mail, wenn neue Ergebnisse da sind, und kannst dich jederzeit abmelden."
+						"Kostenlos. Du bekommst nur dann eine E-Mail, wenn neue Ergebnisse da sind, und kannst jederzeit wieder abbestellen."
 					)}
 				</p>
 			</form>

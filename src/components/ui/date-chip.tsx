@@ -51,7 +51,11 @@ interface PredictionNoteProps {
 	className?: string;
 }
 
-/** "Voraussichtlich am [16. November] · grobe Schätzung" in one consistent shape. */
+/**
+ * "Voraussichtlich am [16. November] · grobe Schätzung" in one consistent
+ * shape. Once the date has passed the sentence changes tense and says how
+ * long it has been, so the coral chip is never the only signal.
+ */
 export function PredictionNote({
 	prediction,
 	daysUntil,
@@ -60,18 +64,19 @@ export function PredictionNote({
 	chipSize,
 	className,
 }: PredictionNoteProps) {
+	const overdue = daysUntil < 0;
 	return (
 		<span className={cn("text-sm font-bold", className)}>
-			{prefix}{" "}
+			{overdue ? "Erwartet am" : prefix}{" "}
 			<DateChip
 				date={prediction.date}
-				tone={daysUntil < 0 ? "overdue" : "upcoming"}
+				tone={overdue ? "overdue" : "upcoming"}
 				size={chipSize}
 			/>{" "}
 			<span className="font-medium text-nb-black/60">
-				{detail === "confidence"
+				{detail === "confidence" && !overdue
 					? `· ${CONFIDENCE_LABEL[prediction.confidence]}`
-					: relativeLabel(daysUntil)}
+					: `· ${relativeLabel(daysUntil)}`}
 			</span>
 		</span>
 	);

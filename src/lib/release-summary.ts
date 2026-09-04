@@ -91,6 +91,10 @@ export function summarizeReleases(
 	}
 
 	return summaries.sort((a, b) => {
+		// Offices without a prediction go last, newest publication first.
+		if (a.daysUntil === null && b.daysUntil === null) {
+			return b.lastRelease.getTime() - a.lastRelease.getTime();
+		}
 		if (a.daysUntil === null) return 1;
 		if (b.daysUntil === null) return -1;
 		return a.daysUntil - b.daysUntil;
@@ -101,9 +105,11 @@ export function summarizeReleases(
 export function relativeLabel(daysUntil: number): string {
 	if (daysUntil < 0) {
 		const overdue = Math.abs(daysUntil);
-		return overdue < 7
-			? `seit ${overdue} ${overdue === 1 ? "Tag" : "Tagen"} überfällig`
-			: `seit ${Math.round(overdue / 7)} Wochen überfällig`;
+		if (overdue < 7) {
+			return `seit ${overdue} ${overdue === 1 ? "Tag" : "Tagen"} überfällig`;
+		}
+		const weeks = Math.round(overdue / 7);
+		return `seit ${weeks} ${weeks === 1 ? "Woche" : "Wochen"} überfällig`;
 	}
 	if (daysUntil === 0) return "heute";
 	if (daysUntil === 1) return "morgen";

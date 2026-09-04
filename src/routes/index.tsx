@@ -91,6 +91,7 @@ function LandingPage() {
 							<SignupForm
 								jpas={jpasQuery.data}
 								loading={jpasQuery.isLoading}
+								error={jpasQuery.isError}
 								jpaId={jpaId}
 								onJpaChange={setJpaId}
 							/>
@@ -177,7 +178,7 @@ function LandingPage() {
 							"w-full sm:w-auto",
 						)}
 					>
-						Jetzt kostenlos anmelden
+						Kostenlos benachrichtigen lassen
 					</a>
 				</Reveal>
 			</section>
