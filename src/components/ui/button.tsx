@@ -19,6 +19,9 @@ const buttonVariants = cva(
 					"bg-nb-teal text-nb-black border-4 border-nb-black shadow-[var(--nb-shadow)] hover:shadow-none hover:translate-x-1.5 hover:translate-y-1.5",
 				outline:
 					"bg-transparent text-nb-black border-4 border-nb-black shadow-[var(--nb-shadow)] hover:shadow-none hover:translate-x-1.5 hover:translate-y-1.5 hover:bg-nb-yellow",
+				/** Black button for coloured panels; same black shadow as everything else. */
+				inverse:
+					"bg-nb-black text-nb-white border-4 border-nb-black shadow-[var(--nb-shadow)] hover:shadow-none hover:translate-x-1.5 hover:translate-y-1.5",
 				ghost:
 					"bg-transparent text-nb-black border-4 border-transparent hover:border-nb-black hover:bg-nb-yellow",
 				danger:
