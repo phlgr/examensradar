@@ -193,8 +193,8 @@ export function NotificationPreview({
 				{prediction && daysUntil !== null ? (
 					<>
 						{overdue
-							? "Erwartet war sie am"
-							: "Die nächste kommt voraussichtlich am"}{" "}
+							? "Nächste Veröffentlichung erwartet am"
+							: "Nächste Veröffentlichung voraussichtlich am"}{" "}
 						<span
 							className={cn(
 								"font-semibold text-ink whitespace-nowrap",

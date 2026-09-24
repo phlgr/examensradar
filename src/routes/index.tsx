@@ -12,19 +12,19 @@ export const Route = createFileRoute("/")({ component: LandingPage });
 
 const STEPS = [
 	{
-		title: "Prüfungsamt wählen",
+		title: "Eintragen",
 		description:
-			"Wähle dein Justizprüfungsamt aus und trag deine E-Mail-Adresse ein. Das dauert keine Minute.",
+			"Justizprüfungsamt auswählen, E-Mail-Adresse eingeben. Kein Passwort, kein Konto.",
 	},
 	{
-		title: "E-Mail bestätigen",
+		title: "Bestätigen",
 		description:
-			"Wir schicken dir einen Bestätigungslink. Ein Klick genügt, dann ist alles eingerichtet.",
+			"Du bekommst einen Link von uns. Ein Klick darauf, und die Benachrichtigung ist scharf.",
 	},
 	{
-		title: "Benachrichtigung erhalten",
+		title: "Abschalten",
 		description:
-			"Sobald das Prüfungsamt neue Ergebnisse veröffentlicht, bekommst du eine E-Mail von uns.",
+			"Ab jetzt behalten wir die Ergebnisseite im Blick. Steht dort etwas Neues, hast du eine E-Mail im Postfach.",
 	},
 ] as const;
 
@@ -100,9 +100,12 @@ function LandingPage() {
 							className="animate-rise text-lg sm:text-xl text-ink/70 leading-relaxed max-w-xl mb-10"
 							style={{ animationDelay: "140ms" }}
 						>
-							Examensradar prüft die Ergebnisseite deines Justizprüfungsamts für
-							dich und schickt dir eine E-Mail, sobald neue Examensergebnisse
-							veröffentlicht sind.
+							<strong className="font-semibold text-ink">
+								Die Klausuren hast du geschrieben. Das Warten übernehmen wir.
+							</strong>{" "}
+							Examensradar behält die Ergebnisseite deines Justizprüfungsamts im
+							Blick und schickt dir eine E-Mail, sobald neue Ergebnisse online
+							sind.
 						</p>
 
 						<div
@@ -146,7 +149,8 @@ function LandingPage() {
 							<em className="italic font-[450]">keine Fußnoten.</em>
 						</h2>
 						<p className="mt-6 text-lg text-ink/70 leading-relaxed">
-							Danach musst du die Ergebnisseite nie wieder selbst aufrufen.
+							In einer Minute eingerichtet. Danach ist Ruhe, bis die Ergebnisse
+							da sind.
 						</p>
 					</Reveal>
 
@@ -184,14 +188,13 @@ function LandingPage() {
 				<section className="px-4 sm:px-6 py-24 sm:py-32">
 					<Reveal className="max-w-4xl mx-auto text-center">
 						<h2 className="headline text-[2.6rem] sm:text-7xl leading-[1.02] mb-6">
-							Entspannt warten
+							Mach den Tab zu.
 							<br />
-							<em className="italic font-[430] text-mark">
-								statt ständig neu laden.
-							</em>
+							<em className="italic font-[430] text-mark">Wir melden uns.</em>
 						</h2>
 						<p className="text-lg text-sheet/60 mb-10">
-							Trag dich ein – wir sagen dir Bescheid, wenn es so weit ist.
+							Eine E-Mail, wenn dein Prüfungsamt Ergebnisse veröffentlicht. Kein
+							Newsletter, keine Werbung.
 						</p>
 						<a
 							href="#anmelden"

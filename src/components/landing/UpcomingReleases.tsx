@@ -142,18 +142,19 @@ export function UpcomingReleases({
 				<Reveal>
 					<p className="text-sm font-semibold text-seal mb-4">Die Prognose</p>
 					<h2 className="headline text-[2.6rem] sm:text-6xl leading-[1.02] mb-6">
-						Wann ist es <em className="italic font-[450]">so weit?</em>
+						Wann kommen <em className="italic font-[450]">die Ergebnisse?</em>
 					</h2>
 					<p className="text-lg text-ink/70 leading-relaxed max-w-md mb-8">
-						Aus den bisherigen Veröffentlichungen lässt sich ziemlich gut
-						ablesen, wann ein Prüfungsamt das nächste Mal dran ist. Die Historie
-						zeigt dir alle Termine, Wochentage und Uhrzeiten.
+						Jedes Prüfungsamt hat seinen eigenen Rhythmus. Aus allen bisherigen
+						Veröffentlichungen rechnen wir hoch, wann es das nächste Mal so weit
+						ist. In der Historie findest du jeden Termin mit Wochentag und
+						Uhrzeit.
 					</p>
 					<Link
 						to="/history"
 						className="group inline-flex items-center gap-2 text-[15px] font-semibold border-b-2 border-ink pb-0.5 transition-colors hover:text-seal hover:border-seal"
 					>
-						Zur Historie
+						Alle bisherigen Termine
 						<ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
 					</Link>
 				</Reveal>
