@@ -2,9 +2,16 @@
 
 @import 'tw-animate-css';
 
-/* Display face for the landing page: a wide, heavy grotesque set against the
+/* Display face for the app pages: a wide, heavy grotesque set against the
    monospace body. Self-hosted (German audience — no Google Fonts requests). */
 @import '@fontsource-variable/archivo/wdth.css';
+
+/* Landing ("Schönfelder & Textmarker"): Fraunces, a soft old-style serif, for
+   headlines; Geist for reading; Geist Mono for dates and counts. */
+@import '@fontsource-variable/fraunces/opsz.css';
+@import '@fontsource-variable/fraunces/opsz-italic.css';
+@import '@fontsource-variable/geist/wght.css';
+@import '@fontsource-variable/geist-mono/wght.css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -53,6 +60,21 @@
 
   /* No border radius for brutalism */
   --radius: 0px;
+
+  /* Landing: the law student's desk. Warm paper, ink, the red of the
+     Schönfelder binder as the one brand colour, a yellow highlighter for what
+     matters (dates, mostly). */
+  --ink: #17171a;
+  --paper: #f4efe4;
+  --sheet: #fffdf8;
+  --seal: #b3261e;
+  --seal-deep: #8c1c16;
+  --seal-soft: #f8e1dc;
+  --mark: #ffe25a;
+  --shadow-paper:
+    0 1px 2px rgb(23 23 26 / 0.06), 0 10px 28px -14px rgb(23 23 26 / 0.22);
+  --shadow-lift:
+    0 2px 4px rgb(23 23 26 / 0.06), 0 30px 60px -24px rgb(23 23 26 / 0.4);
 }
 
 /* Neobrutalism color utilities */
@@ -89,50 +111,101 @@
   --color-nb-mint: var(--nb-mint);
   --color-nb-purple: var(--nb-purple);
 
+  /* Landing palette */
+  --color-ink: var(--ink);
+  --color-paper: var(--paper);
+  --color-sheet: var(--sheet);
+  --color-seal: var(--seal);
+  --color-seal-deep: var(--seal-deep);
+  --color-seal-soft: var(--seal-soft);
+  --color-mark: var(--mark);
+  --shadow-paper: var(--shadow-paper);
+  --shadow-lift: var(--shadow-lift);
+
   --radius-sm: 0px;
   --radius-md: 0px;
   --radius-lg: 0px;
   --radius-xl: 0px;
 
   --font-display: 'Archivo Variable', 'Arial Black', Impact, sans-serif;
+  --font-sans: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-serif: 'Fraunces Variable', Georgia, 'Times New Roman', serif;
+  --font-figures: 'Geist Mono Variable', ui-monospace, monospace;
 
   /* Landing page motion */
-  --animate-keypress: keypress 2.8s ease-in-out infinite;
-  --animate-rise: rise 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-  --animate-notify: notify 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.15) both;
+  --animate-keypress: keypress 3.2s ease-in-out infinite;
+  --animate-rise: rise 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-notify: notify 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.1) both;
+  --animate-sweep: sweep 7s linear infinite;
+  --animate-ping-slow: ping-slow 2.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+  --animate-stamp: stamp 0.45s 0.9s cubic-bezier(0.3, 0, 0.3, 1.4) both;
 
-  /* A fresh notification sliding into the inbox stack. */
+  /* The rubber stamp coming down on the mail. */
+  @keyframes stamp {
+    from {
+      opacity: 0;
+      transform: scale(1.8);
+    }
+    to {
+      transform: scale(1);
+    }
+  }
+
+  /* A fresh notification dropping onto the stack. */
   @keyframes notify {
     from {
       opacity: 0;
-      transform: translate(32px, -16px);
+      transform: translateY(-18px) scale(0.98);
     }
     to {
       opacity: 1;
-      transform: translate(0, 0);
+      transform: none;
     }
   }
+  /* The F5 keycap being pressed, over and over. */
   @keyframes keypress {
     0%,
-    78%,
+    76%,
     100% {
       transform: translateY(0);
-      box-shadow: 0 8px 0 0 var(--nb-black);
+      box-shadow:
+        0 5px 0 0 #d9d0bd,
+        0 6px 0 0 rgb(23 23 26 / 0.3),
+        0 12px 20px -8px rgb(23 23 26 / 0.35);
     }
-    84%,
-    92% {
-      transform: translateY(6px);
-      box-shadow: 0 2px 0 0 var(--nb-black);
+    82%,
+    90% {
+      transform: translateY(4px);
+      box-shadow:
+        0 1px 0 0 #d9d0bd,
+        0 2px 0 0 rgb(23 23 26 / 0.3),
+        0 3px 6px -2px rgb(23 23 26 / 0.3);
     }
   }
   @keyframes rise {
     from {
       opacity: 0;
-      transform: translateY(28px);
+      transform: translateY(20px);
     }
     to {
       opacity: 1;
       transform: translateY(0);
+    }
+  }
+  @keyframes sweep {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @keyframes ping-slow {
+    0% {
+      transform: scale(1);
+      opacity: 0.55;
+    }
+    80%,
+    100% {
+      transform: scale(2.8);
+      opacity: 0;
     }
   }
 }
@@ -196,7 +269,6 @@
     transform: translate(4px, 4px);
   }
 
-  /* Landing page */
   .font-display-wide {
     font-family: var(--font-display);
     font-stretch: 125%;
@@ -204,24 +276,86 @@
     letter-spacing: -0.02em;
   }
 
-  /* Squared paper — the exam sheet the results decide. */
-  .bg-graph-paper {
-    background-color: var(--nb-cream);
-    background-image:
-      linear-gradient(to right, rgb(0 0 0 / 0.07) 1px, transparent 1px),
-      linear-gradient(to bottom, rgb(0 0 0 / 0.07) 1px, transparent 1px);
-    background-size: 28px 28px;
+  /* Landing — the desk. Everything below only applies inside `.desk`. */
+  .desk {
+    background-color: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-sans);
+  }
+  .desk ::selection {
+    background: var(--mark);
+    color: var(--ink);
+  }
+  .desk :focus-visible {
+    outline: 2px solid var(--seal);
+    outline-offset: 3px;
+  }
+
+  /* Headline serif at its display optical size. */
+  .headline {
+    font-family: var(--font-serif);
+    font-optical-sizing: auto;
+    font-weight: 500;
+    letter-spacing: -0.03em;
+  }
+
+  /* Figures that line up: dates, times, counts. */
+  .figures {
+    font-family: var(--font-figures);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+
+  /* A highlighter stroke behind inline text, ragged at the ends like by hand. */
+  .marker {
+    background-image: linear-gradient(
+      100deg,
+      transparent 0.15em,
+      var(--mark) 0.3em,
+      color-mix(in srgb, var(--mark) 82%, white) 70%,
+      var(--mark) calc(100% - 0.3em),
+      transparent calc(100% - 0.15em)
+    );
+    background-repeat: no-repeat;
+    background-size: 100% 0.58em;
+    background-position: 0 88%;
+    padding-inline: 0.15em;
+    margin-inline: -0.15em;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+  /* The stroke drawn left to right as the hero enters. */
+  .marker-draw {
+    animation: marker-draw 0.9s 0.6s cubic-bezier(0.6, 0, 0.2, 1) both;
+  }
+  @keyframes marker-draw {
+    from {
+      background-size: 0% 0.58em;
+    }
+    to {
+      background-size: 100% 0.58em;
+    }
+  }
+
+  /* Faint ruled lines, like a Klausurbogen. */
+  .bg-ruled {
+    background-image: linear-gradient(
+      to bottom,
+      transparent calc(100% - 1px),
+      rgb(23 23 26 / 0.07) calc(100% - 1px)
+    );
+    background-size: 100% 2rem;
   }
 
   /* Scroll-triggered reveal; `.reveal-hidden` is toggled by IntersectionObserver. */
   .reveal {
     transition:
-      opacity 0.6s ease-out,
-      transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+      opacity 0.7s ease-out,
+      transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
   .reveal-hidden {
     opacity: 0;
-    transform: translateY(24px);
+    transform: translateY(20px);
   }
 }
 
@@ -232,11 +366,16 @@
     transform: none;
     transition: none;
   }
-  .animate-keypress {
+  .animate-keypress,
+  .animate-sweep,
+  .animate-ping-slow {
     animation: none;
   }
+  .marker-draw,
+  .animate-stamp,
   .animate-rise,
   .animate-notify {
     animation-duration: 0.01ms;
+    animation-delay: 0ms;
   }
 }

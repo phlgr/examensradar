@@ -1,14 +1,17 @@
-import { Link, type LinkProps } from "@tanstack/react-router";
+import { Link, type LinkProps, useRouterState } from "@tanstack/react-router";
 import { Bell, CalendarClock, type LucideIcon, Radar } from "lucide-react";
 import { IconBox } from "@/components/ui/icon-box";
+import { cn } from "@/lib/utils";
 
 function NavLink({
 	to,
 	icon: Icon,
+	desk,
 	children,
 }: {
 	to: LinkProps["to"];
 	icon: LucideIcon;
+	desk: boolean;
 	children: string;
 }) {
 	return (
@@ -19,35 +22,68 @@ function NavLink({
 			// TanStack sets data-status="active" on the current route's link; the
 			// hover styles only apply to the others so the active pill stays
 			// black-on-white-text under the cursor.
-			className="inline-flex items-center gap-2 h-10 px-2.5 sm:px-3 border-3 border-transparent font-black uppercase text-sm transition-colors [&:not([data-status=active])]:hover:border-nb-black [&:not([data-status=active])]:hover:bg-nb-white data-[status=active]:border-nb-black data-[status=active]:bg-nb-black data-[status=active]:text-nb-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-nb-black focus-visible:ring-offset-2"
+			className={
+				desk
+					? "inline-flex items-center gap-2 h-10 px-3 rounded-full text-sm font-medium text-ink/70 transition-colors hover:text-ink hover:bg-ink/5"
+					: "inline-flex items-center gap-2 h-10 px-2.5 sm:px-3 border-3 border-transparent font-black uppercase text-sm transition-colors [&:not([data-status=active])]:hover:border-nb-black [&:not([data-status=active])]:hover:bg-nb-white data-[status=active]:border-nb-black data-[status=active]:bg-nb-black data-[status=active]:text-nb-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-nb-black focus-visible:ring-offset-2"
+			}
 		>
-			<Icon className="w-5 h-5 shrink-0" />
+			<Icon className={cn("shrink-0", desk ? "w-4 h-4" : "w-5 h-5")} />
 			<span className="hidden md:inline">{children}</span>
 		</Link>
 	);
 }
 
 export default function Header() {
+	// Style preview: the landing page is trying out the "desk" look while the
+	// app pages stay brutalist, so the header follows whichever page it is on.
+	const desk = useRouterState({
+		select: (state) => state.location.pathname === "/",
+	});
+
 	return (
-		<header className="sticky top-0 z-40 bg-nb-yellow border-b-4 border-nb-black">
+		<header
+			className={
+				desk
+					? "desk sticky top-0 z-40 bg-paper/85 backdrop-blur-md border-b border-ink/10"
+					: "sticky top-0 z-40 bg-nb-yellow border-b-4 border-nb-black"
+			}
+		>
 			<div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
 				<Link
 					to="/"
-					className="flex items-center gap-2.5 cursor-pointer hover:-translate-y-0.5 transition-transform focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-nb-black focus-visible:ring-offset-2"
+					className={
+						desk
+							? "flex items-center gap-2.5 rounded-[8px]"
+							: "flex items-center gap-2.5 cursor-pointer hover:-translate-y-0.5 transition-transform focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-nb-black focus-visible:ring-offset-2"
+					}
 				>
-					<IconBox color="white" size="sm" shadow>
-						<Radar className="w-5 h-5" />
-					</IconBox>
-					<span className="font-display-wide uppercase text-lg sm:text-xl leading-none">
-						Examensradar
-					</span>
+					{desk ? (
+						<>
+							<span className="w-8 h-8 rounded-[9px] bg-seal text-sheet grid place-items-center shadow-[inset_0_-2px_0_rgb(0_0_0/0.2)]">
+								<Radar className="w-[18px] h-[18px]" />
+							</span>
+							<span className="headline text-[1.4rem] leading-none">
+								Examensradar
+							</span>
+						</>
+					) : (
+						<>
+							<IconBox color="white" size="sm" shadow>
+								<Radar className="w-5 h-5" />
+							</IconBox>
+							<span className="font-display-wide uppercase text-lg sm:text-xl leading-none">
+								Examensradar
+							</span>
+						</>
+					)}
 				</Link>
 
 				<nav className="flex items-center gap-1 sm:gap-2">
-					<NavLink to="/history" icon={CalendarClock}>
+					<NavLink to="/history" icon={CalendarClock} desk={desk}>
 						Historie
 					</NavLink>
-					<NavLink to="/subscriptions" icon={Bell}>
+					<NavLink to="/subscriptions" icon={Bell} desk={desk}>
 						Benachrichtigungen
 					</NavLink>
 				</nav>

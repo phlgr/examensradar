@@ -31,7 +31,7 @@ interface DateChipProps extends VariantProps<typeof dateChipVariants> {
 }
 
 /** A highlighted day-and-month, coloured by whether it is still ahead. */
-export function DateChip({ date, tone, size, className }: DateChipProps) {
+function DateChip({ date, tone, size, className }: DateChipProps) {
 	return (
 		<span className={cn(dateChipVariants({ tone, size }), className)}>
 			{formatDayMonth(date)}

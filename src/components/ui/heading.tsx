@@ -22,7 +22,7 @@ interface DisplayHeadingProps
 }
 
 /** Wide, heavy display type for page and section titles. */
-export function DisplayHeading({
+function DisplayHeading({
 	as: Tag = "h2",
 	size,
 	className,
@@ -37,8 +37,8 @@ export function DisplayHeading({
 	);
 }
 
-/** Tiny caps label above a value or field. Use for `<label>`s via `eyebrowClass`. */
-export const eyebrowClass = "text-[11px] font-black uppercase tracking-wider";
+/** Tiny caps label above a value or field. */
+const eyebrowClass = "text-[11px] font-black uppercase tracking-wider";
 
 interface EyebrowProps extends React.HTMLAttributes<HTMLParagraphElement> {
 	/** Greyed out (default) for captions; solid for labels on coloured panels. */
