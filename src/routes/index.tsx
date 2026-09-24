@@ -138,12 +138,18 @@ function LandingPage() {
 			</section>
 
 			{/* How it works */}
-			<section className="bg-sheet border-t border-ink/10 py-16 sm:py-20 px-4 sm:px-6">
+			<section className="bg-sheet border-t border-ink/10 py-20 sm:py-28 px-4 sm:px-6">
 				<div className="max-w-6xl mx-auto">
-					<Reveal className="mb-8 sm:mb-10">
-						<h2 className="text-sm font-semibold text-seal">
-							So funktioniert's
+					<Reveal className="max-w-2xl mb-14 sm:mb-20">
+						<p className="text-sm font-semibold text-seal mb-4">
+							In drei Schritten
+						</p>
+						<h2 className="headline text-[2.6rem] sm:text-6xl leading-[1.02]">
+							Was musst du <em className="italic font-[450]">dafür tun?</em>
 						</h2>
+						<p className="mt-6 text-lg text-ink/70 leading-relaxed">
+							Fast nichts. Das Ganze dauert keine Minute.
+						</p>
 					</Reveal>
 
 					<ol className="grid md:grid-cols-3 border-t border-ink">
