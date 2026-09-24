@@ -137,7 +137,7 @@ function LandingPage() {
 				</div>
 			</section>
 
-			{/* How it works — three short paragraphs, in the literal sense. */}
+			{/* How it works */}
 			<section className="bg-sheet border-t border-ink/10 py-20 sm:py-28 px-4 sm:px-6">
 				<div className="max-w-6xl mx-auto">
 					<Reveal className="max-w-2xl mb-14 sm:mb-20">
@@ -145,12 +145,11 @@ function LandingPage() {
 							So funktioniert's
 						</p>
 						<h2 className="headline text-[2.6rem] sm:text-6xl leading-[1.02]">
-							Drei Paragraphen,{" "}
-							<em className="italic font-[450]">keine Fußnoten.</em>
+							Einmal eintragen.{" "}
+							<em className="italic font-[450]">Nie wieder nachsehen.</em>
 						</h2>
 						<p className="mt-6 text-lg text-ink/70 leading-relaxed">
-							In einer Minute eingerichtet. Danach ist Ruhe, bis die Ergebnisse
-							da sind.
+							Drei Schritte, und das Ganze dauert keine Minute.
 						</p>
 					</Reveal>
 
