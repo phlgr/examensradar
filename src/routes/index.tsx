@@ -145,10 +145,10 @@ function LandingPage() {
 							In drei Schritten
 						</p>
 						<h2 className="headline text-[2.6rem] sm:text-6xl leading-[1.02]">
-							Was musst du <em className="italic font-[450]">dafür tun?</em>
+							Einfacher als <em className="italic font-[450]">jede Klausur.</em>
 						</h2>
 						<p className="mt-6 text-lg text-ink/70 leading-relaxed">
-							Fast nichts. Das Ganze dauert keine Minute.
+							Eintragen, bestätigen, fertig. Das Ganze dauert keine Minute.
 						</p>
 					</Reveal>
 
