@@ -1,10 +1,4 @@
-import {
-	ArrowRight,
-	Check,
-	ChevronDown,
-	Loader2,
-	MailCheck,
-} from "lucide-react";
+import { ArrowRight, ChevronDown, Loader2, MailCheck } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { trackEvent } from "@/lib/analytics";
 import { trpc } from "@/lib/trpc";
@@ -22,12 +16,6 @@ interface SignupFormProps {
 const labelClass = "block text-[13px] font-medium text-ink/60 mb-1.5";
 const fieldClass =
 	"h-12 w-full rounded-[12px] bg-paper/60 border border-ink/15 px-4 text-base text-ink transition-colors placeholder:text-ink/35 hover:border-ink/30 focus:outline-none focus:border-ink focus:bg-sheet focus:ring-4 focus:ring-mark/60 disabled:opacity-50";
-
-const PROMISES = [
-	"Kostenlos",
-	"Kein Konto, keine App",
-	"Jederzeit abbestellbar",
-];
 
 /**
  * The landing page's inline signup: pick an office, type an address, done.
@@ -172,14 +160,10 @@ export function SignupForm({
 						: "Das hat leider nicht geklappt. Bitte versuch es noch einmal."}
 				</p>
 			) : (
-				<ul className="mt-4 flex flex-wrap gap-x-5 gap-y-1.5 text-[13px] text-ink/60">
-					{PROMISES.map((promise) => (
-						<li key={promise} className="inline-flex items-center gap-1.5">
-							<Check className="w-3.5 h-3.5 text-seal" strokeWidth={3} />
-							{promise}
-						</li>
-					))}
-				</ul>
+				<p className="mt-4 text-[13px] text-ink/60 leading-relaxed">
+					Kostenlos und ohne Konto. Du bekommst nur Post, wenn es Neues gibt,
+					und kannst jederzeit abbestellen.
+				</p>
 			)}
 		</form>
 	);

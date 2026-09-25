@@ -140,9 +140,8 @@ export function UpcomingReleases({
 		<section className="border-t border-ink/10 py-20 sm:py-28 px-4 sm:px-6">
 			<div className="max-w-6xl mx-auto grid gap-14 lg:grid-cols-[1fr_1.05fr] lg:gap-20 lg:items-center">
 				<Reveal>
-					<p className="text-sm font-semibold text-seal mb-4">Die Prognose</p>
 					<h2 className="headline text-[2.6rem] sm:text-6xl leading-[1.02] mb-6">
-						Wann kommen <em className="italic font-[450]">die Ergebnisse?</em>
+						Wann kommen die Ergebnisse?
 					</h2>
 					<p className="text-lg text-ink/70 leading-relaxed max-w-md mb-8">
 						Jedes Prüfungsamt hat seinen eigenen Rhythmus. Aus allen bisherigen

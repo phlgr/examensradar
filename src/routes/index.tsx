@@ -71,17 +71,6 @@ function LandingPage() {
 
 				<div className="relative max-w-6xl mx-auto px-4 sm:px-6 sm:pl-12 pt-12 pb-20 sm:pt-20 sm:pb-28 grid gap-16 lg:gap-16 lg:grid-cols-[1.1fr_0.9fr] items-center">
 					<div>
-						<p
-							className="animate-rise inline-flex items-center gap-2 text-sm font-medium text-ink/60 mb-7"
-							style={{ animationDelay: "0ms" }}
-						>
-							<span className="relative flex w-2 h-2">
-								<span className="absolute inset-0 rounded-full bg-seal animate-ping-slow" />
-								<span className="relative w-2 h-2 rounded-full bg-seal" />
-							</span>
-							Für das erste Staatsexamen
-						</p>
-
 						<h1
 							className="animate-rise headline text-[clamp(3rem,11vw,5.6rem)] leading-[0.98] mb-7"
 							style={{ animationDelay: "60ms" }}
@@ -101,7 +90,8 @@ function LandingPage() {
 							style={{ animationDelay: "140ms" }}
 						>
 							<strong className="font-semibold text-ink">
-								Die Klausuren hast du geschrieben. Das Warten übernehmen wir.
+								Die Klausuren im ersten Examen hast du geschrieben. Das Warten
+								übernehmen wir.
 							</strong>{" "}
 							Examensradar behält die Ergebnisseite deines Justizprüfungsamts im
 							Blick und schickt dir eine E-Mail, sobald neue Ergebnisse online
@@ -141,11 +131,8 @@ function LandingPage() {
 			<section className="bg-sheet border-t border-ink/10 py-20 sm:py-28 px-4 sm:px-6">
 				<div className="max-w-6xl mx-auto">
 					<Reveal className="max-w-2xl mb-14 sm:mb-20">
-						<p className="text-sm font-semibold text-seal mb-4">
-							In drei Schritten
-						</p>
 						<h2 className="headline text-[2.6rem] sm:text-6xl leading-[1.02]">
-							Einfacher als <em className="italic font-[450]">jede Klausur.</em>
+							Einfacher als jede Klausur.
 						</h2>
 						<p className="mt-6 text-lg text-ink/70 leading-relaxed">
 							Eintragen, bestätigen, fertig. Das Ganze dauert keine Minute.
@@ -188,7 +175,7 @@ function LandingPage() {
 						<h2 className="headline text-[2.6rem] sm:text-7xl leading-[1.02] mb-6">
 							Mach den Tab zu.
 							<br />
-							<em className="italic font-[430] text-mark">Wir melden uns.</em>
+							<span className="text-mark">Wir melden uns.</span>
 						</h2>
 						<p className="text-lg text-sheet/60 mb-10">
 							Eine E-Mail, wenn dein Prüfungsamt Ergebnisse veröffentlicht. Kein
