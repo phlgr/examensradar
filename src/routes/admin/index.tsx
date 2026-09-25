@@ -92,8 +92,8 @@ function AdminPage() {
 
 	if (isAuthenticated === null || jpasQuery.isLoading) {
 		return (
-			<div className="flex-1 flex items-center justify-center bg-nb-cream">
-				<div className="w-12 h-12 border-4 border-nb-black border-t-nb-yellow animate-spin" />
+			<div className="flex-1 flex items-center justify-center bg-paper">
+				<div className="w-12 h-12 border border-ink border-t-mark animate-spin" />
 			</div>
 		);
 	}
@@ -106,11 +106,11 @@ function AdminPage() {
 	const subscriptionCounts = subscriptionCountsQuery.data ?? {};
 
 	return (
-		<div className="flex-1 py-4 sm:py-8 px-4 bg-nb-cream">
+		<div className="flex-1 py-4 sm:py-8 px-4 bg-paper">
 			<div className="max-w-4xl mx-auto">
 				<div className="mb-6 sm:mb-8 flex items-start justify-between gap-4">
 					<div>
-						<h1 className="text-3xl sm:text-4xl font-black uppercase mb-2">
+						<h1 className="text-3xl sm:text-4xl font-semibold mb-2">
 							Admin Dashboard
 						</h1>
 						<p className="font-medium text-sm sm:text-base">
@@ -125,7 +125,7 @@ function AdminPage() {
 
 				<div className="space-y-6">
 					<div className="flex items-center justify-between">
-						<h2 className="text-xl sm:text-2xl font-black uppercase">
+						<h2 className="text-xl sm:text-2xl font-semibold">
 							Justizprüfungsämter
 						</h2>
 						<Button onClick={() => setShowCreateForm(true)} size="sm">
@@ -157,21 +157,19 @@ function AdminPage() {
 									<div className="flex items-start justify-between gap-4">
 										<div className="flex-1 min-w-0">
 											<div className="flex items-center gap-3 mb-1 flex-wrap">
-												<h3 className="text-lg font-black uppercase">
-													{jpa.name}
-												</h3>
-												<div className="flex items-center gap-1 px-2 py-0.5 bg-nb-yellow border-2 border-nb-black text-xs font-bold">
+												<h3 className="text-lg font-semibold">{jpa.name}</h3>
+												<div className="flex items-center gap-1 px-2 py-0.5 bg-mark border border-ink text-xs font-bold">
 													<Users className="w-3 h-3" />
 													{subscriptionCounts[jpa.id] ?? 0}
 												</div>
 												{jpa.notificationsDisabled && (
-													<div className="flex items-center gap-1 px-2 py-0.5 bg-red-100 border-2 border-red-500 text-red-700 text-xs font-bold">
+													<div className="flex items-center gap-1 px-2 py-0.5 bg-red-100 border border-red-500 text-red-700 text-xs font-bold">
 														<BellOff className="w-3 h-3" />
 														Pausiert
 													</div>
 												)}
 											</div>
-											<p className="text-sm font-medium text-nb-black/60 mb-1">
+											<p className="text-sm font-medium text-ink/60 mb-1">
 												Slug: {jpa.slug}
 											</p>
 											{jpa.websiteUrl && (
@@ -179,18 +177,18 @@ function AdminPage() {
 													href={jpa.websiteUrl}
 													target="_blank"
 													rel="noopener noreferrer"
-													className="text-sm font-bold underline decoration-2 hover:bg-nb-yellow transition-colors"
+													className="text-sm font-bold underline decoration-2 hover:bg-mark transition-colors"
 												>
 													{jpa.websiteUrl}
 												</a>
 											)}
-											<div className="mt-3 pt-3 border-t-2 border-nb-black/10">
-												<p className="text-xs font-bold uppercase mb-2 text-nb-black/60">
+											<div className="mt-3 pt-3 border-t border-ink/10">
+												<p className="text-xs font-bold mb-2 text-ink/60">
 													Webhook
 												</p>
 												<p className="text-xs font-bold mb-1">URL:</p>
 												<div className="flex items-center gap-2 mb-2">
-													<code className="flex-1 text-xs bg-nb-black/5 px-2 py-1 font-mono border border-nb-black/20 truncate">
+													<code className="flex-1 text-xs bg-ink/5 px-2 py-1 font-mono border border-ink/20 truncate">
 														{webhookBaseUrl}
 													</code>
 													<Button
@@ -211,7 +209,7 @@ function AdminPage() {
 												</div>
 												<p className="text-xs font-bold mb-1">Authorization:</p>
 												<div className="flex items-center gap-2 mb-2">
-													<code className="flex-1 text-xs bg-nb-black/5 px-2 py-1 font-mono border border-nb-black/20 truncate">
+													<code className="flex-1 text-xs bg-ink/5 px-2 py-1 font-mono border border-ink/20 truncate">
 														Bearer {webhookSecretQuery.data ?? "***"}
 													</code>
 													<Button
@@ -235,7 +233,7 @@ function AdminPage() {
 												</div>
 												<p className="text-xs font-bold mb-1">Body:</p>
 												<div className="flex items-center gap-2">
-													<code className="flex-1 text-xs bg-nb-black/5 px-2 py-1 font-mono border border-nb-black/20">
+													<code className="flex-1 text-xs bg-ink/5 px-2 py-1 font-mono border border-ink/20">
 														{`{"jpa_slug": "${jpa.slug}"}`}
 													</code>
 													<Button
@@ -370,7 +368,7 @@ function JpaForm({
 						value={name}
 						onChange={(e) => setName(e.target.value)}
 						required
-						className="w-full px-4 py-2 border-2 border-black font-medium focus:outline-none focus:ring-2 focus:ring-nb-coral"
+						className="w-full px-4 py-2 border border-black font-medium focus:outline-none focus:ring-2 focus:ring-seal"
 						placeholder="z.B. JPA Bayern"
 					/>
 				</div>
@@ -387,7 +385,7 @@ function JpaForm({
 						value={slug}
 						onChange={(e) => setSlug(e.target.value)}
 						required
-						className="w-full px-4 py-2 border-2 border-black font-medium focus:outline-none focus:ring-2 focus:ring-nb-coral"
+						className="w-full px-4 py-2 border border-black font-medium focus:outline-none focus:ring-2 focus:ring-seal"
 						placeholder="z.B. bayern"
 					/>
 				</div>
@@ -400,7 +398,7 @@ function JpaForm({
 						type="url"
 						value={websiteUrl}
 						onChange={(e) => setWebsiteUrl(e.target.value)}
-						className="w-full px-4 py-2 border-2 border-black font-medium focus:outline-none focus:ring-2 focus:ring-nb-coral"
+						className="w-full px-4 py-2 border border-black font-medium focus:outline-none focus:ring-2 focus:ring-seal"
 						placeholder="https://..."
 					/>
 				</div>

@@ -55,7 +55,7 @@ function LandingPage() {
 		: undefined;
 
 	return (
-		<div className="desk flex-1">
+		<div className="flex-1">
 			{/* Hero */}
 			<section className="relative overflow-hidden">
 				{/* Ruled lines fading out towards the bottom, like a Klausurbogen. */}
@@ -168,7 +168,7 @@ function LandingPage() {
 				loading={historyQuery.isLoading}
 			/>
 
-			{/* Closing call + footer, on the dark end of the desk. */}
+			{/* Closing call + footer. */}
 			<div className="bg-ink text-sheet">
 				<section className="px-4 sm:px-6 py-24 sm:py-32">
 					<Reveal className="max-w-4xl mx-auto text-center">

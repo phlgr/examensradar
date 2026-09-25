@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Bell, CalendarClock, ChevronDown, ExternalLink } from "lucide-react";
+import { CalendarClock, ChevronDown, ExternalLink } from "lucide-react";
 import { useState } from "react";
 import {
 	JpaSearchEmpty,
@@ -9,9 +9,7 @@ import {
 import { Card } from "@/components/ui/card";
 import { PredictionNote } from "@/components/ui/date-chip";
 import { Eyebrow, SectionIntro } from "@/components/ui/heading";
-import { IconBox } from "@/components/ui/icon-box";
 import { PageSpinner } from "@/components/ui/spinner";
-import { TeaserCard } from "@/components/ui/teaser-card";
 import {
 	CONFIDENCE_LABEL,
 	formatDayMonth,
@@ -55,23 +53,25 @@ function WeekdayBar({ weekdayCounts }: { weekdayCounts: Map<number, number> }) {
 	const max = Math.max(...weekdayCounts.values(), 1);
 	const order = [1, 2, 3, 4, 5, 6, 0]; // Mo–So
 	return (
-		<div className="flex gap-1 items-end">
+		<div className="flex gap-1.5 items-end">
 			{order.map((weekday) => {
 				const count = weekdayCounts.get(weekday) ?? 0;
-				const height = Math.round((count / max) * 28) + 6;
+				const height = Math.round((count / max) * 32) + 4;
 				return (
-					<div key={weekday} className="flex flex-col items-center gap-1">
+					<div key={weekday} className="flex flex-col items-center gap-1.5">
 						<div
 							className={cn(
-								"w-7",
-								count > 0
-									? "bg-nb-yellow border-2 border-nb-black"
-									: "bg-nb-black/5 border border-nb-black/15",
+								"w-6 rounded-[3px]",
+								count === max && count > 0
+									? "bg-seal"
+									: count > 0
+										? "bg-ink/70"
+										: "bg-ink/10",
 							)}
 							style={{ height }}
 							title={`${WEEKDAYS_FULL[weekday]}: ${count}×`}
 						/>
-						<span className="text-[10px] font-bold text-nb-black/50">
+						<span className="figures text-[10px] text-ink/45">
 							{WEEKDAYS[weekday]}
 						</span>
 					</div>
@@ -94,12 +94,10 @@ function Overview({ summaries }: { summaries: JpaReleaseSummary[] }) {
 	const weekday = mostCommonWeekday(weekdayCounts);
 
 	return (
-		<Card className="p-5 sm:p-6 mb-8 sm:mb-10 flex flex-col sm:flex-row sm:items-end gap-5 sm:gap-10">
+		<Card className="p-6 sm:p-8 mb-12 flex flex-col sm:flex-row sm:items-end gap-6 sm:gap-10">
 			<div className="flex-1">
-				<p className="font-display-wide text-4xl sm:text-5xl leading-none">
-					{total}
-				</p>
-				<p className="font-bold mt-2">
+				<p className="headline text-6xl sm:text-7xl leading-none">{total}</p>
+				<p className="text-lg mt-3">
 					Veröffentlichungen von {summaries.length}{" "}
 					{summaries.length === 1
 						? "Justizprüfungsamt"
@@ -107,9 +105,9 @@ function Overview({ summaries }: { summaries: JpaReleaseSummary[] }) {
 					erfasst
 				</p>
 				{weekday !== null && (
-					<p className="text-sm font-medium mt-1">
+					<p className="text-[15px] text-ink/60 mt-1">
 						Am häufigsten an einem{" "}
-						<span className="bg-nb-yellow px-1 font-bold">
+						<span className="marker font-semibold text-ink">
 							{WEEKDAYS_FULL[weekday]}
 						</span>
 					</p>
@@ -142,7 +140,7 @@ function JpaDetails({
 	const [open, setOpen] = useState(defaultOpen);
 
 	return (
-		<Card>
+		<Card variant="flat" className="overflow-hidden">
 			<details
 				open={open}
 				onToggle={(event) => setOpen(event.currentTarget.open)}
@@ -150,60 +148,59 @@ function JpaDetails({
 			>
 				{/* <summary> only allows phrasing content, so everything in the row
 				    is a span; the office name is the disclosure's own label. */}
-				<summary className="list-none cursor-pointer select-none p-4 sm:p-5 flex items-center gap-4 hover:bg-nb-cream transition-colors [&::-webkit-details-marker]:hidden">
+				<summary className="list-none cursor-pointer select-none px-5 py-4 sm:px-6 sm:py-5 flex items-center gap-4 transition-colors hover:bg-ink/[0.02] [&::-webkit-details-marker]:hidden">
 					<span className="flex-1 min-w-0 sm:flex sm:items-center sm:gap-5">
 						<span className="block sm:flex-1 min-w-0">
-							<span className="block font-black uppercase text-base sm:text-lg leading-tight">
+							<span className="block headline text-xl sm:text-2xl leading-tight">
 								{summary.name}
 							</span>
-							<span className="block text-xs font-medium text-nb-black/60 mt-0.5">
+							<span className="block text-[13px] text-ink/50 mt-0.5">
 								zuletzt am {formatDayMonth(summary.lastRelease)}
 							</span>
 						</span>
-						<span className="block mt-2 sm:mt-0 text-sm font-bold">
+						<span className="block mt-2 sm:mt-0">
 							{prediction && daysUntil !== null ? (
 								<PredictionNote
 									prediction={prediction}
 									daysUntil={daysUntil}
 									prefix="voraussichtlich"
 									detail="relative"
-									chipSize="label"
 								/>
 							) : (
-								<span className="font-medium text-nb-black/60">
+								<span className="text-[15px] text-ink/45">
 									noch keine Prognose
 								</span>
 							)}
 						</span>
 					</span>
 					<ChevronDown
-						className="w-5 h-5 shrink-0 transition-transform group-open:rotate-180"
+						className="w-5 h-5 shrink-0 text-ink/40 transition-transform group-open:rotate-180"
 						aria-hidden
 					/>
 				</summary>
 
-				<div className="border-t-4 border-nb-black p-4 sm:p-5">
-					<div className="grid gap-5 md:grid-cols-2">
+				<div className="border-t border-ink/10 px-5 py-5 sm:px-6 sm:py-6">
+					<div className="grid gap-6 md:grid-cols-2">
 						<div
 							className={cn(
-								"border-4 border-nb-black p-4 sm:p-5",
-								prediction
-									? overdue
-										? "bg-nb-coral"
-										: "bg-nb-teal"
-									: "bg-nb-cream",
+								"rounded-xl p-5",
+								overdue ? "bg-seal-soft" : "bg-paper/70 ring-1 ring-ink/5",
 							)}
 						>
-							<Eyebrow muted={false} className="mb-2">
-								Nächste Veröffentlichung
-							</Eyebrow>
+							<Eyebrow className="mb-2">Nächste Veröffentlichung</Eyebrow>
 							{prediction && daysUntil !== null ? (
 								<>
-									<p className="font-display-wide text-3xl sm:text-4xl leading-none">
-										{formatDayMonth(prediction.date)}
+									<p className="headline text-4xl leading-none">
+										<span className={overdue ? undefined : "marker"}>
+											{formatDayMonth(prediction.date)}
+										</span>
 									</p>
-									<p className="font-bold mt-2">{relativeLabel(daysUntil)}</p>
-									<p className="text-xs font-medium mt-1 text-nb-black/70">
+									<p
+										className={cn("font-semibold mt-3", overdue && "text-seal")}
+									>
+										{relativeLabel(daysUntil)}
+									</p>
+									<p className="text-[13px] mt-1 text-ink/55">
 										Wahrscheinlich zwischen dem{" "}
 										{formatDayMonthShort(prediction.windowStart)} und dem{" "}
 										{formatDayMonthShort(prediction.windowEnd)} ·{" "}
@@ -211,7 +208,7 @@ function JpaDetails({
 									</p>
 								</>
 							) : (
-								<p className="text-sm font-medium">
+								<p className="text-[15px] text-ink/70">
 									Für eine Prognose brauchen wir mindestens zwei
 									Veröffentlichungen. Bisher ist eine erfasst
 									{summary.dates.length > 1
@@ -221,13 +218,13 @@ function JpaDetails({
 							)}
 						</div>
 
-						<div className="flex flex-col justify-between gap-4">
-							<dl className="text-sm space-y-2">
+						<div className="flex flex-col justify-between gap-5">
+							<dl className="space-y-3">
 								<div>
 									<dt>
 										<Eyebrow>Zuletzt</Eyebrow>
 									</dt>
-									<dd className="font-bold">
+									<dd className="font-medium">
 										{summary.lastRelease.toLocaleString("de-DE", {
 											dateStyle: "long",
 											timeStyle: "short",
@@ -239,7 +236,7 @@ function JpaDetails({
 									<dt>
 										<Eyebrow>Typisch</Eyebrow>
 									</dt>
-									<dd className="font-bold">
+									<dd className="font-medium">
 										{prediction
 											? `${monthPositionLabel(prediction.medianOffsetDays)}, `
 											: ""}
@@ -251,14 +248,14 @@ function JpaDetails({
 						</div>
 					</div>
 
-					<div className="mt-5 pt-4 border-t-2 border-nb-black/10 flex flex-wrap items-start justify-between gap-3">
+					<div className="mt-6 pt-5 border-t border-ink/10 flex flex-wrap items-end justify-between gap-4">
 						<div>
 							<Eyebrow className="mb-2">Erfasste Meldungen</Eyebrow>
-							<ul className="flex flex-wrap gap-2">
+							<ul className="flex flex-wrap gap-1.5">
 								{summary.dates.map((date) => (
 									<li
 										key={date.getTime()}
-										className="text-xs font-bold border-2 border-nb-black px-2 py-1 bg-nb-white"
+										className="figures text-xs rounded-md bg-ink/[0.05] px-2 py-1 text-ink/70"
 									>
 										{date.toLocaleString("de-DE", {
 											day: "numeric",
@@ -276,7 +273,7 @@ function JpaDetails({
 								href={summary.websiteUrl}
 								target="_blank"
 								rel="noopener noreferrer"
-								className="text-xs font-bold uppercase inline-flex items-center gap-1 underline decoration-2 underline-offset-4 hover:bg-nb-yellow transition-colors"
+								className="text-sm font-medium text-seal inline-flex items-center gap-1 underline decoration-1 underline-offset-4 hover:decoration-2"
 							>
 								Website des Prüfungsamts
 								<ExternalLink className="w-3.5 h-3.5 shrink-0" />
@@ -297,24 +294,21 @@ function HistoryPage() {
 	if (historyQuery.isLoading) return <PageSpinner />;
 
 	return (
-		<div className="flex-1 py-8 sm:py-12 px-4 sm:px-6 bg-nb-cream">
+		<div className="flex-1 py-12 sm:py-20 px-4 sm:px-6">
 			<div className="max-w-4xl mx-auto">
 				<SectionIntro
 					as="h1"
 					title="Wann kommen die Ergebnisse?"
-					className="mb-8 sm:mb-10"
-					textClassName="max-w-2xl"
+					className="mb-10 sm:mb-14"
 				>
 					Hier siehst du, wann die Justizprüfungsämter bisher Examensergebnisse
 					veröffentlicht haben – und wann die nächsten voraussichtlich kommen.
 				</SectionIntro>
 
 				{summaries.length === 0 ? (
-					<Card className="p-8 text-center">
-						<IconBox size="lg" className="mx-auto mb-4">
-							<CalendarClock className="w-8 h-8" />
-						</IconBox>
-						<p className="font-bold">
+					<Card className="p-10 text-center">
+						<CalendarClock className="w-8 h-8 mx-auto mb-4 text-seal" />
+						<p className="text-lg text-ink/70">
 							Noch keine Veröffentlichungen erfasst. Sobald ein Prüfungsamt
 							Ergebnisse veröffentlicht, erscheint es hier.
 						</p>
@@ -323,12 +317,12 @@ function HistoryPage() {
 					<>
 						<Overview summaries={summaries} />
 
-						<div className="flex flex-wrap items-end justify-between gap-3 mb-4">
+						<div className="flex flex-wrap items-end justify-between gap-4 mb-5">
 							<div>
-								<h2 className="text-xl sm:text-2xl font-black uppercase">
+								<h2 className="headline text-3xl sm:text-4xl leading-tight">
 									Nach Prüfungsamt
 								</h2>
-								<p className="text-sm font-medium text-nb-black/60">
+								<p className="text-[15px] text-ink/55 mt-1">
 									Sortiert nach der nächsten erwarteten Veröffentlichung. Wähle
 									ein Amt aus, um Details zu sehen.
 								</p>
@@ -344,7 +338,7 @@ function HistoryPage() {
 						{search.empty ? (
 							<JpaSearchEmpty query={search.search} />
 						) : (
-							<div className="space-y-4">
+							<div className="space-y-3">
 								{search.visible.map((summary, index) => (
 									<JpaDetails
 										key={summary.slug}
@@ -356,18 +350,6 @@ function HistoryPage() {
 						)}
 					</>
 				)}
-
-				<TeaserCard
-					icon={Bell}
-					title="Nicht selbst nachschauen müssen?"
-					to="/subscriptions"
-					action="Benachrichtigen lassen"
-					variant="primary"
-					className="mt-8 sm:mt-10"
-				>
-					Wir schicken dir eine E-Mail, sobald dein Prüfungsamt neue Ergebnisse
-					veröffentlicht.
-				</TeaserCard>
 			</div>
 		</div>
 	);

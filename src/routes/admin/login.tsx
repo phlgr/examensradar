@@ -41,13 +41,13 @@ function AdminLoginPage() {
 	};
 
 	return (
-		<div className="flex-1 flex items-center justify-center bg-nb-cream px-4">
+		<div className="flex-1 flex items-center justify-center bg-paper px-4">
 			<Card className="w-full max-w-md p-6 sm:p-8">
 				<div className="text-center mb-6">
-					<div className="w-16 h-16 bg-nb-yellow border-4 border-nb-black flex items-center justify-center mx-auto mb-4 shadow-[var(--nb-shadow-sm)]">
+					<div className="w-16 h-16 bg-mark border border-ink flex items-center justify-center mx-auto mb-4 shadow-paper">
 						<Shield className="w-8 h-8" />
 					</div>
-					<h1 className="text-2xl font-black uppercase">Admin Login</h1>
+					<h1 className="text-2xl font-semibold">Admin Login</h1>
 				</div>
 
 				<form onSubmit={handleSubmit} className="space-y-4">
@@ -61,13 +61,13 @@ function AdminLoginPage() {
 							value={password}
 							onChange={(e) => setPassword(e.target.value)}
 							required
-							className="w-full px-4 py-2 border-3 border-nb-black font-medium focus:outline-none focus:ring-2 focus:ring-nb-coral"
+							className="w-full px-4 py-2 border border-ink font-medium focus:outline-none focus:ring-2 focus:ring-seal"
 							placeholder="Admin-Passwort eingeben"
 						/>
 					</div>
 
 					{error && (
-						<div className="p-3 bg-nb-coral border-3 border-nb-black text-sm font-bold">
+						<div className="p-3 bg-seal border border-ink text-sm font-bold">
 							{error}
 						</div>
 					)}

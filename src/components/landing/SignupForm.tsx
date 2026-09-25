@@ -1,7 +1,9 @@
 import { ArrowRight, ChevronDown, Loader2, MailCheck } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { fieldClass, labelClass } from "@/components/ui/input";
 import { trackEvent } from "@/lib/analytics";
 import { trpc } from "@/lib/trpc";
+import { cn } from "@/lib/utils";
 
 interface SignupFormProps {
 	jpas: Array<{ id: string; name: string }> | undefined;
@@ -13,9 +15,8 @@ interface SignupFormProps {
 	onJpaChange: (jpaId: string) => void;
 }
 
-const labelClass = "block text-[13px] font-medium text-ink/60 mb-1.5";
-const fieldClass =
-	"h-12 w-full rounded-[12px] bg-paper/60 border border-ink/15 px-4 text-base text-ink transition-colors placeholder:text-ink/35 hover:border-ink/30 focus:outline-none focus:border-ink focus:bg-sheet focus:ring-4 focus:ring-mark/60 disabled:opacity-50";
+// The hero form is a notch larger than fields elsewhere.
+const heroFieldClass = cn(fieldClass, "h-12");
 
 /**
  * The landing page's inline signup: pick an office, type an address, done.
@@ -102,7 +103,10 @@ export function SignupForm({
 							value={jpaId}
 							onChange={(event) => onJpaChange(event.target.value)}
 							disabled={loading || error || !jpas?.length}
-							className={`${fieldClass} appearance-none pr-10 font-medium cursor-pointer`}
+							className={cn(
+								heroFieldClass,
+								"appearance-none pr-10 font-medium cursor-pointer",
+							)}
 						>
 							{loading && <option value="">Wird geladen …</option>}
 							{error && <option value="">Nicht verfügbar</option>}
@@ -131,7 +135,7 @@ export function SignupForm({
 						placeholder="name@beispiel.de"
 						value={email}
 						onChange={(event) => setEmail(event.target.value)}
-						className={fieldClass}
+						className={heroFieldClass}
 					/>
 				</div>
 
