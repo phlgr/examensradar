@@ -1,10 +1,4 @@
-import {
-	ArrowRight,
-	Check,
-	ChevronDown,
-	Loader2,
-	MailCheck,
-} from "lucide-react";
+import { ChevronDown, Loader2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { trackEvent } from "@/lib/analytics";
 import { trpc } from "@/lib/trpc";
@@ -19,15 +13,9 @@ interface SignupFormProps {
 	onJpaChange: (jpaId: string) => void;
 }
 
-const labelClass = "block text-[13px] font-medium text-ink/60 mb-1.5";
+const labelClass = "ui block text-[13px] text-ink/65 mb-1";
 const fieldClass =
-	"h-12 w-full rounded-[12px] bg-paper/60 border border-ink/15 px-4 text-base text-ink transition-colors placeholder:text-ink/35 hover:border-ink/30 focus:outline-none focus:border-ink focus:bg-sheet focus:ring-4 focus:ring-mark/60 disabled:opacity-50";
-
-const PROMISES = [
-	"Kostenlos",
-	"Kein Konto, keine App",
-	"Jederzeit abbestellbar",
-];
+	"ui h-11 w-full rounded-[3px] bg-sheet border border-ink/30 px-3 text-[15px] text-ink placeholder:text-ink/35 hover:border-ink/50 focus:outline-none focus:border-ink focus:shadow-[0_0_0_3px_var(--mark)] disabled:opacity-50";
 
 /**
  * The landing page's inline signup: pick an office, type an address, done.
@@ -71,25 +59,18 @@ export function SignupForm({
 				ref={successRef}
 				tabIndex={-1}
 				role="status"
-				className="rounded-2xl bg-sheet ring-1 ring-ink/10 shadow-paper p-5 sm:p-6 flex gap-4 items-start"
+				className="border-l-4 border-seal bg-sheet px-5 py-4"
 			>
-				<span className="w-11 h-11 shrink-0 rounded-full bg-mark grid place-items-center">
-					<MailCheck className="w-5 h-5" />
-				</span>
-				<div>
-					<p className="headline text-2xl leading-tight">Fast geschafft.</p>
-					<p className="text-[15px] text-ink/75 mt-1.5 leading-relaxed">
-						Wir haben eine E-Mail an{" "}
-						<strong className="font-semibold text-ink">{email}</strong>{" "}
-						geschickt. Bestätige darin kurz deine Adresse – danach
-						benachrichtigen wir dich, sobald {jpaName} neue Ergebnisse
-						veröffentlicht.
-					</p>
-					<p className="text-[13px] mt-3 text-ink/50">
-						Keine E-Mail bekommen? Schau in deinen Spam-Ordner oder versuch es
-						einfach noch einmal.
-					</p>
-				</div>
+				<p className="headline text-xl">Fast geschafft.</p>
+				<p className="text-[17px] text-ink/80 mt-1 leading-relaxed">
+					Wir haben eine E-Mail an <strong>{email}</strong> geschickt. Bestätige
+					darin kurz deine Adresse – danach benachrichtigen wir dich, sobald{" "}
+					{jpaName} neue Ergebnisse veröffentlicht.
+				</p>
+				<p className="text-[15px] mt-2 text-ink/55">
+					Keine E-Mail bekommen? Schau in deinen Spam-Ordner oder versuch es
+					einfach noch einmal.
+				</p>
 			</div>
 		);
 	}
@@ -97,7 +78,6 @@ export function SignupForm({
 	return (
 		<form
 			id="anmelden"
-			className="rounded-2xl bg-sheet ring-1 ring-ink/10 shadow-paper p-4 sm:p-5"
 			onSubmit={(event) => {
 				event.preventDefault();
 				if (canSubmit) subscribe.mutate({ email, jpaId });
@@ -106,7 +86,7 @@ export function SignupForm({
 			<div className="grid gap-3 sm:grid-cols-[1fr_auto]">
 				<div className="sm:col-span-2">
 					<label htmlFor="signup-jpa" className={labelClass}>
-						Dein Justizprüfungsamt
+						Justizprüfungsamt
 					</label>
 					<span className="relative block">
 						<select
@@ -114,7 +94,7 @@ export function SignupForm({
 							value={jpaId}
 							onChange={(event) => onJpaChange(event.target.value)}
 							disabled={loading || error || !jpas?.length}
-							className={`${fieldClass} appearance-none pr-10 font-medium cursor-pointer`}
+							className={`${fieldClass} appearance-none pr-9 cursor-pointer`}
 						>
 							{loading && <option value="">Wird geladen …</option>}
 							{error && <option value="">Nicht verfügbar</option>}
@@ -125,7 +105,7 @@ export function SignupForm({
 							))}
 						</select>
 						<ChevronDown
-							className="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-ink/50"
+							className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-ink/60"
 							aria-hidden
 						/>
 					</span>
@@ -151,35 +131,28 @@ export function SignupForm({
 					<button
 						type="submit"
 						disabled={!canSubmit}
-						className="group h-12 w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-[12px] bg-ink px-5 text-[15px] font-semibold text-sheet shadow-[inset_0_-2px_0_rgb(0_0_0/0.35)] transition-colors hover:bg-seal disabled:cursor-not-allowed disabled:bg-ink/25 disabled:shadow-none cursor-pointer"
+						className="ui h-11 w-full sm:w-auto inline-flex items-center justify-center rounded-[3px] bg-seal px-5 text-[15px] font-semibold text-sheet hover:bg-seal-deep disabled:cursor-not-allowed disabled:bg-ink/20 cursor-pointer"
 					>
 						{subscribe.isPending ? (
 							<Loader2 className="w-5 h-5 animate-spin" />
 						) : (
-							<>
-								Benachrichtigen lassen
-								<ArrowRight className="w-4 h-4 transition-transform group-enabled:group-hover:translate-x-0.5" />
-							</>
+							"Benachrichtigen lassen"
 						)}
 					</button>
 				</div>
 			</div>
 
 			{error || subscribe.isError ? (
-				<p role="alert" className="mt-4 text-sm font-medium text-seal">
+				<p role="alert" className="mt-3 text-[15px] text-seal">
 					{error
 						? "Die Prüfungsämter konnten nicht geladen werden. Bitte lade die Seite neu."
 						: "Das hat leider nicht geklappt. Bitte versuch es noch einmal."}
 				</p>
 			) : (
-				<ul className="mt-4 flex flex-wrap gap-x-5 gap-y-1.5 text-[13px] text-ink/60">
-					{PROMISES.map((promise) => (
-						<li key={promise} className="inline-flex items-center gap-1.5">
-							<Check className="w-3.5 h-3.5 text-seal" strokeWidth={3} />
-							{promise}
-						</li>
-					))}
-				</ul>
+				<p className="mt-3 text-[15px] text-ink/55 leading-snug">
+					Kostenlos und ohne Konto. Du bekommst nur dann Post, wenn es Neues
+					gibt, und kannst jederzeit abbestellen.
+				</p>
 			)}
 		</form>
 	);

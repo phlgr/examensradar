@@ -24,7 +24,7 @@ function NavLink({
 			// black-on-white-text under the cursor.
 			className={
 				desk
-					? "inline-flex items-center gap-2 h-10 px-3 rounded-full text-sm font-medium text-ink/70 transition-colors hover:text-ink hover:bg-ink/5"
+					? "ui inline-flex items-center gap-1.5 h-10 px-2 text-sm text-ink/75 underline-offset-4 decoration-1 hover:text-ink hover:underline"
 					: "inline-flex items-center gap-2 h-10 px-2.5 sm:px-3 border-3 border-transparent font-black uppercase text-sm transition-colors [&:not([data-status=active])]:hover:border-nb-black [&:not([data-status=active])]:hover:bg-nb-white data-[status=active]:border-nb-black data-[status=active]:bg-nb-black data-[status=active]:text-nb-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-nb-black focus-visible:ring-offset-2"
 			}
 		>
@@ -45,7 +45,7 @@ export default function Header() {
 		<header
 			className={
 				desk
-					? "desk sticky top-0 z-40 bg-paper/85 backdrop-blur-md border-b border-ink/10"
+					? "desk sticky top-0 z-40 bg-paper border-b border-ink/15"
 					: "sticky top-0 z-40 bg-nb-yellow border-b-4 border-nb-black"
 			}
 		>
@@ -54,16 +54,14 @@ export default function Header() {
 					to="/"
 					className={
 						desk
-							? "flex items-center gap-2.5 rounded-[8px]"
+							? "flex items-center gap-2"
 							: "flex items-center gap-2.5 cursor-pointer hover:-translate-y-0.5 transition-transform focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-nb-black focus-visible:ring-offset-2"
 					}
 				>
 					{desk ? (
 						<>
-							<span className="w-8 h-8 rounded-[9px] bg-seal text-sheet grid place-items-center shadow-[inset_0_-2px_0_rgb(0_0_0/0.2)]">
-								<Radar className="w-[18px] h-[18px]" />
-							</span>
-							<span className="headline text-[1.4rem] leading-none">
+							<Radar className="w-5 h-5 text-seal" strokeWidth={2.25} />
+							<span className="headline text-[1.35rem] leading-none">
 								Examensradar
 							</span>
 						</>
