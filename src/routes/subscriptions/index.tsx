@@ -1,5 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, ExternalLink, Loader2, LogOut } from "lucide-react";
+import { createFileRoute } from "@tanstack/react-router";
+import { ExternalLink, Loader2, LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import {
@@ -7,6 +7,7 @@ import {
 	JpaSearchInput,
 	useJpaSearch,
 } from "@/components/jpa-search";
+import { SignupForm } from "@/components/SignupForm";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -85,42 +86,25 @@ function SubscriptionsPage() {
 					}
 					className="mb-10 sm:mb-14"
 				>
-					{me && !me.unsubscribed
-						? "Wähle aus, über welche Prüfungsämter du informiert werden möchtest. Sobald eines davon neue Ergebnisse veröffentlicht, bekommst du eine E-Mail."
-						: "Hier legst du fest, über welche Prüfungsämter wir dich informieren. Den Zugang dazu findest du in jeder E-Mail von uns."}
+					{me === null
+						? "Wir schicken dir eine E-Mail, sobald dein Prüfungsamt neue Ergebnisse veröffentlicht."
+						: me.unsubscribed
+							? "Du hast alle Benachrichtigungen abbestellt. Wenn du wieder informiert werden möchtest, melde dich hier einfach neu an."
+							: "Wähle aus, über welche Prüfungsämter du informiert werden möchtest. Sobald eines davon neue Ergebnisse veröffentlicht, bekommst du eine E-Mail."}
 				</SectionIntro>
 
 				{showInvalidLink && (
 					<Card variant="destructive" className="mb-8 p-5">
 						<p className="font-semibold">Dieser Link ist nicht mehr gültig.</p>
 						<p className="text-[15px] text-ink/70 mt-1">
-							Gib unten deine E-Mail-Adresse ein – wir schicken dir einen neuen
-							Link zu deinen Einstellungen.
+							Unten bei „Schon angemeldet?“ schicken wir dir einen neuen Link zu
+							deinen Einstellungen.
 						</p>
 					</Card>
 				)}
 
-				{me === null ? (
-					<SignedOut />
-				) : me.unsubscribed ? (
-					<Card variant="muted" className="p-6">
-						<p className="headline text-2xl">
-							Du erhältst derzeit keine E-Mails.
-						</p>
-						<p className="text-[15px] text-ink/70 mt-2 leading-relaxed">
-							Du hast alle Benachrichtigungen abbestellt. Wenn du wieder
-							informiert werden möchtest, melde dich einfach neu an – wir
-							schicken dir dann einen neuen Bestätigungslink.
-						</p>
-						<Link
-							to="/"
-							hash="anmelden"
-							className="mt-4 inline-flex items-center gap-2 font-semibold border-b-2 border-ink pb-0.5 hover:text-seal hover:border-seal"
-						>
-							Zur Anmeldung
-							<ArrowRight className="w-4 h-4" />
-						</Link>
-					</Card>
+				{me === null || me.unsubscribed ? (
+					<Signup signedOut={me === null} />
 				) : (
 					<Managing email={me.email} jpaIds={me.jpas.map((jpa) => jpa.jpaId)} />
 				)}
@@ -280,76 +264,90 @@ function Managing({ email, jpaIds }: { email: string; jpaIds: string[] }) {
 }
 
 /**
- * Not signed in: the way back in for a lost manage link, and the way to the
- * signup for everyone else. The resend reply is deliberately identical whether
- * the address is known or not, so the copy promises a mail only "if you are
- * subscribed".
+ * Not subscribed (signed out, or signed in with everything unsubscribed): the
+ * same signup form as the landing page, and for signed-out visitors a quiet
+ * way back in for a lost manage link.
  */
-function SignedOut() {
+function Signup({ signedOut }: { signedOut: boolean }) {
+	const jpasQuery = trpc.jpa.getAll.useQuery();
+	const [jpaId, setJpaId] = useState("");
+
+	// Preselect the first office, as on the landing page.
+	useEffect(() => {
+		if (!jpaId && jpasQuery.data?.[0]) setJpaId(jpasQuery.data[0].id);
+	}, [jpasQuery.data, jpaId]);
+
+	return (
+		<div className="max-w-xl">
+			<SignupForm
+				jpas={jpasQuery.data}
+				loading={jpasQuery.isLoading}
+				error={jpasQuery.isError}
+				jpaId={jpaId}
+				onJpaChange={setJpaId}
+				source="subscriptions"
+			/>
+			{signedOut && <ResendManageLink />}
+		</div>
+	);
+}
+
+/**
+ * The way back in for a lost manage link. The reply is deliberately identical
+ * whether the address is known or not, so the copy promises a mail only "if
+ * you are subscribed".
+ */
+function ResendManageLink() {
 	const [email, setEmail] = useState("");
 	const resend = trpc.email.resendManageLink.useMutation();
 
 	const canSubmit = email.includes("@") && !resend.isPending;
 
 	return (
-		<div className="grid gap-4 md:grid-cols-[1.4fr_1fr]">
-			<Card className="p-6 sm:p-8">
-				<h2 className="headline text-2xl sm:text-3xl mb-2">
-					Schon angemeldet?
-				</h2>
-				{resend.isSuccess ? (
-					<p className="text-[15px] text-ink/70 leading-relaxed" role="status">
-						Falls diese Adresse bei uns angemeldet ist, findest du den Link zu
-						deinen Einstellungen gleich in deinem Postfach.
-					</p>
-				) : (
-					<>
-						<p className="text-[15px] text-ink/70 leading-relaxed mb-5">
-							Gib deine E-Mail-Adresse ein, und wir schicken dir den Link zu
-							deinen Einstellungen noch einmal zu.
-						</p>
-						<form
-							className="flex flex-col sm:flex-row gap-2"
-							onSubmit={(event) => {
-								event.preventDefault();
-								if (canSubmit) resend.mutate({ email });
-							}}
-						>
-							<Input
-								type="email"
-								autoComplete="email"
-								aria-label="E-Mail-Adresse"
-								placeholder="name@beispiel.de"
-								value={email}
-								onChange={(event) => setEmail(event.target.value)}
-							/>
-							<Button type="submit" disabled={!canSubmit} className="shrink-0">
-								{resend.isPending ? (
-									<Loader2 className="w-4 h-4 animate-spin" />
-								) : (
-									"Link zuschicken"
-								)}
-							</Button>
-						</form>
-					</>
-				)}
-			</Card>
-
-			<Card variant="muted" className="p-6 sm:p-8 flex flex-col">
-				<h2 className="headline text-2xl sm:text-3xl mb-2">Noch nicht?</h2>
-				<p className="text-[15px] text-ink/70 leading-relaxed mb-5 flex-1">
-					Wähle dein Prüfungsamt und trag deine Adresse ein – das dauert keine
-					Minute.
+		<section className="mt-12 pt-8 border-t border-ink/10">
+			<h2 className="font-semibold">Schon angemeldet?</h2>
+			{resend.isSuccess ? (
+				<p className="text-[15px] text-ink/65 mt-1" role="status">
+					Falls diese Adresse bei uns angemeldet ist, findest du den Link zu
+					deinen Einstellungen gleich in deinem Postfach.
 				</p>
-				<Link
-					to="/"
-					hash="anmelden"
-					className="self-start inline-flex items-center gap-2 font-semibold border-b-2 border-ink pb-0.5 hover:text-seal hover:border-seal"
-				>
-					Zur Anmeldung
-					<ArrowRight className="w-4 h-4" />
-				</Link>
-			</Card>
-		</div>
+			) : (
+				<>
+					<p className="text-[15px] text-ink/65 mt-1 mb-4">
+						Wir schicken dir den Link zu deinen Einstellungen noch einmal zu.
+					</p>
+					<form
+						className="flex flex-col sm:flex-row gap-2"
+						onSubmit={(event) => {
+							event.preventDefault();
+							if (canSubmit) resend.mutate({ email });
+						}}
+					>
+						<Input
+							type="email"
+							autoComplete="email"
+							aria-label="E-Mail-Adresse"
+							placeholder="name@beispiel.de"
+							value={email}
+							onChange={(event) => setEmail(event.target.value)}
+							className="h-10 text-[15px]"
+						/>
+						<Button
+							type="submit"
+							variant="secondary"
+							size="sm"
+							disabled={!canSubmit}
+							className="shrink-0 h-10"
+						>
+							{resend.isPending ? (
+								<Loader2 className="w-4 h-4 animate-spin" />
+							) : (
+								"Link zuschicken"
+							)}
+						</Button>
+					</form>
+				</>
+			)}
+		</section>
 	);
 }

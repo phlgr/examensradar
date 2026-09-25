@@ -13,15 +13,17 @@ interface SignupFormProps {
 	/** Selected office; owned by the page so the preview can follow it. */
 	jpaId: string;
 	onJpaChange: (jpaId: string) => void;
+	/** Page the signup came from, for the funnel in Plausible. */
+	source: "landing" | "subscriptions";
 }
 
-// The hero form is a notch larger than fields elsewhere.
+// A notch larger than fields elsewhere: this is the page's main action.
 const heroFieldClass = cn(fieldClass, "h-12");
 
 /**
- * The landing page's inline signup: pick an office, type an address, done.
- * Same procedure and same "we sent you a mail" promise as the modal on
- * /subscriptions — what actually happens is decided in the inbox.
+ * The signup: pick an office, type an address, done. On the landing page and
+ * on a signed-out /subscriptions. The reply is the same whether the address is
+ * new or already subscribed — what actually happens is decided in the inbox.
  */
 export function SignupForm({
 	jpas,
@@ -29,6 +31,7 @@ export function SignupForm({
 	error,
 	jpaId,
 	onJpaChange,
+	source,
 }: SignupFormProps) {
 	const [email, setEmail] = useState("");
 	const successRef = useRef<HTMLDivElement>(null);
@@ -36,8 +39,7 @@ export function SignupForm({
 	const jpaName = jpas?.find((jpa) => jpa.id === jpaId)?.name ?? "";
 
 	const subscribe = trpc.email.subscribe.useMutation({
-		onSuccess: () =>
-			trackEvent("email_subscribe", { jpa: jpaName, source: "landing" }),
+		onSuccess: () => trackEvent("email_subscribe", { jpa: jpaName, source }),
 	});
 
 	// The form (and the focused submit button) is replaced on success; move

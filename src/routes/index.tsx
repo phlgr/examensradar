@@ -3,8 +3,8 @@ import { ArrowRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { NotificationPreview } from "@/components/landing/NotificationPreview";
 import { Reveal } from "@/components/landing/Reveal";
-import { SignupForm } from "@/components/landing/SignupForm";
 import { UpcomingReleases } from "@/components/landing/UpcomingReleases";
+import { SignupForm } from "@/components/SignupForm";
 import { summarizeReleases } from "@/lib/release-summary";
 import { trpc } from "@/lib/trpc";
 
@@ -108,6 +108,7 @@ function LandingPage() {
 								error={jpasQuery.isError}
 								jpaId={jpaId}
 								onJpaChange={setJpaId}
+								source="landing"
 							/>
 						</div>
 					</div>
