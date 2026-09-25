@@ -1,25 +1,34 @@
 import { createFileRoute } from "@tanstack/react-router";
 import {
+	CalendarClock,
 	CheckCircle,
 	ExternalLink,
-	History,
 	Loader2,
 	LogOut,
 	Mail,
 	MailCheck,
-	Radar,
 	Smartphone,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { EmailSignupModal } from "@/components/email/EmailSignupModal";
+import {
+	JpaSearchEmpty,
+	JpaSearchInput,
+	useJpaSearch,
+} from "@/components/jpa-search";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { PredictionNote } from "@/components/ui/date-chip";
+import { Eyebrow, SectionIntro } from "@/components/ui/heading";
+import { IconBox } from "@/components/ui/icon-box";
 import { Input } from "@/components/ui/input";
-import { LinkButton } from "@/components/ui/link-button";
+import { PageSpinner } from "@/components/ui/spinner";
+import { TeaserCard } from "@/components/ui/teaser-card";
 import { trackEvent } from "@/lib/analytics";
 import { setDeviceId } from "@/lib/device-id";
+import { summarizeReleases } from "@/lib/release-summary";
 import { trpc } from "@/lib/trpc";
 
 // Neither param may make validateSearch throw: mail clients truncate links,
@@ -93,12 +102,16 @@ function SubscriptionsPage() {
 
 	const utils = trpc.useUtils();
 	const jpasQuery = trpc.jpa.getAll.useQuery();
+	const historyQuery = trpc.jpa.getHistory.useQuery();
 	// UNAUTHORIZED simply means "not signed in", so never retry it.
 	const meQuery = trpc.email.me.useQuery(undefined, { retry: false });
 	const ntfySubscriptionsQuery = trpc.subscription.getAll.useQuery();
 
+	const jpas = jpasQuery.data ?? [];
+	const search = useJpaSearch(jpas);
+
 	const jpaNameById = (id: string) =>
-		jpasQuery.data?.find((jpa) => jpa.id === id)?.name ?? id;
+		jpas.find((jpa) => jpa.id === id)?.name ?? id;
 
 	const addJpa = trpc.email.addJpa.useMutation({
 		onSuccess: (_data, variables) => {
@@ -127,80 +140,64 @@ function SubscriptionsPage() {
 
 	// Exchanging a token or restoring — hold the spinner until the reload.
 	const exchanging = Boolean(restore || manage);
-	const loading = jpasQuery.isLoading || meQuery.isLoading || exchanging;
-
-	if (loading) {
-		return (
-			<div className="flex-1 flex items-center justify-center bg-nb-cream">
-				<div className="w-12 h-12 border-4 border-nb-black border-t-nb-yellow animate-spin" />
-			</div>
-		);
+	if (jpasQuery.isLoading || meQuery.isLoading || exchanging) {
+		return <PageSpinner />;
 	}
 
-	const jpas = jpasQuery.data ?? [];
 	const me = meQuery.data ?? null;
 	const managing = me !== null && !me.unsubscribed;
 	const subscribedJpaIds = new Set(
 		managing ? me.jpas.map((jpa) => jpa.jpaId) : [],
 	);
 	const ntfySubscriptions = ntfySubscriptionsQuery.data ?? [];
+	const summaryBySlug = new Map(
+		summarizeReleases(historyQuery.data ?? [], new Date()).map((summary) => [
+			summary.slug,
+			summary,
+		]),
+	);
 
 	return (
-		<div className="flex-1 py-4 sm:py-8 px-4 bg-nb-cream">
+		<div className="flex-1 py-8 sm:py-12 px-4 sm:px-6 bg-nb-cream">
 			<div className="max-w-4xl mx-auto">
-				<div className="mb-6 sm:mb-8">
-					<h1 className="text-3xl sm:text-4xl font-black uppercase mb-2">
-						Benachrichtigungen
-					</h1>
-					<p className="font-medium text-sm sm:text-base">
-						Erhalte eine E-Mail, sobald dein Prüfungsamt neue Examensergebnisse
-						veröffentlicht — keine App, kein Konto.
-					</p>
-				</div>
-
-				{/* History Teaser */}
-				<Card variant="flat" className="mb-6 sm:mb-8 p-3 sm:p-4">
-					<div className="flex flex-wrap items-center gap-3">
-						<div className="w-9 h-9 bg-nb-yellow border-3 border-nb-black flex items-center justify-center shrink-0">
-							<History className="w-4 h-4" />
-						</div>
-						<p className="text-sm font-medium flex-1 min-w-0">
-							<span className="font-black">Wann veröffentlicht dein JPA?</span>{" "}
-							Sieh dir die Ergebnis-Historie mit typischem Tag und Uhrzeit an.
-						</p>
-						<LinkButton to="/history" size="sm" className="w-full sm:w-auto">
-							Zur Historie
-						</LinkButton>
-					</div>
-				</Card>
+				<SectionIntro
+					as="h1"
+					title={managing ? "Deine Benachrichtigungen" : "Benachrichtigungen"}
+					className="mb-8 sm:mb-10"
+					textClassName="max-w-2xl"
+				>
+					{managing
+						? "Wähle aus, über welche Prüfungsämter du informiert werden möchtest. Sobald eines davon neue Ergebnisse veröffentlicht, bekommst du eine E-Mail."
+						: "Abonniere dein Justizprüfungsamt und bekomme eine E-Mail, sobald es neue Examensergebnisse veröffentlicht."}
+				</SectionIntro>
 
 				{/* Invalid manage link */}
 				{showInvalidLink && (
-					<Card variant="destructive" className="mb-6 sm:mb-8 p-4">
+					<Card variant="destructive" className="mb-6 sm:mb-8 p-4 sm:p-5">
 						<p className="font-black text-sm uppercase">
-							Dieser Verwaltungslink ist nicht mehr gültig
+							Dieser Link ist nicht mehr gültig
 						</p>
-						<p className="text-xs font-medium mt-1">
-							Lass dir unten mit deiner E-Mail-Adresse einen neuen Link
-							schicken.
+						<p className="text-sm font-medium mt-1">
+							Gib unten deine E-Mail-Adresse ein – wir schicken dir einen neuen
+							Link zu deinen Einstellungen.
 						</p>
 					</Card>
 				)}
 
 				{/* Legacy device restore banner */}
 				{showRestoredBanner && (
-					<Card variant="success" className="mb-6 sm:mb-8 p-4">
+					<Card variant="success" className="mb-6 sm:mb-8 p-4 sm:p-5">
 						<div className="flex items-center gap-3">
-							<div className="bg-nb-mint p-2 border-3 border-nb-black shrink-0">
+							<IconBox color="white">
 								<CheckCircle className="w-5 h-5" />
-							</div>
+							</IconBox>
 							<div className="flex-1">
 								<p className="font-black text-sm uppercase">
-									Abonnements wiederhergestellt
+									Push-Benachrichtigungen wiederhergestellt
 								</p>
-								<p className="text-xs font-medium">
-									Deine Abonnements wurden erfolgreich auf dieses Gerät
-									übertragen.
+								<p className="text-sm font-medium">
+									Deine Push-Benachrichtigungen sind jetzt auf diesem Gerät
+									aktiv.
 								</p>
 							</div>
 							<Button
@@ -217,14 +214,14 @@ function SubscriptionsPage() {
 
 				{/* Signed-in header */}
 				{managing && (
-					<Card variant="primary" className="mb-6 sm:mb-8 p-4">
+					<Card variant="primary" className="mb-6 sm:mb-8 p-4 sm:p-5">
 						<div className="flex flex-wrap items-center gap-3">
-							<div className="bg-nb-white p-2 border-3 border-nb-black shrink-0">
+							<IconBox color="white">
 								<MailCheck className="w-5 h-5" />
-							</div>
+							</IconBox>
 							<div className="flex-1 min-w-0">
-								<p className="font-black text-sm uppercase">Angemeldet</p>
-								<p className="text-xs sm:text-sm font-medium break-all">
+								<Eyebrow muted={false}>Angemeldet als</Eyebrow>
+								<p className="text-sm sm:text-base font-bold break-all">
 									{me.email}
 								</p>
 							</div>
@@ -244,40 +241,49 @@ function SubscriptionsPage() {
 
 				{/* Previously unsubscribed */}
 				{me?.unsubscribed && (
-					<Card variant="muted" className="mb-6 sm:mb-8 p-4">
+					<Card variant="muted" className="mb-6 sm:mb-8 p-4 sm:p-5">
 						<p className="font-black text-sm uppercase">
-							Du bist von allen E-Mails abgemeldet
+							Du erhältst derzeit keine E-Mails
 						</p>
-						<p className="text-xs font-medium mt-1">
-							Wenn du wieder benachrichtigt werden möchtest, abonniere unten
-							einfach neu — wir schicken dir dann einen Bestätigungslink.
+						<p className="text-sm font-medium mt-1">
+							Du hast alle Benachrichtigungen abbestellt. Wenn du wieder
+							informiert werden möchtest, abonniere ein Prüfungsamt einfach
+							erneut – wir schicken dir dann einen neuen Bestätigungslink.
 						</p>
 					</Card>
 				)}
 
-				{/* JPA List */}
-				<div className="space-y-4">
-					<h2 className="text-xl sm:text-2xl font-black uppercase">
-						Justizprüfungsämter
-					</h2>
+				{/* JPA list */}
+				<section className="space-y-4">
+					<div className="flex flex-wrap items-end justify-between gap-3">
+						<h2 className="text-xl sm:text-2xl font-black uppercase">
+							Justizprüfungsämter
+						</h2>
+						{search.searchable && (
+							<JpaSearchInput
+								value={search.search}
+								onChange={search.setSearch}
+							/>
+						)}
+					</div>
 
 					{jpas.length === 0 ? (
 						<Card className="p-8 text-center">
-							<div className="w-16 h-16 bg-nb-yellow border-4 border-nb-black flex items-center justify-center mx-auto mb-4">
-								<Radar className="w-8 h-8" />
-							</div>
 							<p className="font-bold">
-								Noch keine Justizprüfungsämter verfügbar.
+								Derzeit sind keine Prüfungsämter hinterlegt.
 							</p>
 						</Card>
+					) : search.empty ? (
+						<JpaSearchEmpty query={search.search} />
 					) : (
 						<div className="grid gap-4">
-							{jpas.map((jpa) => {
+							{search.visible.map((jpa) => {
 								const isSubscribed = subscribedJpaIds.has(jpa.id);
 								const isMutating =
 									(addJpa.isPending && addJpa.variables?.jpaId === jpa.id) ||
 									(removeJpa.isPending &&
 										removeJpa.variables?.jpaId === jpa.id);
+								const summary = summaryBySlug.get(jpa.slug);
 
 								return (
 									<Card
@@ -285,22 +291,33 @@ function SubscriptionsPage() {
 										variant={isSubscribed ? "success" : "default"}
 										className="p-4 sm:p-6"
 									>
-										<div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4">
+										<div className="flex flex-col sm:flex-row sm:items-center gap-4">
 											<div className="flex-1 min-w-0">
-												<div className="flex items-center gap-2 sm:gap-3 mb-2 flex-wrap">
-													<h3 className="text-lg sm:text-xl font-black uppercase">
+												<div className="flex items-center gap-3 flex-wrap">
+													<h3 className="text-lg sm:text-xl font-black uppercase leading-tight">
 														{jpa.name}
 													</h3>
-													{isSubscribed && <Badge>Abonniert</Badge>}
+													{isSubscribed && <Badge>Aktiv</Badge>}
 												</div>
+												{summary?.prediction && summary.daysUntil !== null && (
+													<p className="mt-1.5 flex items-center gap-1.5">
+														<CalendarClock className="w-4 h-4 shrink-0 text-nb-black/50" />
+														<PredictionNote
+															prediction={summary.prediction}
+															daysUntil={summary.daysUntil}
+															prefix="Nächste Veröffentlichung voraussichtlich am"
+															className="font-medium"
+														/>
+													</p>
+												)}
 												{jpa.websiteUrl && (
 													<a
 														href={jpa.websiteUrl}
 														target="_blank"
 														rel="noopener noreferrer"
-														className="text-xs sm:text-sm font-bold inline-flex items-center gap-1 underline decoration-2 hover:bg-nb-yellow transition-colors cursor-pointer"
+														className="mt-2 text-xs font-bold uppercase inline-flex items-center gap-1 underline decoration-2 underline-offset-4 hover:bg-nb-yellow transition-colors"
 													>
-														Zur Website
+														Website des Prüfungsamts
 														<ExternalLink className="w-3 h-3" />
 													</a>
 												)}
@@ -313,7 +330,7 @@ function SubscriptionsPage() {
 															? removeJpa.mutate({ jpaId: jpa.id })
 															: addJpa.mutate({ jpaId: jpa.id })
 													}
-													variant={isSubscribed ? "destructive" : "default"}
+													variant={isSubscribed ? "secondary" : "default"}
 													disabled={isMutating}
 													className="shrink-0 w-full sm:w-auto"
 													size="sm"
@@ -335,7 +352,7 @@ function SubscriptionsPage() {
 													size="sm"
 												>
 													<Mail className="w-4 h-4" />
-													Abonnieren
+													Benachrichtigen lassen
 												</Button>
 											)}
 										</div>
@@ -344,29 +361,42 @@ function SubscriptionsPage() {
 							})}
 						</div>
 					)}
-				</div>
+				</section>
 
 				{/* Lost-link re-entry */}
 				{!managing && <ResendManageLinkCard />}
 
+				<TeaserCard
+					icon={CalendarClock}
+					title="Wann ist es so weit?"
+					to="/history"
+					action="Zur Historie"
+					className="mt-8 sm:mt-10"
+				>
+					In der Historie siehst du, wann die Prüfungsämter bisher
+					veröffentlicht haben – und wann die nächsten Ergebnisse
+					voraussichtlich kommen.
+				</TeaserCard>
+
 				{/* Legacy ntfy subscriptions */}
 				{ntfySubscriptions.length > 0 && (
-					<div className="mt-8 sm:mt-10 space-y-4">
+					<section className="mt-8 sm:mt-10 space-y-4">
 						<h2 className="text-xl sm:text-2xl font-black uppercase">
-							Push-Benachrichtigungen (Legacy)
+							Push-Benachrichtigungen (ntfy)
 						</h2>
-						<Card variant="muted" className="p-4">
-							<div className="flex items-start gap-3">
-								<div className="bg-nb-white p-2 border-3 border-nb-black shrink-0">
+						<Card variant="muted" className="p-4 sm:p-5">
+							<div className="flex flex-col sm:flex-row items-start gap-3">
+								<IconBox color="white">
 									<Smartphone className="w-5 h-5" />
-								</div>
-								<p className="text-xs sm:text-sm font-medium flex-1">
+								</IconBox>
+								<p className="text-sm font-medium flex-1 w-full">
 									<span className="font-black">
-										Push über ntfy wird in Kürze eingestellt.
+										Die Push-Benachrichtigungen über ntfy werden zum 15.
+										September 2026 eingestellt.
 									</span>{" "}
-									Abonniere dein Prüfungsamt oben per E-Mail, um weiterhin
-									benachrichtigt zu werden. Bestehende Push-Abos funktionieren
-									bis zur Abschaltung weiter.
+									Damit du weiterhin informiert wirst, abonniere dein
+									Prüfungsamt oben per E-Mail. Bis dahin funktionieren deine
+									bestehenden Push-Abos weiter.
 								</p>
 							</div>
 						</Card>
@@ -385,7 +415,7 @@ function SubscriptionsPage() {
 												</code>
 											</div>
 											<Button
-												variant="destructive"
+												variant="secondary"
 												size="sm"
 												onClick={() =>
 													deleteNtfySubscription.mutate({
@@ -402,7 +432,7 @@ function SubscriptionsPage() {
 								);
 							})}
 						</div>
-					</div>
+					</section>
 				)}
 
 				{/* Signup modal */}
@@ -432,23 +462,24 @@ function ResendManageLinkCard() {
 
 	return (
 		<Card variant="flat" className="mt-8 sm:mt-10 p-4 sm:p-6">
-			<div className="flex items-start gap-3 sm:gap-4">
-				<div className="bg-nb-teal p-2 border-3 border-nb-black shrink-0">
+			<div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
+				<IconBox color="teal">
 					<Mail className="w-5 h-5" />
-				</div>
-				<div className="flex-1 min-w-0">
-					<h2 className="font-black text-sm sm:text-base uppercase mb-1">
-						Bereits angemeldet?
+				</IconBox>
+				<div className="flex-1 min-w-0 w-full">
+					<h2 className="font-black text-base uppercase mb-1">
+						Schon angemeldet?
 					</h2>
 					{resend.isSuccess ? (
-						<p className="text-xs sm:text-sm font-medium">
-							Wenn diese Adresse angemeldet ist, findest du gleich eine E-Mail
-							mit deinem Verwaltungslink im Postfach.
+						<p className="text-sm font-medium">
+							Falls diese Adresse bei uns angemeldet ist, findest du den Link zu
+							deinen Einstellungen gleich in deinem Postfach.
 						</p>
 					) : (
 						<>
-							<p className="text-xs sm:text-sm font-medium mb-3">
-								Wir schicken dir deinen Verwaltungslink erneut zu.
+							<p className="text-sm font-medium mb-3">
+								Gib deine E-Mail-Adresse ein, und wir schicken dir den Link zu
+								deinen Einstellungen noch einmal zu.
 							</p>
 							<form
 								className="flex flex-col sm:flex-row gap-2 sm:gap-3"
@@ -460,7 +491,7 @@ function ResendManageLinkCard() {
 								<Input
 									type="email"
 									autoComplete="email"
-									placeholder="deine@email.de"
+									placeholder="name@beispiel.de"
 									value={email}
 									onChange={(event) => setEmail(event.target.value)}
 									className="h-10 text-sm sm:max-w-xs"
@@ -469,7 +500,7 @@ function ResendManageLinkCard() {
 									{resend.isPending ? (
 										<Loader2 className="w-4 h-4 animate-spin" />
 									) : (
-										"Link senden"
+										"Link zuschicken"
 									)}
 								</Button>
 							</form>

@@ -2,6 +2,7 @@ import { Loader2, Mail, MailCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { IconBox } from "@/components/ui/icon-box";
 import { Input } from "@/components/ui/input";
 import {
 	Modal,
@@ -56,42 +57,42 @@ export function EmailSignupModal({
 			<ModalHeader>
 				<ModalTitle>
 					{subscribe.isSuccess
-						? "Schau in dein Postfach"
-						: "Per E-Mail abonnieren"}
+						? "Fast geschafft"
+						: "Per E-Mail benachrichtigen lassen"}
 				</ModalTitle>
 			</ModalHeader>
 
 			<ModalBody>
 				{subscribe.isSuccess ? (
 					<div className="space-y-4 sm:space-y-6 text-center">
-						<div className="bg-nb-mint w-16 h-16 sm:w-20 sm:h-20 border-4 border-nb-black shadow-[var(--nb-shadow)] mx-auto flex items-center justify-center">
-							<MailCheck className="w-8 h-8 sm:w-10 sm:h-10" />
-						</div>
+						<IconBox color="mint" size="lg" shadow className="mx-auto">
+							<MailCheck className="w-8 h-8" />
+						</IconBox>
 						<p className="font-medium text-sm sm:text-base">
-							Wir haben eine E-Mail an <strong>{email}</strong> geschickt. Öffne
-							den Link darin, um die Anmeldung abzuschließen.
+							Wir haben eine E-Mail an <strong>{email}</strong> geschickt.
+							Bestätige darin kurz deine Adresse – dann ist alles eingerichtet.
 						</p>
 						<Card variant="muted" className="p-3 sm:p-4 text-left">
 							<p className="text-xs sm:text-sm font-medium">
-								<strong>Keine E-Mail?</strong> Prüfe deinen Spam-Ordner — oder
-								versuch es einfach gleich noch einmal.
+								<strong>Keine E-Mail bekommen?</strong> Schau in deinen
+								Spam-Ordner oder versuch es einfach noch einmal.
 							</p>
 						</Card>
 					</div>
 				) : (
 					<div className="space-y-4 sm:space-y-6">
 						<div className="flex items-start gap-3 sm:gap-4">
-							<div className="bg-nb-yellow p-2 sm:p-3 border-3 sm:border-4 border-nb-black shadow-[var(--nb-shadow-sm)] shrink-0">
-								<Mail className="w-6 h-6 sm:w-8 sm:h-8" />
-							</div>
+							<IconBox shadow>
+								<Mail className="w-5 h-5" />
+							</IconBox>
 							<div className="flex-1 min-w-0">
 								<h3 className="text-base sm:text-lg font-black uppercase mb-2">
 									{jpaName}
 								</h3>
 								<p className="font-medium text-sm sm:text-base">
-									Trag deine E-Mail-Adresse ein — du bekommst eine Nachricht,
-									sobald neue Examensergebnisse veröffentlicht werden. Keine
-									App, kein Konto.
+									Trag deine E-Mail-Adresse ein. Sobald dieses Prüfungsamt neue
+									Examensergebnisse veröffentlicht, bekommst du eine E-Mail von
+									uns.
 								</p>
 							</div>
 						</div>
@@ -105,7 +106,7 @@ export function EmailSignupModal({
 							<Input
 								type="email"
 								autoComplete="email"
-								placeholder="deine@email.de"
+								placeholder="name@beispiel.de"
 								value={email}
 								onChange={(event) => setEmail(event.target.value)}
 							/>
@@ -141,7 +142,7 @@ export function EmailSignupModal({
 									Sende...
 								</>
 							) : (
-								"Abonnieren"
+								"Benachrichtigen lassen"
 							)}
 						</Button>
 					</>

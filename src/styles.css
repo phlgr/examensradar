@@ -2,6 +2,10 @@
 
 @import 'tw-animate-css';
 
+/* Display face for the landing page: a wide, heavy grotesque set against the
+   monospace body. Self-hosted (German audience — no Google Fonts requests). */
+@import '@fontsource-variable/archivo/wdth.css';
+
 @custom-variant dark (&:is(.dark *));
 
 /* Neobrutalism Theme */
@@ -89,11 +93,61 @@
   --radius-md: 0px;
   --radius-lg: 0px;
   --radius-xl: 0px;
+
+  --font-display: 'Archivo Variable', 'Arial Black', Impact, sans-serif;
+
+  /* Landing page motion */
+  --animate-keypress: keypress 2.8s ease-in-out infinite;
+  --animate-rise: rise 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-notify: notify 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.15) both;
+
+  /* A fresh notification sliding into the inbox stack. */
+  @keyframes notify {
+    from {
+      opacity: 0;
+      transform: translate(32px, -16px);
+    }
+    to {
+      opacity: 1;
+      transform: translate(0, 0);
+    }
+  }
+  @keyframes keypress {
+    0%,
+    78%,
+    100% {
+      transform: translateY(0);
+      box-shadow: 0 8px 0 0 var(--nb-black);
+    }
+    84%,
+    92% {
+      transform: translateY(6px);
+      box-shadow: 0 2px 0 0 var(--nb-black);
+    }
+  }
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(28px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 }
 
 @layer base {
   * {
     @apply border-border;
+  }
+
+  /* Keep the scrollbar's space reserved so the header doesn't jump between
+     pages that scroll and pages that don't. */
+  html {
+    scrollbar-gutter: stable;
+    /* Anchor jumps (#anmelden) must clear the sticky 4rem header. */
+    scroll-padding-top: 5rem;
   }
 
   body {
@@ -140,5 +194,49 @@
   .nb-hover-sm:hover {
     box-shadow: none;
     transform: translate(4px, 4px);
+  }
+
+  /* Landing page */
+  .font-display-wide {
+    font-family: var(--font-display);
+    font-stretch: 125%;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+  }
+
+  /* Squared paper — the exam sheet the results decide. */
+  .bg-graph-paper {
+    background-color: var(--nb-cream);
+    background-image:
+      linear-gradient(to right, rgb(0 0 0 / 0.07) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(0 0 0 / 0.07) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+
+  /* Scroll-triggered reveal; `.reveal-hidden` is toggled by IntersectionObserver. */
+  .reveal {
+    transition:
+      opacity 0.6s ease-out,
+      transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .reveal-hidden {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal-hidden {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .animate-keypress {
+    animation: none;
+  }
+  .animate-rise,
+  .animate-notify {
+    animation-duration: 0.01ms;
   }
 }
