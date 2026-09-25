@@ -4,17 +4,20 @@ import type { Mail } from "./mail";
 export type MailContent = Omit<Mail, "to">;
 
 /**
- * Palette mirrors src/styles.css. Deliberately no hard shadow: box-shadow is
- * unreliable across mail clients and faking --nb-shadow with an offset parent
- * cell renders badly in Gmail, so the 4px black borders carry the look alone.
+ * Palette mirrors src/styles.css ("Schönfelder & Textmarker"). Mail clients
+ * are a lowest common denominator: no web fonts (Gmail drops them), so the
+ * headline serif falls back to Georgia; no rgba or box-shadow, so borders are
+ * solid tints of the paper; border-radius degrades to square in Outlook.
  */
-const BLACK = "#000000";
-const CREAM = "#fffef0";
-const WHITE = "#ffffff";
-const YELLOW = "#ffd93d";
-const MUTED = "#444444";
-const BORDER = "4px";
+const INK = "#17171a";
+const PAPER = "#f4efe4";
+const SHEET = "#fffdf8";
+const SEAL = "#b3261e";
+const MARK = "#ffe25a";
+const LINE = "#e3ddd0";
+const MUTED = "#6b6862";
 const FONT = "-apple-system,'Segoe UI',Helvetica,Arial,sans-serif";
+const SERIF = "Georgia,'Times New Roman',serif";
 
 const appUrl = () => process.env.APP_URL || "https://examensradar.de";
 
@@ -31,7 +34,7 @@ export interface MailTokens {
 // Route paths stay English like the rest of the app; only the copy is German.
 /**
  * The manage entry point. The page exchanges the query param for an httpOnly
- * cookie and scrubs it from the URL, mirroring the ntfy `?restore=` pattern.
+ * cookie and scrubs it from the URL.
  */
 const manageUrl = (token: string) =>
 	`${appUrl()}/subscriptions?manage=${token}`;
@@ -55,8 +58,8 @@ function escapeHtml(value: string): string {
 
 function button(url: string, label: string): string {
 	return `<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-<td style="background:${YELLOW};border:${BORDER} solid ${BLACK}">
-<a href="${escapeHtml(url)}" style="display:inline-block;padding:14px 26px;font-family:${FONT};font-size:16px;font-weight:800;line-height:1;color:${BLACK};text-decoration:none;text-transform:uppercase;letter-spacing:.02em">${escapeHtml(label)}</a>
+<td style="background:${INK};border-radius:12px">
+<a href="${escapeHtml(url)}" style="display:inline-block;padding:14px 24px;font-family:${FONT};font-size:15px;font-weight:600;line-height:1;color:${SHEET};text-decoration:none;border-radius:12px">${escapeHtml(label)}&nbsp;&rarr;</a>
 </td></tr></table>`;
 }
 
@@ -72,14 +75,16 @@ interface LayoutOptions {
 function layout({ heading, body, cta, footer }: LayoutOptions): string {
 	return `<!doctype html>
 <html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(heading)}</title></head>
-<body style="margin:0;padding:28px 16px;background:${CREAM}">
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td align="center">
+<body style="margin:0;padding:28px 16px;background:${PAPER}">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:${PAPER}"><tr><td align="center">
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:520px">
+<tr><td style="padding:0 4px 16px;font-family:${SERIF};font-size:20px;line-height:1;color:${INK}">
+<span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${SEAL};margin-right:8px;vertical-align:1px"></span>Examensradar
+</td></tr>
 <tr><td>
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:${WHITE};border:${BORDER} solid ${BLACK}"><tr>
-<td style="padding:32px 28px;font-family:${FONT};font-size:16px;line-height:1.5;color:${BLACK}">
-<p style="margin:0 0 10px;font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase">Examensradar</p>
-<h1 style="margin:0 0 18px;font-size:28px;line-height:1.1;font-weight:900;text-transform:uppercase">${escapeHtml(heading)}</h1>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:${SHEET};border:1px solid ${LINE};border-radius:16px"><tr>
+<td style="padding:32px 28px;font-family:${FONT};font-size:16px;line-height:1.6;color:${INK}">
+<h1 style="margin:0 0 16px;font-family:${SERIF};font-size:30px;line-height:1.15;font-weight:normal;letter-spacing:-.01em;color:${INK}">${escapeHtml(heading)}</h1>
 ${body}
 ${cta ? button(cta.url, cta.label) : ""}
 </td></tr></table>
@@ -92,7 +97,8 @@ ${footer}
 </body></html>`;
 }
 
-const paragraph = (html: string) => `<p style="margin:0 0 26px">${html}</p>`;
+const paragraph = (html: string) =>
+	`<p style="margin:0 0 24px;color:#45433f">${html}</p>`;
 
 const footerLink = (url: string, label: string) =>
 	`<a href="${escapeHtml(url)}" style="color:${MUTED}">${escapeHtml(label)}</a>`;
@@ -205,7 +211,9 @@ Abo verwalten: ${manageUrl(tokens.manage)}
 		html: layout({
 			heading: "Neue Ergebnisse verfügbar",
 			body: paragraph(
-				`Das <strong>${escapeHtml(jpaName)}</strong> hat neue Examensergebnisse veröffentlicht.`,
+				// The highlighter from the site, as a flat background: gradients
+				// don't survive most mail clients.
+				`Das <strong style="background:${MARK};color:${INK};padding:0 3px">${escapeHtml(jpaName)}</strong> hat neue Examensergebnisse veröffentlicht.`,
 			),
 			cta: jpaWebsiteUrl
 				? { url: jpaWebsiteUrl, label: "Ergebnisse ansehen" }
