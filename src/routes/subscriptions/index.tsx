@@ -218,15 +218,7 @@ function Managing({ email, jpaIds }: { email: string; jpaIds: string[] }) {
 							const summary = summaryBySlug.get(jpa.slug);
 
 							return (
-								<Card
-									key={jpa.id}
-									variant="flat"
-									className={
-										isSubscribed
-											? "px-5 py-5 sm:px-6 ring-ok/30 shadow-[inset_4px_0_0_var(--ok)]"
-											: "px-5 py-5 sm:px-6"
-									}
-								>
+								<Card key={jpa.id} variant="flat" className="px-5 py-5 sm:px-6">
 									<div className="flex flex-col sm:flex-row sm:items-center gap-4">
 										<div className="flex-1 min-w-0">
 											<div className="flex items-center gap-3 flex-wrap">
