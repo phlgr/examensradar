@@ -47,7 +47,7 @@
 	"devDependencies": {
 		"@biomejs/biome": "2.5.14",
 		"@tanstack/devtools-vite": "0.8.5",
-		"@tanstack/react-devtools": "0.10.12",
+		"@tanstack/react-devtools": "0.10.13",
 		"@tanstack/react-router-devtools": "1.167.2",
 		"@types/bun": "1.4.2",
 		"@types/node": "26.6.2",
