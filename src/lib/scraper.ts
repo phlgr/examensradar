@@ -53,7 +53,7 @@ export async function fetchPage(url: string): Promise<string> {
  * Null when the selector matches nothing. That is deliberately NOT a fallback
  * to the whole page (which is what changebot did): a vanished selector means
  * the site was restructured, and diffing the full page instead would turn the
- * relaunch — or any cookie-banner tweak — into a false "new results" push to
+ * relaunch — or any cookie-banner tweak — into a false "new results" mail to
  * every subscriber. A broken selector must surface as an error, not a change.
  */
 export function extractContent(html: string, selector: string): string | null {

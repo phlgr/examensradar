@@ -91,7 +91,7 @@ export const emailRouter = router({
 			}
 
 			const subscriber = await upsertPendingSubscriber(email, ip);
-			await addEmailSubscription(subscriber.id, jpa.id, ctx.deviceId);
+			await addEmailSubscription(subscriber.id, jpa.id);
 
 			dispatch({
 				...renderConfirmMail(subscriber.confirmToken),

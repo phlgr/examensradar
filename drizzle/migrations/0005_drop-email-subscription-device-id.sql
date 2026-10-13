@@ -1,0 +1,1 @@
+ALTER TABLE `email_subscription` DROP COLUMN `device_id`;

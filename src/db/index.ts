@@ -191,8 +191,7 @@ export const recordScrapeError = async (
 
 /**
  * Per-JPA count of the people a publication would actually reach: mailable
- * email subscribers only (same filter as getMailableSubscribersByJpa). Legacy
- * ntfy subscriptions are left out — that channel is sunset.
+ * email subscribers only (same filter as getMailableSubscribersByJpa).
  */
 export const getSubscriptionCountsByJpa = async (): Promise<
 	Map<string, number>
@@ -339,57 +338,6 @@ export const upsertPendingSubscriber = async (
 	return subscriber;
 };
 
-/**
- * Retires the ntfy subscriptions that this address has just taken over, so a
- * publication cannot arrive twice — once as a push and once as a mail.
- *
- * Deliberately runs at confirmation rather than signup: dropping a working
- * channel before the replacement is proven would leave anyone who mistypes their
- * address, or never clicks, with no notifications at all. Scoped to the JPAs
- * actually being replaced, so migrating one office never silently ends the push
- * for another.
- *
- * Returns how many were retired, for the log.
- */
-const retireSupersededNtfySubscriptions = async (
-	subscriberId: string,
-): Promise<number> => {
-	const replacements = await db
-		.select({
-			jpaId: schema.emailSubscription.jpaId,
-			deviceId: schema.emailSubscription.deviceId,
-		})
-		.from(schema.emailSubscription)
-		.where(
-			and(
-				eq(schema.emailSubscription.subscriberId, subscriberId),
-				isNotNull(schema.emailSubscription.deviceId),
-			),
-		)
-		.all();
-
-	let retired = 0;
-
-	for (const { jpaId, deviceId } of replacements) {
-		if (!deviceId) continue;
-
-		const deleted = await db
-			.delete(schema.subscription)
-			.where(
-				and(
-					eq(schema.subscription.deviceId, deviceId),
-					eq(schema.subscription.jpaId, jpaId),
-				),
-			)
-			.returning()
-			.all();
-
-		retired += deleted.length;
-	}
-
-	return retired;
-};
-
 const getSubscriberByConfirmToken = async (
 	token: string,
 ): Promise<Subscriber | null> => {
@@ -470,10 +418,6 @@ export const confirmSubscriber = async (
 		.returning()
 		.get();
 
-	// Retired here rather than by the caller so that "confirmed" and "no longer
-	// double-notified" cannot drift apart.
-	await retireSupersededNtfySubscriptions(subscriber.id);
-
 	return confirmed;
 };
 
@@ -495,29 +439,11 @@ export const unsubscribeSubscriber = async (id: string): Promise<void> => {
 export const addEmailSubscription = async (
 	subscriberId: string,
 	jpaId: string,
-	deviceId: string | null = null,
 ): Promise<void> => {
-	const insert = db.insert(schema.emailSubscription).values({
-		id: nanoid(),
-		subscriberId,
-		jpaId,
-		deviceId,
-		createdAt: new Date(),
-	});
-
-	// A re-signup may come from a different device than the first attempt, and
-	// the latest device is the one whose push the confirmation must retire — so
-	// the remembered device moves with it. A device-less call (the manage page)
-	// never erases a recorded one.
-	await (deviceId
-		? insert.onConflictDoUpdate({
-				target: [
-					schema.emailSubscription.subscriberId,
-					schema.emailSubscription.jpaId,
-				],
-				set: { deviceId },
-			})
-		: insert.onConflictDoNothing());
+	await db
+		.insert(schema.emailSubscription)
+		.values({ id: nanoid(), subscriberId, jpaId, createdAt: new Date() })
+		.onConflictDoNothing();
 };
 
 export const removeEmailSubscription = async (

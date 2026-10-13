@@ -36,6 +36,13 @@
       "when": 1788274135395,
       "tag": "0004_scrape-config-nrw",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1791925510284,
+      "tag": "0005_drop-email-subscription-device-id",
+      "breakpoints": true
     }
   ]
 }

@@ -78,7 +78,7 @@ export async function checkJpa(
 
 	if (state.contentHash === null) {
 		// First observation ever — we cannot know whether this content is news,
-		// so it only becomes the baseline. Notifying here would mass-push a false
+		// so it only becomes the baseline. Notifying here would mass-notify a false
 		// positive on every fresh deployment.
 		console.log(`[scraper] ${jpa.slug}: baseline stored`);
 		return { result: "baseline" };

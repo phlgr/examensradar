@@ -31,7 +31,7 @@ export interface MailTokens {
 // Route paths stay English like the rest of the app; only the copy is German.
 /**
  * The manage entry point. The page exchanges the query param for an httpOnly
- * cookie and scrubs it from the URL, mirroring the ntfy `?restore=` pattern.
+ * cookie and scrubs it from the URL.
  */
 const manageUrl = (token: string) =>
 	`${appUrl()}/subscriptions?manage=${token}`;

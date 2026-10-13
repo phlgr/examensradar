@@ -40,14 +40,14 @@ src/
 ├── db/
 │   ├── schema.ts     # Drizzle schema (jpa, subscription, notificationLog, adminSession)
 │   └── index.ts      # Database queries (exported functions, not raw db access)
-└── lib/              # Utilities (mail, device ID, admin auth, tRPC client)
+└── lib/              # Utilities (mail, manage auth, admin auth, tRPC client)
 ```
 
 **Key patterns:**
 - No user accounts: subscribers manage their subscriptions via a magic-link manage cookie
 - Three tRPC procedure types: `publicProcedure`, `manageProcedure` (requires manage cookie), `adminProcedure` (requires admin session)
 - In-app scraper (`src/server/scraper.ts`, booted at server start by the nitro plugin in `src/server/plugins/scraper.ts`) polls each JPA's `scrapeUrl`/`scrapeSelector` and fans out via `src/server/notify-results.ts`; a compare-and-swap on `scrape_state.content_hash` guarantees a change is only notified once even with overlapping instances. Manual triggering goes through the admin page's "Jetzt prüfen" (`jpa.scrapeNow`), which runs the same CAS-guarded check
-- Notifications sent via mail (see `src/lib/mail.ts`); ntfy push is sunset — legacy `subscription` rows remain in the DB but are never read or notified
+- Notifications sent via mail (see `src/lib/mail.ts`). The `subscription` table is a legacy ntfy archive — nothing reads or writes it
 
 **Database:** Bun SQLite with Drizzle ORM. Path: `./data/examensradar.db`
 

@@ -48,72 +48,6 @@ test("manage and unsubscribe tokens are distinct credentials", async () => {
 	).toBeNull();
 });
 
-test("confirming retires only the superseded ntfy subscription", async () => {
-	const migrated = await jpa("retire-migrated");
-	const untouched = await jpa("retire-untouched");
-	const deviceId = crypto.randomUUID();
-
-	// The device already receives pushes for both offices.
-	for (const office of [migrated, untouched]) {
-		setup.run(
-			"INSERT INTO subscription (id, device_id, jpa_id, ntfy_topic, setup_completed_at, created_at) VALUES (?,?,?,?,?,?)",
-			[
-				`sub-${office.slug}`,
-				deviceId,
-				office.id,
-				`examensradar-${office.slug}`,
-				Date.now(),
-				Date.now(),
-			],
-		);
-	}
-
-	// It signs up by mail for one of them only.
-	const pending = await upsertPendingSubscriber("retire@example.com", null);
-	await addEmailSubscription(pending.id, migrated.id, deviceId);
-
-	const remaining = () =>
-		(
-			setup
-				.query("SELECT jpa_id FROM subscription WHERE device_id = ?")
-				.all(deviceId) as { jpa_id: string }[]
-		).map((row) => row.jpa_id);
-
-	// Nothing is retired before the address is proven — dropping a working
-	// channel for an unconfirmed one would leave them with neither.
-	expect(remaining().sort()).toEqual([migrated.id, untouched.id].sort());
-
-	await confirmSubscriber(pending.confirmToken);
-
-	// Only the office now covered by mail loses its push.
-	expect(remaining()).toEqual([untouched.id]);
-});
-
-test("a re-signup's device supersedes the remembered one", async () => {
-	const office = await jpa("device-swap");
-	const pending = await upsertPendingSubscriber("devices@example.com", null);
-
-	const recordedDevice = () =>
-		(
-			setup
-				.query(
-					"SELECT device_id FROM email_subscription WHERE subscriber_id = ?",
-				)
-				.get(pending.id) as { device_id: string | null }
-		).device_id;
-
-	// First attempt from one device, retry from another: the latest device is
-	// the one whose push the confirmation will retire.
-	await addEmailSubscription(pending.id, office.id, "device-old");
-	expect(recordedDevice()).toBe("device-old");
-	await addEmailSubscription(pending.id, office.id, "device-new");
-	expect(recordedDevice()).toBe("device-new");
-
-	// A device-less add (the manage page) must not erase the record.
-	await addEmailSubscription(pending.id, office.id);
-	expect(recordedDevice()).toBe("device-new");
-});
-
 test("normalizeEmail folds case and whitespace", () => {
 	expect(normalizeEmail("  Philipp@Example.DE ")).toBe("philipp@example.de");
 });
@@ -130,19 +64,8 @@ test("a pending subscriber is never mailable", async () => {
 	expect(await getMailableSubscribersByJpa(office.id)).toEqual([]);
 });
 
-test("admin counts only mailable subscribers, not ntfy or pending", async () => {
+test("admin counts only mailable subscribers, not pending ones", async () => {
 	const office = await jpa("admin-count");
-	setup.run(
-		"INSERT INTO subscription (id, device_id, jpa_id, ntfy_topic, setup_completed_at, created_at) VALUES (?,?,?,?,?,?)",
-		[
-			"sub-admin-count",
-			crypto.randomUUID(),
-			office.id,
-			"examensradar-admin-count",
-			Date.now(),
-			Date.now(),
-		],
-	);
 	const pending = await upsertPendingSubscriber(
 		"count-pending@example.com",
 		null,

@@ -22,7 +22,7 @@ export const Route = createRootRoute({
 			{
 				name: "description",
 				content:
-					"Erhalte Push-Benachrichtigungen, wenn das Justizprüfungsamt neue Examensergebnisse veröffentlicht.",
+					"Erhalte E-Mail-Benachrichtigungen, wenn das Justizprüfungsamt neue Examensergebnisse veröffentlicht.",
 			},
 		],
 		links: [

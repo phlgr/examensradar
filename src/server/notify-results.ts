@@ -52,7 +52,7 @@ async function dispatch(
  * Fans a "new results" publication out to every mail subscriber of the JPA.
  * Only ever reached through checkJpa's compare-and-swap (scheduler tick or the
  * admin's "Jetzt prüfen"), which is what guarantees a publication is delivered
- * at most once. ntfy push is sunset; legacy subscriptions are no longer served.
+ * at most once.
  *
  * Returns as soon as the fan-out is queued — no caller benefits from blocking
  * on delivery.

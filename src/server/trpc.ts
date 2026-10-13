@@ -9,22 +9,13 @@ interface Context {
 	request: Request;
 	/** Response headers the fetch adapter merges in — how mutations set cookies. */
 	resHeaders: Headers;
-	deviceId: string | null;
 }
 
 export async function createContext(
 	opts: FetchCreateContextFnOptions & { context?: unknown },
 ): Promise<Context> {
 	const { req, resHeaders } = opts;
-
-	// Extract device ID from header
-	const deviceId = req.headers.get("X-Device-ID");
-
-	return {
-		request: req,
-		resHeaders,
-		deviceId,
-	};
+	return { request: req, resHeaders };
 }
 
 const t = initTRPC.context<Context>().create({

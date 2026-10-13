@@ -2,14 +2,13 @@
 
 **Dein Examen ist durch. Wir sagen dir, wann die Noten da sind.**
 
-Push notifications for exam results from German judicial examination offices (Justizprüfungsämter).
+Email notifications for exam results from German judicial examination offices (Justizprüfungsämter).
 
 ## Features
 
 - Subscribe to notifications for any JPA (Justizprüfungsamt)
-- Push notifications via [ntfy](https://ntfy.sh) to all your devices
-- No app installation required - works with the ntfy app or in the browser
-- No account needed - anonymous device IDs with recovery via ntfy
+- Email notifications with double opt-in and one-click unsubscribe
+- No app installation and no account needed - manage subscriptions via a magic link
 - Admin dashboard for managing JPAs with webhook documentation
 
 ## Tech Stack
@@ -83,7 +82,7 @@ Visit http://localhost:3000
 src/
 ├── components/        # React components
 ├── db/               # Database schema and queries (Drizzle)
-├── lib/              # Utilities (device ID, admin auth, tRPC, etc.)
+├── lib/              # Utilities (mail, admin auth, tRPC, etc.)
 ├── routes/           # File-based routing
 ├── server/           # tRPC routers and procedures
 └── styles.css        # Global styles
