@@ -5,7 +5,6 @@ import { nanoid } from "nanoid";
 import * as schema from "./schema.ts";
 
 type JPA = typeof schema.jpa.$inferSelect;
-type Subscription = typeof schema.subscription.$inferSelect;
 type AdminSession = typeof schema.adminSession.$inferSelect;
 type Subscriber = typeof schema.subscriber.$inferSelect;
 
@@ -190,17 +189,6 @@ export const recordScrapeError = async (
 		.where(eq(schema.scrapeState.jpaId, jpaId));
 };
 
-// Subscription functions (now using deviceId instead of userId)
-export const getDeviceSubscriptions = async (
-	deviceId: string,
-): Promise<Subscription[]> => {
-	return db
-		.select()
-		.from(schema.subscription)
-		.where(eq(schema.subscription.deviceId, deviceId))
-		.all();
-};
-
 /**
  * Per-JPA count of the people a publication would actually reach: mailable
  * email subscribers only (same filter as getMailableSubscribersByJpa). Legacy
@@ -229,20 +217,6 @@ export const getSubscriptionCountsByJpa = async (): Promise<
 		.groupBy(schema.emailSubscription.jpaId)
 		.all();
 	return new Map(rows.map((row) => [row.jpaId, row.count]));
-};
-
-export const deleteSubscription = async (
-	id: string,
-	deviceId: string,
-): Promise<void> => {
-	await db
-		.delete(schema.subscription)
-		.where(
-			and(
-				eq(schema.subscription.id, id),
-				eq(schema.subscription.deviceId, deviceId),
-			),
-		);
 };
 
 // Email subscriber functions

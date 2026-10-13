@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import {
-	CheckCircle,
 	ExternalLink,
 	History,
 	Loader2,
@@ -8,7 +7,6 @@ import {
 	Mail,
 	MailCheck,
 	Radar,
-	Smartphone,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { z } from "zod";
@@ -19,16 +17,13 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { LinkButton } from "@/components/ui/link-button";
 import { trackEvent } from "@/lib/analytics";
-import { setDeviceId } from "@/lib/device-id";
 import { trpc } from "@/lib/trpc";
 
-// Neither param may make validateSearch throw: mail clients truncate links,
+// The manage param must not make validateSearch throw: mail clients truncate links,
 // and a throw here replaces the whole page with the raw router error instead
 // of the invalid-link banner. `.catch(undefined)` turns anything malformed
 // into "param absent".
 const searchSchema = z.object({
-	/** Legacy ntfy device restore from old push notifications. */
-	restore: z.uuid().optional().catch(undefined),
 	/**
 	 * Manage token from mail links; exchanged for the httpOnly cookie. No shape
 	 * check: a mangled token must still reach signIn, whose rejection is what
@@ -42,30 +37,18 @@ export const Route = createFileRoute("/subscriptions/")({
 	component: SubscriptionsPage,
 });
 
-const RESTORED_FLAG = "examensradar_restored";
 const INVALID_LINK_FLAG = "examensradar_link_invalid";
 
 function SubscriptionsPage() {
-	const { restore, manage } = Route.useSearch();
-	const [showRestoredBanner, setShowRestoredBanner] = useState(false);
+	const { manage } = Route.useSearch();
 	const [showInvalidLink, setShowInvalidLink] = useState(false);
 	const [signupJpa, setSignupJpa] = useState<{
 		id: string;
 		name: string;
 	} | null>(null);
 
-	// Legacy: restore parameter from old ntfy notification actions.
-	useEffect(() => {
-		if (restore) {
-			setDeviceId(restore);
-			sessionStorage.setItem(RESTORED_FLAG, "true");
-			// location.replace scrubs the credential from the URL atomically.
-			window.location.replace("/subscriptions");
-		}
-	}, [restore]);
-
 	// Manage token from a mail link: trade it for the httpOnly cookie, then
-	// scrub it from the URL the same way the restore param is scrubbed.
+	// scrub it from the URL (location.replace does that atomically).
 	const signIn = trpc.email.signIn.useMutation();
 	// signIn.mutate is stable; the token is the only real trigger.
 	// biome-ignore lint/correctness/useExhaustiveDependencies: run once per token
@@ -81,10 +64,6 @@ function SubscriptionsPage() {
 	}, [manage]);
 
 	useEffect(() => {
-		if (sessionStorage.getItem(RESTORED_FLAG)) {
-			setShowRestoredBanner(true);
-			sessionStorage.removeItem(RESTORED_FLAG);
-		}
 		if (sessionStorage.getItem(INVALID_LINK_FLAG)) {
 			setShowInvalidLink(true);
 			sessionStorage.removeItem(INVALID_LINK_FLAG);
@@ -95,7 +74,6 @@ function SubscriptionsPage() {
 	const jpasQuery = trpc.jpa.getAll.useQuery();
 	// UNAUTHORIZED simply means "not signed in", so never retry it.
 	const meQuery = trpc.email.me.useQuery(undefined, { retry: false });
-	const ntfySubscriptionsQuery = trpc.subscription.getAll.useQuery();
 
 	const jpaNameById = (id: string) =>
 		jpasQuery.data?.find((jpa) => jpa.id === id)?.name ?? id;
@@ -118,15 +96,8 @@ function SubscriptionsPage() {
 		onSuccess: () => window.location.reload(),
 	});
 
-	const deleteNtfySubscription = trpc.subscription.delete.useMutation({
-		onSuccess: () => {
-			trackEvent("unsubscribe");
-			ntfySubscriptionsQuery.refetch();
-		},
-	});
-
-	// Exchanging a token or restoring — hold the spinner until the reload.
-	const exchanging = Boolean(restore || manage);
+	// Exchanging a token — hold the spinner until the reload.
+	const exchanging = Boolean(manage);
 	const loading = jpasQuery.isLoading || meQuery.isLoading || exchanging;
 
 	if (loading) {
@@ -143,7 +114,6 @@ function SubscriptionsPage() {
 	const subscribedJpaIds = new Set(
 		managing ? me.jpas.map((jpa) => jpa.jpaId) : [],
 	);
-	const ntfySubscriptions = ntfySubscriptionsQuery.data ?? [];
 
 	return (
 		<div className="flex-1 py-4 sm:py-8 px-4 bg-nb-cream">
@@ -184,34 +154,6 @@ function SubscriptionsPage() {
 							Lass dir unten mit deiner E-Mail-Adresse einen neuen Link
 							schicken.
 						</p>
-					</Card>
-				)}
-
-				{/* Legacy device restore banner */}
-				{showRestoredBanner && (
-					<Card variant="success" className="mb-6 sm:mb-8 p-4">
-						<div className="flex items-center gap-3">
-							<div className="bg-nb-mint p-2 border-3 border-nb-black shrink-0">
-								<CheckCircle className="w-5 h-5" />
-							</div>
-							<div className="flex-1">
-								<p className="font-black text-sm uppercase">
-									Abonnements wiederhergestellt
-								</p>
-								<p className="text-xs font-medium">
-									Deine Abonnements wurden erfolgreich auf dieses Gerät
-									übertragen.
-								</p>
-							</div>
-							<Button
-								variant="ghost"
-								size="sm"
-								onClick={() => setShowRestoredBanner(false)}
-								className="shrink-0"
-							>
-								Schließen
-							</Button>
-						</div>
 					</Card>
 				)}
 
@@ -348,62 +290,6 @@ function SubscriptionsPage() {
 
 				{/* Lost-link re-entry */}
 				{!managing && <ResendManageLinkCard />}
-
-				{/* Legacy ntfy subscriptions */}
-				{ntfySubscriptions.length > 0 && (
-					<div className="mt-8 sm:mt-10 space-y-4">
-						<h2 className="text-xl sm:text-2xl font-black uppercase">
-							Push-Benachrichtigungen (Legacy)
-						</h2>
-						<Card variant="muted" className="p-4">
-							<div className="flex items-start gap-3">
-								<div className="bg-nb-white p-2 border-3 border-nb-black shrink-0">
-									<Smartphone className="w-5 h-5" />
-								</div>
-								<p className="text-xs sm:text-sm font-medium flex-1">
-									<span className="font-black">
-										Push über ntfy wurde eingestellt.
-									</span>{" "}
-									Über diese Abos kommen keine Benachrichtigungen mehr.
-									Abonniere dein Prüfungsamt oben per E-Mail, um weiterhin
-									benachrichtigt zu werden.
-								</p>
-							</div>
-						</Card>
-						<div className="grid gap-3">
-							{ntfySubscriptions.map((subscription) => {
-								const jpa = jpas.find((j) => j.id === subscription.jpaId);
-								return (
-									<Card key={subscription.id} variant="flat" className="p-4">
-										<div className="flex flex-wrap items-center gap-3">
-											<div className="flex-1 min-w-0">
-												<p className="font-black text-sm uppercase">
-													{jpa?.name ?? "Prüfungsamt"}
-												</p>
-												<code className="text-xs font-bold break-all text-nb-black/60">
-													{subscription.ntfyTopic}
-												</code>
-											</div>
-											<Button
-												variant="destructive"
-												size="sm"
-												onClick={() =>
-													deleteNtfySubscription.mutate({
-														id: subscription.id,
-													})
-												}
-												disabled={deleteNtfySubscription.isPending}
-												className="shrink-0"
-											>
-												Abbestellen
-											</Button>
-										</div>
-									</Card>
-								);
-							})}
-						</div>
-					</div>
-				)}
 
 				{/* Signup modal */}
 				{signupJpa && (
