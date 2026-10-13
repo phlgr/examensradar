@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { CheckCircle, Loader2, MailCheck, MailX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { PageSpinner } from "@/components/ui/spinner";
+import { StatusPage, statusLinkClass } from "@/components/ui/status-page";
 import { trackEvent } from "@/lib/analytics";
 import { trpc } from "@/lib/trpc";
 
@@ -34,30 +36,16 @@ function ConfirmPage() {
 			? stateQuery.data
 			: null;
 
-	if (stateQuery.isLoading) {
-		return (
-			<div className="flex-1 flex items-center justify-center bg-nb-cream">
-				<div className="w-12 h-12 border-4 border-nb-black border-t-nb-yellow animate-spin" />
-			</div>
-		);
-	}
+	if (stateQuery.isLoading) return <PageSpinner />;
 
 	if (done) {
 		return (
-			<Shell>
-				<div className="bg-nb-mint w-16 h-16 sm:w-20 sm:h-20 border-4 border-nb-black shadow-[var(--nb-shadow)] mx-auto flex items-center justify-center">
-					<CheckCircle className="w-8 h-8 sm:w-10 sm:h-10" />
-				</div>
-				<div>
-					<h1 className="text-2xl sm:text-3xl font-black uppercase mb-2">
-						E-Mail bestätigt!
-					</h1>
-					<p className="font-medium text-sm sm:text-base">
-						Du wirst per E-Mail benachrichtigt, sobald neue Examensergebnisse
-						veröffentlicht werden
-						{done.jpaNames.length > 0 ? `: ${done.jpaNames.join(", ")}` : "."}
-					</p>
-				</div>
+			<StatusPage icon={CheckCircle} tone="ok" title="E-Mail bestätigt.">
+				<p>
+					Du wirst per E-Mail benachrichtigt, sobald neue Examensergebnisse
+					veröffentlicht werden
+					{done.jpaNames.length > 0 ? `: ${done.jpaNames.join(", ")}` : "."}
+				</p>
 				{"manageToken" in done ? (
 					// The manage entry: /subscriptions trades the param for the cookie.
 					<a
@@ -67,55 +55,36 @@ function ConfirmPage() {
 						<Button className="w-full sm:w-auto">Abo verwalten</Button>
 					</a>
 				) : (
-					<p className="font-medium text-sm sm:text-base">
+					<p>
 						Den Link zum Verwalten deines Abos findest du in deiner
 						Willkommens-E-Mail.
 					</p>
 				)}
-			</Shell>
+			</StatusPage>
 		);
 	}
 
 	if (stateQuery.data?.state === "invalid") {
 		return (
-			<Shell>
-				<div className="bg-nb-coral w-16 h-16 sm:w-20 sm:h-20 border-4 border-nb-black shadow-[var(--nb-shadow)] mx-auto flex items-center justify-center">
-					<MailX className="w-8 h-8 sm:w-10 sm:h-10" />
-				</div>
-				<div>
-					<h1 className="text-2xl sm:text-3xl font-black uppercase mb-2">
-						Link nicht mehr gültig
-					</h1>
-					<p className="font-medium text-sm sm:text-base">
-						Dieser Bestätigungslink ist abgelaufen oder wurde ersetzt. Melde
-						dich einfach{" "}
-						<a
-							href="/subscriptions"
-							className="underline decoration-2 font-bold"
-						>
-							erneut an
-						</a>
-						, dann bekommst du einen neuen Link.
-					</p>
-				</div>
-			</Shell>
+			<StatusPage icon={MailX} tone="bad" title="Link nicht mehr gültig">
+				<p>
+					Dieser Bestätigungslink ist abgelaufen oder wurde ersetzt. Melde dich
+					einfach{" "}
+					<a href="/#anmelden" className={statusLinkClass}>
+						erneut an
+					</a>
+					, dann bekommst du einen neuen Link.
+				</p>
+			</StatusPage>
 		);
 	}
 
 	return (
-		<Shell>
-			<div className="bg-nb-yellow w-16 h-16 sm:w-20 sm:h-20 border-4 border-nb-black shadow-[var(--nb-shadow)] mx-auto flex items-center justify-center">
-				<MailCheck className="w-8 h-8 sm:w-10 sm:h-10" />
-			</div>
-			<div>
-				<h1 className="text-2xl sm:text-3xl font-black uppercase mb-2">
-					Anmeldung bestätigen
-				</h1>
-				<p className="font-medium text-sm sm:text-base">
-					Bestätige deine E-Mail-Adresse, um Benachrichtigungen über neue
-					Examensergebnisse zu erhalten.
-				</p>
-			</div>
+		<StatusPage icon={MailCheck} tone="pending" title="Anmeldung bestätigen">
+			<p>
+				Bestätige deine E-Mail-Adresse, um Benachrichtigungen über neue
+				Examensergebnisse zu erhalten.
+			</p>
 			<Button
 				onClick={() => confirm.mutate({ token })}
 				disabled={confirm.isPending}
@@ -125,7 +94,7 @@ function ConfirmPage() {
 				{confirm.isPending ? (
 					<>
 						<Loader2 className="w-5 h-5 animate-spin" />
-						Bestätige...
+						Bestätige …
 					</>
 				) : (
 					"Jetzt bestätigen"
@@ -133,31 +102,18 @@ function ConfirmPage() {
 			</Button>
 			{confirm.isError && (
 				<Card variant="destructive" className="p-4 text-left">
-					<p className="font-bold text-sm">
+					<p className="font-semibold text-ink">
 						Dieser Bestätigungslink ist ungültig oder abgelaufen.
 					</p>
-					<p className="text-sm font-medium mt-1">
+					<p className="mt-1">
 						Melde dich einfach{" "}
-						<a
-							href="/subscriptions"
-							className="underline decoration-2 font-bold"
-						>
+						<a href="/#anmelden" className={statusLinkClass}>
 							erneut an
 						</a>
 						, dann bekommst du einen neuen Link.
 					</p>
 				</Card>
 			)}
-		</Shell>
-	);
-}
-
-function Shell({ children }: { children: React.ReactNode }) {
-	return (
-		<div className="flex-1 flex items-center justify-center px-4 py-12 bg-nb-cream">
-			<Card className="w-full max-w-lg p-6 sm:p-10">
-				<div className="text-center space-y-4 sm:space-y-6">{children}</div>
-			</Card>
-		</div>
+		</StatusPage>
 	);
 }

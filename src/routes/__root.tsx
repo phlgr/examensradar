@@ -17,12 +17,12 @@ export const Route = createRootRoute({
 				content: "width=device-width, initial-scale=1",
 			},
 			{
-				title: "Examensradar - Examensergebnisse sofort erfahren",
+				title: "Examensradar – Examensergebnisse per E-Mail",
 			},
 			{
 				name: "description",
 				content:
-					"Erhalte E-Mail-Benachrichtigungen, wenn das Justizprüfungsamt neue Examensergebnisse veröffentlicht.",
+					"Examensradar schickt dir eine E-Mail, sobald dein Justizprüfungsamt neue Ergebnisse im ersten Staatsexamen veröffentlicht. Kostenlos, ohne Konto.",
 			},
 		],
 		links: [

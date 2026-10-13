@@ -3,34 +3,26 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-	"inline-flex items-center justify-center gap-2 font-black uppercase transition-all cursor-pointer select-none disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-nb-black focus-visible:ring-offset-2 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+	"inline-flex items-center justify-center gap-2 rounded-md font-semibold transition-colors cursor-pointer select-none disabled:pointer-events-none disabled:opacity-40 disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:shrink-0",
 	{
 		variants: {
 			variant: {
-				default:
-					"bg-nb-yellow text-nb-black border-4 border-nb-black shadow-[var(--nb-shadow)] hover:shadow-none hover:translate-x-1.5 hover:translate-y-1.5",
+				/** The one main action: ink, turning Schönfelder red on hover. */
+				default: "bg-ink text-sheet hover:bg-seal",
+				/** A quieter action next to or instead of the main one. */
 				secondary:
-					"bg-nb-white text-nb-black border-4 border-nb-black shadow-[var(--nb-shadow)] hover:shadow-none hover:translate-x-1.5 hover:translate-y-1.5",
-				destructive:
-					"bg-nb-coral text-nb-black border-4 border-nb-black shadow-[var(--nb-shadow)] hover:shadow-none hover:translate-x-1.5 hover:translate-y-1.5",
-				success:
-					"bg-nb-mint text-nb-black border-4 border-nb-black shadow-[var(--nb-shadow)] hover:shadow-none hover:translate-x-1.5 hover:translate-y-1.5",
-				accent:
-					"bg-nb-teal text-nb-black border-4 border-nb-black shadow-[var(--nb-shadow)] hover:shadow-none hover:translate-x-1.5 hover:translate-y-1.5",
-				outline:
-					"bg-transparent text-nb-black border-4 border-nb-black shadow-[var(--nb-shadow)] hover:shadow-none hover:translate-x-1.5 hover:translate-y-1.5 hover:bg-nb-yellow",
-				ghost:
-					"bg-transparent text-nb-black border-4 border-transparent hover:border-nb-black hover:bg-nb-yellow",
-				danger:
-					"bg-transparent text-nb-black/50 border-2 border-nb-black/20 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)] hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 hover:text-red-600 hover:border-red-600/50 font-bold normal-case",
-				link: "text-nb-black underline decoration-2 underline-offset-4 hover:bg-nb-yellow",
-				icon: "bg-nb-black text-nb-white border-3 border-nb-black hover:bg-nb-teal hover:text-nb-black",
+					"bg-sheet text-ink ring-1 ring-ink/20 hover:ring-ink/50 hover:bg-sheet",
+				/** Irreversible: unsubscribing, deleting. */
+				destructive: "bg-seal text-sheet hover:bg-seal-deep",
+				ghost: "bg-transparent text-ink/70 hover:text-ink hover:bg-ink/5",
+				/** Square icon button, e.g. close or edit. */
+				icon: "bg-transparent text-ink/60 hover:text-ink hover:bg-ink/5",
 			},
 			size: {
-				default: "h-12 px-6 py-3 text-base",
-				sm: "h-10 px-4 py-2 text-sm",
-				lg: "h-14 px-8 py-4 text-lg",
-				icon: "h-10 w-10 p-2",
+				default: "h-11 px-5 text-[15px]",
+				sm: "h-9 px-3.5 text-sm",
+				lg: "h-12 px-6 text-base",
+				icon: "h-9 w-9 p-2",
 			},
 		},
 		defaultVariants: {
@@ -40,11 +32,9 @@ const buttonVariants = cva(
 	},
 );
 
-export interface ButtonProps
+interface ButtonProps
 	extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-		VariantProps<typeof buttonVariants> {
-	asChild?: boolean;
-}
+		VariantProps<typeof buttonVariants> {}
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 	({ className, variant, size, ...props }, ref) => {
@@ -59,4 +49,4 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 );
 Button.displayName = "Button";
 
-export { Button, buttonVariants };
+export { Button };

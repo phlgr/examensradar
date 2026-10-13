@@ -10,9 +10,12 @@ import {
 	Users,
 } from "lucide-react";
 import { useEffect, useId, useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { fieldClass, labelClass } from "@/components/ui/input";
 import { trpc } from "@/lib/trpc";
+import { cn } from "@/lib/utils";
 import type { CheckOutcome } from "@/server/scraper";
 
 function describeScrapeOutcome(outcome: CheckOutcome): string {
@@ -126,8 +129,8 @@ function AdminPage() {
 
 	if (isAuthenticated === null || jpasQuery.isLoading) {
 		return (
-			<div className="flex-1 flex items-center justify-center bg-nb-cream">
-				<div className="w-12 h-12 border-4 border-nb-black border-t-nb-yellow animate-spin" />
+			<div className="flex-1 flex items-center justify-center bg-paper">
+				<div className="w-12 h-12 border border-ink border-t-mark animate-spin" />
 			</div>
 		);
 	}
@@ -141,14 +144,14 @@ function AdminPage() {
 	const scrapeStates = scrapeStatesQuery.data ?? {};
 
 	return (
-		<div className="flex-1 py-4 sm:py-8 px-4 bg-nb-cream">
+		<div className="flex-1 py-4 sm:py-8 px-4 bg-paper">
 			<div className="max-w-4xl mx-auto">
 				<div className="mb-6 sm:mb-8 flex items-start justify-between gap-4">
 					<div>
-						<h1 className="text-3xl sm:text-4xl font-black uppercase mb-2">
+						<h1 className="headline text-4xl sm:text-5xl leading-tight mb-2">
 							Admin Dashboard
 						</h1>
-						<p className="font-medium text-sm sm:text-base">
+						<p className="text-ink/60">
 							Verwalte Justizprüfungsämter und Einstellungen.
 						</p>
 					</div>
@@ -160,7 +163,7 @@ function AdminPage() {
 
 				<div className="space-y-6">
 					<div className="flex flex-wrap items-center justify-between gap-2">
-						<h2 className="text-xl sm:text-2xl font-black uppercase">
+						<h2 className="text-xl sm:text-2xl font-semibold">
 							Justizprüfungsämter
 						</h2>
 						<Button onClick={() => setShowCreateForm(true)} size="sm">
@@ -192,21 +195,22 @@ function AdminPage() {
 									<div className="flex items-start justify-between gap-4">
 										<div className="flex-1 min-w-0">
 											<div className="flex items-center gap-3 mb-1 flex-wrap">
-												<h3 className="text-lg font-black uppercase">
-													{jpa.name}
-												</h3>
-												<div className="flex items-center gap-1 px-2 py-0.5 bg-nb-yellow border-2 border-nb-black text-xs font-bold">
+												<h3 className="text-lg font-semibold">{jpa.name}</h3>
+												<Badge
+													className="bg-ink/5 text-ink/70 ring-ink/10"
+													title="Abonnenten"
+												>
 													<Users className="w-3 h-3" />
 													{subscriptionCounts[jpa.id] ?? 0}
-												</div>
+												</Badge>
 												{jpa.notificationsDisabled && (
-													<div className="flex items-center gap-1 px-2 py-0.5 bg-red-100 border-2 border-red-500 text-red-700 text-xs font-bold">
+													<Badge className="bg-seal-soft text-seal ring-seal/20">
 														<BellOff className="w-3 h-3" />
 														Pausiert
-													</div>
+													</Badge>
 												)}
 											</div>
-											<p className="text-sm font-medium text-nb-black/60 mb-1">
+											<p className="text-sm font-medium text-ink/60 mb-1">
 												Slug: {jpa.slug}
 											</p>
 											{jpa.websiteUrl && (
@@ -214,21 +218,21 @@ function AdminPage() {
 													href={jpa.websiteUrl}
 													target="_blank"
 													rel="noopener noreferrer"
-													className="text-sm font-bold underline decoration-2 hover:bg-nb-yellow transition-colors"
+													className="text-sm font-medium text-seal underline decoration-1 underline-offset-4 hover:decoration-2 break-all"
 												>
 													{jpa.websiteUrl}
 												</a>
 											)}
-											<div className="mt-3 pt-3 border-t-2 border-nb-black/10">
-												<p className="text-xs font-bold uppercase mb-2 text-nb-black/60">
+											<div className="mt-3 pt-3 border-t border-ink/10">
+												<p className="text-[13px] font-medium mb-2 text-ink/60">
 													Scraper
 												</p>
 												{jpa.scrapeUrl && jpa.scrapeSelector ? (
 													<div className="space-y-1 mb-1">
-														<code className="block text-xs bg-nb-black/5 px-2 py-1 font-mono border border-nb-black/20 truncate">
+														<code className="block text-xs bg-ink/[0.04] px-2 py-1 font-mono rounded-md ring-1 ring-ink/10 truncate">
 															{jpa.scrapeUrl}
 														</code>
-														<code className="block text-xs bg-nb-black/5 px-2 py-1 font-mono border border-nb-black/20 truncate">
+														<code className="block text-xs bg-ink/[0.04] px-2 py-1 font-mono rounded-md ring-1 ring-ink/10 truncate">
 															{jpa.scrapeSelector}
 														</code>
 														<ScrapeStatus state={scrapeStates[jpa.id]} />
@@ -250,14 +254,14 @@ function AdminPage() {
 																Jetzt prüfen
 															</Button>
 															{scrapeResults[jpa.id] && (
-																<p className="text-xs font-medium">
+																<p className="text-xs text-ink/70">
 																	{scrapeResults[jpa.id]}
 																</p>
 															)}
 														</div>
 													</div>
 												) : (
-													<p className="text-xs font-medium text-nb-black/60 mb-1">
+													<p className="text-xs text-ink/60 mb-1">
 														Nicht konfiguriert — Scrape-URL und Selektor beim
 														Bearbeiten setzen.
 													</p>
@@ -318,7 +322,7 @@ function AdminPage() {
 
 						{jpas.length === 0 && !showCreateForm && (
 							<Card className="p-8 text-center">
-								<p className="font-bold">
+								<p className="text-ink/70">
 									Noch keine Justizprüfungsämter vorhanden.
 								</p>
 							</Card>
@@ -342,13 +346,11 @@ function ScrapeStatus({
 	};
 }) {
 	if (!state) {
-		return (
-			<p className="text-xs font-medium text-nb-black/60">Noch nie geprüft.</p>
-		);
+		return <p className="text-xs text-ink/60">Noch nie geprüft.</p>;
 	}
 
 	return (
-		<div className="text-xs font-medium space-y-0.5">
+		<div className="text-xs text-ink/60 space-y-0.5">
 			<p>
 				Zuletzt geprüft: {new Date(state.lastCheckedAt).toLocaleString("de-DE")}
 				{state.contentHash ? "" : " (noch keine Baseline)"}
@@ -360,7 +362,7 @@ function ScrapeStatus({
 				</p>
 			)}
 			{state.errorCount > 0 && (
-				<p className="text-red-700 font-bold">
+				<p className="text-seal font-semibold">
 					{state.errorCount} Fehler in Folge: {state.lastError}
 				</p>
 			)}
@@ -415,10 +417,7 @@ function JpaForm({
 		<Card className="p-4 sm:p-6">
 			<form onSubmit={handleSubmit} className="space-y-4">
 				<div>
-					<label
-						htmlFor={`${id}-name`}
-						className="block text-sm font-bold mb-1"
-					>
+					<label htmlFor={`${id}-name`} className={labelClass}>
 						Name
 					</label>
 					<input
@@ -427,15 +426,12 @@ function JpaForm({
 						value={name}
 						onChange={(e) => setName(e.target.value)}
 						required
-						className="w-full px-4 py-2 border-2 border-black font-medium focus:outline-none focus:ring-2 focus:ring-nb-coral"
+						className={fieldClass}
 						placeholder="z.B. JPA Bayern"
 					/>
 				</div>
 				<div>
-					<label
-						htmlFor={`${id}-slug`}
-						className="block text-sm font-bold mb-1"
-					>
+					<label htmlFor={`${id}-slug`} className={labelClass}>
 						Slug
 					</label>
 					<input
@@ -444,12 +440,12 @@ function JpaForm({
 						value={slug}
 						onChange={(e) => setSlug(e.target.value)}
 						required
-						className="w-full px-4 py-2 border-2 border-black font-medium focus:outline-none focus:ring-2 focus:ring-nb-coral"
+						className={fieldClass}
 						placeholder="z.B. bayern"
 					/>
 				</div>
 				<div>
-					<label htmlFor={`${id}-url`} className="block text-sm font-bold mb-1">
+					<label htmlFor={`${id}-url`} className={labelClass}>
 						Website URL (optional)
 					</label>
 					<input
@@ -457,15 +453,12 @@ function JpaForm({
 						type="url"
 						value={websiteUrl}
 						onChange={(e) => setWebsiteUrl(e.target.value)}
-						className="w-full px-4 py-2 border-2 border-black font-medium focus:outline-none focus:ring-2 focus:ring-nb-coral"
+						className={fieldClass}
 						placeholder="https://..."
 					/>
 				</div>
 				<div>
-					<label
-						htmlFor={`${id}-scrape-url`}
-						className="block text-sm font-bold mb-1"
-					>
+					<label htmlFor={`${id}-scrape-url`} className={labelClass}>
 						Scrape-URL (optional)
 					</label>
 					<input
@@ -473,15 +466,12 @@ function JpaForm({
 						type="url"
 						value={scrapeUrl}
 						onChange={(e) => setScrapeUrl(e.target.value)}
-						className="w-full px-4 py-2 border-2 border-black font-medium focus:outline-none focus:ring-2 focus:ring-nb-coral"
+						className={fieldClass}
 						placeholder="https://..."
 					/>
 				</div>
 				<div>
-					<label
-						htmlFor={`${id}-scrape-selector`}
-						className="block text-sm font-bold mb-1"
-					>
+					<label htmlFor={`${id}-scrape-selector`} className={labelClass}>
 						CSS-Selektor (optional)
 					</label>
 					<input
@@ -489,17 +479,17 @@ function JpaForm({
 						type="text"
 						value={scrapeSelector}
 						onChange={(e) => setScrapeSelector(e.target.value)}
-						className="w-full px-4 py-2 border-2 border-black font-mono text-sm focus:outline-none focus:ring-2 focus:ring-nb-coral"
+						className={cn(fieldClass, "font-mono text-sm")}
 						placeholder="article#mainArticle"
 					/>
-					<p className="text-xs font-medium text-nb-black/60 mt-1">
+					<p className="text-xs text-ink/60 mt-1">
 						Überwacht wird nur, wenn Scrape-URL und Selektor gesetzt sind.
 					</p>
 				</div>
 				<div className="flex gap-2">
 					<Button type="submit" disabled={isLoading}>
 						{isLoading
-							? "Wird gespeichert..."
+							? "Wird gespeichert …"
 							: initialData
 								? "Speichern"
 								: "Erstellen"}

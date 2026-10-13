@@ -3,6 +3,7 @@ import { Shield } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { fieldClass, labelClass } from "@/components/ui/input";
 
 export const Route = createFileRoute("/admin/login")({
 	component: AdminLoginPage,
@@ -41,18 +42,18 @@ function AdminLoginPage() {
 	};
 
 	return (
-		<div className="flex-1 flex items-center justify-center bg-nb-cream px-4">
+		<div className="flex-1 flex items-center justify-center bg-paper px-4">
 			<Card className="w-full max-w-md p-6 sm:p-8">
 				<div className="text-center mb-6">
-					<div className="w-16 h-16 bg-nb-yellow border-4 border-nb-black flex items-center justify-center mx-auto mb-4 shadow-[var(--nb-shadow-sm)]">
-						<Shield className="w-8 h-8" />
+					<div className="w-14 h-14 rounded-full bg-seal-soft text-seal grid place-items-center mx-auto mb-4">
+						<Shield className="w-6 h-6" />
 					</div>
-					<h1 className="text-2xl font-black uppercase">Admin Login</h1>
+					<h1 className="headline text-3xl">Admin Login</h1>
 				</div>
 
 				<form onSubmit={handleSubmit} className="space-y-4">
 					<div>
-						<label htmlFor="password" className="block text-sm font-bold mb-1">
+						<label htmlFor="password" className={labelClass}>
 							Passwort
 						</label>
 						<input
@@ -61,19 +62,22 @@ function AdminLoginPage() {
 							value={password}
 							onChange={(e) => setPassword(e.target.value)}
 							required
-							className="w-full px-4 py-2 border-3 border-nb-black font-medium focus:outline-none focus:ring-2 focus:ring-nb-coral"
+							className={fieldClass}
 							placeholder="Admin-Passwort eingeben"
 						/>
 					</div>
 
 					{error && (
-						<div className="p-3 bg-nb-coral border-3 border-nb-black text-sm font-bold">
+						<div
+							role="alert"
+							className="p-3 rounded-md bg-seal-soft ring-1 ring-seal/20 text-sm font-medium text-seal"
+						>
 							{error}
 						</div>
 					)}
 
 					<Button type="submit" className="w-full" disabled={isLoading}>
-						{isLoading ? "Wird überprüft..." : "Anmelden"}
+						{isLoading ? "Wird überprüft …" : "Anmelden"}
 					</Button>
 				</form>
 			</Card>
