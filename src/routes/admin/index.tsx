@@ -159,7 +159,7 @@ function AdminPage() {
 				</div>
 
 				<div className="space-y-6">
-					<div className="flex items-center justify-between">
+					<div className="flex flex-wrap items-center justify-between gap-2">
 						<h2 className="text-xl sm:text-2xl font-semibold">
 							Justizprüfungsämter
 						</h2>
@@ -177,7 +177,7 @@ function AdminPage() {
 						/>
 					)}
 
-					<div className="grid gap-4">
+					<div className="grid grid-cols-1 gap-4">
 						{jpas.map((jpa) =>
 							editingJpa === jpa.id ? (
 								<JpaForm
