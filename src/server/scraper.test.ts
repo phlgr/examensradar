@@ -1,39 +1,6 @@
-import { Database } from "bun:sqlite";
 import { afterAll, expect, mock, test } from "bun:test";
-import { drizzle } from "drizzle-orm/bun-sqlite";
-import { migrate } from "drizzle-orm/bun-sqlite/migrator";
-
-// src/db/index.ts opens its connection at import time, so the path has to be
-// set before that module is pulled in — hence the dynamic imports below.
-const DB_PATH = `${process.env.TMPDIR ?? "/tmp"}/examensradar-scraper-test-${crypto.randomUUID()}.db`;
-process.env.DATABASE_PATH = DB_PATH;
-
-const setup = new Database(DB_PATH);
-setup.run("PRAGMA journal_mode = WAL");
-migrate(drizzle(setup), { migrationsFolder: "./drizzle/migrations" });
-
-// Stand-in for the SMTP transport: every mail the app hands to nodemailer is
-// captured here instead of leaving the machine. Registered before the app
-// modules load so src/lib/mail.ts can never build the real transport.
-type SentMail = {
-	to: string;
-	subject: string;
-	headers?: Record<string, string>;
-};
-const sentMails: SentMail[] = [];
-mock.module("nodemailer", () => ({
-	default: {
-		createTransport: () => ({
-			sendMail: async (mail: SentMail) => {
-				sentMails.push(mail);
-				return { messageId: "test" };
-			},
-		}),
-	},
-}));
-process.env.SMTP_HOST = "smtp.invalid";
-process.env.SMTP_USER = "test";
-process.env.SMTP_PASS = "test";
+// Shared test DB and the captured-mail transport — see src/test-setup.ts.
+import { sentMails } from "../test-setup.ts";
 
 const {
 	addEmailSubscription,
@@ -53,12 +20,6 @@ const realFetch = globalThis.fetch;
 
 afterAll(() => {
 	globalThis.fetch = realFetch;
-	setup.close();
-	for (const suffix of ["", "-wal", "-shm"]) {
-		Bun.file(`${DB_PATH}${suffix}`)
-			.delete()
-			.catch(() => {});
-	}
 });
 
 const serveHtml = (html: string) => {

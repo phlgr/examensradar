@@ -3,7 +3,8 @@
   "entry": [
     "src/client.tsx",
     "src/server/plugins/*.ts",
-    "src/**/*.test.{ts,tsx}"
+    "src/**/*.test.{ts,tsx}",
+    "src/test-setup.ts"
   ],
   "ignoreDependencies": [
     "@tanstack/router-plugin"
