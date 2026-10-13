@@ -1,159 +1,190 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { History, Mail, MailCheck, Zap } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { LinkButton } from "@/components/ui/link-button";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { NotificationPreview } from "@/components/landing/NotificationPreview";
+import { Reveal } from "@/components/landing/Reveal";
+import { UpcomingReleases } from "@/components/landing/UpcomingReleases";
+import { SignupForm } from "@/components/SignupForm";
+import { summarizeReleases } from "@/lib/release-summary";
+import { trpc } from "@/lib/trpc";
 
 export const Route = createFileRoute("/")({ component: LandingPage });
 
+const STEPS = [
+	{
+		title: "Eintragen",
+		description:
+			"Justizprüfungsamt auswählen, E-Mail-Adresse eingeben. Kein Passwort, kein Konto.",
+	},
+	{
+		title: "Bestätigen",
+		description:
+			"Du bekommst einen Link von uns. Ein Klick darauf, und die Benachrichtigung ist scharf.",
+	},
+	{
+		title: "Abschalten",
+		description:
+			"Ab jetzt behalten wir die Ergebnisseite im Blick. Steht dort etwas Neues, hast du eine E-Mail im Postfach.",
+	},
+] as const;
+
+/** The F5 key as a real keycap. */
+function Keycap({ children }: { children: string }) {
+	return (
+		<kbd className="shadow-[0_5px_0_0_#d9d0bd,0_6px_0_0_rgb(23_23_26/0.3)] relative inline-grid place-items-center align-[0.14em] min-w-[1.45em] h-[1.18em] px-[0.18em] mx-[0.04em] rounded-[0.2em] bg-gradient-to-b from-sheet to-[#efe8d8] ring-1 ring-ink/15 font-sans font-semibold text-[0.62em] tracking-normal text-ink/80">
+			<span className="-translate-y-[0.04em]">{children}</span>
+		</kbd>
+	);
+}
+
 function LandingPage() {
-	const steps = [
-		{
-			icon: <Mail className="w-6 h-6 sm:w-8 sm:h-8" />,
-			title: "1. E-Mail eintragen",
-			description:
-				"Wähle dein Justizprüfungsamt und trag deine E-Mail-Adresse ein. Keine App, kein Konto.",
-			color: "bg-nb-coral",
-		},
-		{
-			icon: <MailCheck className="w-6 h-6 sm:w-8 sm:h-8" />,
-			title: "2. Link bestätigen",
-			description:
-				"Klicke auf den Bestätigungslink in deinem Postfach — fertig.",
-			color: "bg-nb-teal",
-		},
-		{
-			icon: <Zap className="w-6 h-6 sm:w-8 sm:h-8" />,
-			title: "3. Benachrichtigt werden",
-			description: "Erhalte sofort eine E-Mail, wenn neue Ergebnisse da sind.",
-			color: "bg-nb-yellow",
-		},
-	];
+	const jpasQuery = trpc.jpa.getAll.useQuery();
+	const historyQuery = trpc.jpa.getHistory.useQuery();
+	const [jpaId, setJpaId] = useState("");
+
+	// Preselect the first office once the list is in, so a single-office
+	// deployment needs no extra click and the preview has something to show.
+	useEffect(() => {
+		if (!jpaId && jpasQuery.data?.[0]) setJpaId(jpasQuery.data[0].id);
+	}, [jpasQuery.data, jpaId]);
+
+	const selectedJpa = jpasQuery.data?.find((jpa) => jpa.id === jpaId);
+	const summaries = summarizeReleases(historyQuery.data ?? [], new Date());
+	const summary = selectedJpa
+		? summaries.find((s) => s.slug === selectedJpa.slug)
+		: undefined;
 
 	return (
 		<div className="flex-1">
-			{/* Hero Section */}
-			<section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 bg-nb-mint">
-				<div className="max-w-4xl mx-auto">
-					<Card className="pt-6 px-6 pb-3 sm:pt-8 sm:px-8 sm:pb-4 md:pt-12 md:px-12 md:pb-6">
-						<h1 className="text-4xl sm:text-5xl md:text-7xl font-black text-nb-black mb-4 sm:mb-6 uppercase leading-tight">
+			{/* Hero */}
+			<section className="relative overflow-hidden">
+				{/* Ruled lines fading out towards the bottom, like a Klausurbogen. */}
+				<div
+					className="absolute inset-0 bg-ruled [mask-image:linear-gradient(to_bottom,black,transparent_85%)]"
+					aria-hidden
+				/>
+				{/* The margin line every exam sheet has. */}
+				<div
+					className="absolute inset-y-0 left-[max(1rem,calc(50%-36rem))] w-px bg-seal/25 hidden sm:block"
+					aria-hidden
+				/>
+
+				<div className="relative max-w-6xl mx-auto px-4 sm:px-6 sm:pl-12 pt-12 pb-20 sm:pt-20 sm:pb-28 grid gap-16 lg:gap-16 lg:grid-cols-[1.1fr_0.9fr] items-center">
+					<div>
+						<h1
+							className="animate-rise headline text-[clamp(3rem,11vw,5.6rem)] leading-[0.98] mb-7"
+							style={{ animationDelay: "60ms" }}
+						>
 							Schluss mit
 							<br />
-							<span className="bg-nb-coral px-2 inline-block -rotate-1">
-								F5-Drücken
+							<span className="whitespace-nowrap">
+								<Keycap>F5</Keycap>
+								<span className="marker marker-draw italic font-[430]">
+									-Drücken.
+								</span>
 							</span>
 						</h1>
-						<p className="text-lg sm:text-xl md:text-2xl font-bold mb-6 sm:mb-8 max-w-2xl">
-							Wir benachrichtigen dich sofort, wenn das Justizprüfungsamt neue
-							Examensergebnisse veröffentlicht.
-						</p>
-						<div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-							<LinkButton
-								to="/subscriptions"
-								size="lg"
-								className="w-full sm:w-auto"
-							>
-								Jetzt starten
-							</LinkButton>
-							<LinkButton
-								to="/history"
-								variant="ghost"
-								size="sm"
-								className="w-full sm:w-auto gap-1.5"
-							>
-								<History className="w-4 h-4" />
-								Ergebnis-Historie
-							</LinkButton>
-						</div>
-					</Card>
-				</div>
-			</section>
 
-			{/* How it works */}
-			<section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 bg-nb-cream">
-				<div className="max-w-5xl mx-auto">
-					<h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-center mb-8 sm:mb-12 md:mb-16 uppercase">
-						So funktioniert's
-					</h2>
-					<div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-						{steps.map((step) => (
-							<Card key={step.title} hover>
-								<CardContent className="p-4 sm:p-6">
-									<div
-										className={`w-12 h-12 sm:w-16 sm:h-16 ${step.color} border-3 sm:border-4 border-nb-black flex items-center justify-center mb-3 sm:mb-4 shadow-[var(--nb-shadow-sm)]`}
-									>
-										{step.icon}
-									</div>
-									<h3 className="text-lg sm:text-xl font-black uppercase mb-2 sm:mb-3">
-										{step.title}
-									</h3>
-									<p className="font-medium text-sm sm:text-base">
-										{step.description}
-									</p>
-								</CardContent>
-							</Card>
-						))}
+						<p
+							className="animate-rise text-lg sm:text-xl text-ink/70 leading-relaxed max-w-xl mb-10"
+							style={{ animationDelay: "140ms" }}
+						>
+							<strong className="font-semibold text-ink">
+								Die Klausuren im ersten Examen hast du geschrieben. Das Warten
+								übernehmen wir.
+							</strong>{" "}
+							Examensradar behält die Ergebnisseite deines Justizprüfungsamts im
+							Blick und schickt dir eine E-Mail, sobald neue Ergebnisse online
+							sind.
+						</p>
+
+						<div
+							className="animate-rise max-w-xl"
+							style={{ animationDelay: "220ms" }}
+						>
+							<SignupForm
+								jpas={jpasQuery.data}
+								loading={jpasQuery.isLoading}
+								error={jpasQuery.isError}
+								jpaId={jpaId}
+								onJpaChange={setJpaId}
+								source="landing"
+							/>
+						</div>
+					</div>
+
+					<div
+						className="animate-rise lg:pl-4 max-w-md w-full mx-auto lg:max-w-none"
+						style={{ animationDelay: "180ms" }}
+					>
+						<NotificationPreview
+							jpa={selectedJpa}
+							prediction={summary?.prediction ?? null}
+							daysUntil={summary?.daysUntil ?? null}
+							lastRelease={summary?.lastRelease ?? null}
+							loading={historyQuery.isLoading}
+						/>
 					</div>
 				</div>
 			</section>
 
-			{/* History Teaser */}
-			<section className="py-12 sm:py-16 px-4 sm:px-6 bg-nb-teal">
-				<div className="max-w-4xl mx-auto">
-					<Card variant="primary" className="p-6 sm:p-8">
-						<div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
-							<div className="w-14 h-14 bg-nb-black border-4 border-nb-black flex items-center justify-center shrink-0 shadow-[var(--nb-shadow-sm)]">
-								<History className="w-7 h-7 text-nb-yellow" />
-							</div>
-							<div className="flex-1">
-								<h2 className="text-xl sm:text-2xl font-black uppercase mb-1">
-									Wann veröffentlicht dein JPA?
-								</h2>
-								<p className="font-medium text-sm sm:text-base">
-									In der Historie siehst du, an welchen Tagen die Prüfungsämter
-									in der Vergangenheit Ergebnisse veröffentlicht haben —
-									inklusive typischem Tag und Uhrzeit.
-								</p>
-							</div>
-							<LinkButton
-								to="/history"
-								variant="default"
-								size="lg"
-								className="shrink-0 w-full sm:w-auto"
-							>
-								Zur Historie
-							</LinkButton>
-						</div>
-					</Card>
-				</div>
-			</section>
-
-			{/* CTA Section */}
-			<section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 bg-nb-coral">
-				<div className="max-w-3xl mx-auto">
-					<Card variant="primary" className="p-6 sm:p-8 md:p-12 text-center">
-						<h2 className="text-2xl sm:text-3xl md:text-4xl font-black uppercase mb-3 sm:mb-4">
-							Bereit für stressfreies Warten?
+			{/* How it works */}
+			<section className="bg-sheet border-t border-ink/10 py-20 sm:py-28 px-4 sm:px-6">
+				<div className="max-w-6xl mx-auto">
+					<Reveal className="max-w-2xl mb-14 sm:mb-20">
+						<h2 className="headline text-[2.6rem] sm:text-6xl leading-[1.02]">
+							Einfacher als jede Klausur.
 						</h2>
-						<p className="text-base sm:text-lg font-bold mb-6 sm:mb-8">
-							Starte jetzt und verpasse keine Ergebnisveröffentlichung mehr.
+						<p className="mt-6 text-lg text-ink/70 leading-relaxed">
+							Eintragen, bestätigen, fertig. Das Ganze dauert keine Minute.
 						</p>
-						<LinkButton
-							to="/subscriptions"
-							className="bg-nb-black text-nb-white shadow-[6px_6px_0px_0px_rgba(255,255,255,1)] hover:shadow-none w-full sm:w-auto"
-							size="lg"
-						>
-							Kostenlos starten
-						</LinkButton>
-					</Card>
+					</Reveal>
+
+					<ol className="grid md:grid-cols-3 border-t border-ink">
+						{STEPS.map((step, index) => (
+							<li
+								key={step.title}
+								className="border-b md:border-b-0 md:border-r last:border-r-0 border-ink/10 md:[&:not(:first-child)]:pl-8 md:pr-8"
+							>
+								<Reveal delay={index * 120} className="pt-7 pb-9 md:pb-2">
+									<p className="headline text-seal text-5xl sm:text-6xl leading-none mb-6">
+										§&thinsp;{index + 1}
+									</p>
+									<h3 className="text-lg font-semibold leading-tight mb-2">
+										{step.title}
+									</h3>
+									<p className="text-ink/65 leading-relaxed">
+										{step.description}
+									</p>
+								</Reveal>
+							</li>
+						))}
+					</ol>
 				</div>
 			</section>
 
-			{/* Footer */}
-			<footer className="py-6 px-6 bg-nb-black text-nb-white border-t-4 border-nb-black">
-				<div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-sm">
-					<p className="font-bold">
-						&copy; {new Date().getFullYear()} EXAMENSRADAR
+			{/* When? */}
+			<UpcomingReleases
+				summaries={summaries}
+				loading={historyQuery.isLoading}
+			/>
+
+			<footer className="px-4 sm:px-6 py-8 border-t border-ink/10">
+				<div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-ink/50">
+					<p>
+						&copy; {new Date().getFullYear()}{" "}
+						<span className="headline text-base text-ink/80">Examensradar</span>
 					</p>
+					<nav className="flex items-center gap-6">
+						<Link to="/history" className="hover:text-ink transition-colors">
+							Historie
+						</Link>
+						<Link
+							to="/subscriptions"
+							className="hover:text-ink transition-colors"
+						>
+							Benachrichtigungen
+						</Link>
+					</nav>
 				</div>
 			</footer>
 		</div>

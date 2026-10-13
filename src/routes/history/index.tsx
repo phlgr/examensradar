@@ -1,11 +1,26 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ExternalLink, History } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { CalendarClock, ChevronDown, ExternalLink } from "lucide-react";
+import { Fragment, useState } from "react";
 import {
-	type PredictionConfidence,
-	predictNextRelease,
-} from "@/lib/prediction";
+	JpaSearchEmpty,
+	JpaSearchInput,
+	useJpaSearch,
+} from "@/components/jpa-search";
+import { Card } from "@/components/ui/card";
+import { PredictionNote } from "@/components/ui/date-chip";
+import { Eyebrow, SectionIntro } from "@/components/ui/heading";
+import { PageSpinner } from "@/components/ui/spinner";
+import {
+	CONFIDENCE_LABEL,
+	formatDayMonth,
+	formatDayMonthShort,
+	type JpaReleaseSummary,
+	monthPositionLabel,
+	relativeLabel,
+	summarizeReleases,
+} from "@/lib/release-summary";
 import { trpc } from "@/lib/trpc";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/history/")({
 	component: HistoryPage,
@@ -22,108 +37,42 @@ const WEEKDAYS_FULL = [
 	"Samstag",
 ] as const;
 
-type JpaGroup = {
-	jpaName: string;
-	jpaSlug: string;
-	jpaWebsiteUrl: string | null;
-	entries: Array<{ sentAt: Date }>;
-	lastRelease: Date;
-	weekdayCounts: Map<number, number>;
-	typicalHour: number;
-};
+const WEEK_ORDER = [1, 2, 3, 4, 5, 6, 0]; // Mo–So
 
-function computeMedian(values: number[]): number {
-	const sorted = [...values].sort((a, b) => a - b);
-	const mid = Math.floor(sorted.length / 2);
-	if (sorted.length % 2 === 0) {
-		return Math.round((sorted[mid - 1] + sorted[mid]) / 2);
-	}
-	return sorted[mid];
-}
-
-function computeMode(values: number[]): number {
-	const counts = new Map<number, number>();
-	for (const v of values) counts.set(v, (counts.get(v) ?? 0) + 1);
-	let best = values[0];
-	let bestCount = 0;
-	for (const [v, c] of counts) {
-		if (c > bestCount) {
-			best = v;
-			bestCount = c;
-		}
-	}
-	return best;
-}
-
-function groupByJpa(
-	entries: Array<{
-		sentAt: Date | null;
-		jpaName: string | null;
-		jpaSlug: string | null;
-		jpaWebsiteUrl: string | null;
-	}>,
-): JpaGroup[] {
-	const map = new Map<string, JpaGroup>();
-
-	for (const entry of entries) {
-		if (!entry.jpaSlug || !entry.jpaName || !entry.sentAt) continue;
-
-		const sentAt = new Date(entry.sentAt);
-		const weekday = sentAt.getDay();
-
-		let group = map.get(entry.jpaSlug);
-		if (!group) {
-			group = {
-				jpaName: entry.jpaName,
-				jpaSlug: entry.jpaSlug,
-				jpaWebsiteUrl: entry.jpaWebsiteUrl,
-				entries: [],
-				lastRelease: sentAt,
-				weekdayCounts: new Map(),
-				typicalHour: 0,
-			};
-			map.set(entry.jpaSlug, group);
-		}
-		group.entries.push({ sentAt });
-
-		if (sentAt > group.lastRelease) {
-			group.lastRelease = sentAt;
-		}
-
-		group.weekdayCounts.set(
-			weekday,
-			(group.weekdayCounts.get(weekday) ?? 0) + 1,
-		);
-	}
-
-	for (const group of map.values()) {
-		const allHours = group.entries.map((e) => e.sentAt.getHours());
-		group.typicalHour = computeMedian(allHours);
-	}
-
-	return [...map.values()].sort(
-		(a, b) => b.lastRelease.getTime() - a.lastRelease.getTime(),
-	);
+/**
+ * The weekdays sharing the top count, Mo–So. Empty when every weekday seen is
+ * tied: then none of them is "most common".
+ */
+function mostCommonWeekdays(counts: Map<number, number>): number[] {
+	const seen = WEEK_ORDER.filter((weekday) => (counts.get(weekday) ?? 0) > 0);
+	const max = Math.max(0, ...counts.values());
+	const top = seen.filter((weekday) => counts.get(weekday) === max);
+	return top.length < seen.length ? top : [];
 }
 
 function WeekdayBar({ weekdayCounts }: { weekdayCounts: Map<number, number> }) {
 	const max = Math.max(...weekdayCounts.values(), 1);
-	// Mon–Sun order (1–6, 0)
-	const order = [1, 2, 3, 4, 5, 6, 0];
 	return (
-		<div className="flex gap-1 items-end">
-			{order.map((wd) => {
-				const count = weekdayCounts.get(wd) ?? 0;
-				const height = Math.round((count / max) * 24) + 8;
+		<div className="flex gap-1.5 items-end">
+			{WEEK_ORDER.map((weekday) => {
+				const count = weekdayCounts.get(weekday) ?? 0;
+				const height = Math.round((count / max) * 32) + 4;
 				return (
-					<div key={wd} className="flex flex-col items-center gap-0.5">
+					<div key={weekday} className="flex flex-col items-center gap-1.5">
 						<div
-							className={`w-6 ${count > 0 ? "bg-nb-yellow border-2 border-nb-black" : "bg-nb-cream border border-nb-black/20"}`}
+							className={cn(
+								"w-6 rounded-[3px]",
+								count === max && count > 0
+									? "bg-seal"
+									: count > 0
+										? "bg-ink/70"
+										: "bg-ink/10",
+							)}
 							style={{ height }}
-							title={`${WEEKDAYS_FULL[wd]}: ${count}×`}
+							title={`${WEEKDAYS_FULL[weekday]}: ${count}×`}
 						/>
-						<span className="text-[9px] font-bold text-nb-black/50">
-							{WEEKDAYS[wd]}
+						<span className="figures text-[10px] text-ink/45">
+							{WEEKDAYS[weekday]}
 						</span>
 					</div>
 				);
@@ -132,230 +81,279 @@ function WeekdayBar({ weekdayCounts }: { weekdayCounts: Map<number, number> }) {
 	);
 }
 
-function OverviewCard({ groups }: { groups: JpaGroup[] }) {
-	const totalReleases = groups.reduce((s, g) => s + g.entries.length, 0);
-	const allWeekdayCounts = new Map<number, number>();
-	for (const group of groups) {
-		for (const [wd, count] of group.weekdayCounts) {
-			allWeekdayCounts.set(wd, (allWeekdayCounts.get(wd) ?? 0) + count);
+function Overview({ summaries }: { summaries: JpaReleaseSummary[] }) {
+	// Publication events, not raw notifications — a page edited twice in one
+	// week is still one publication.
+	const total = summaries.reduce((sum, s) => sum + s.releaseCount, 0);
+	const weekdayCounts = new Map<number, number>();
+	for (const summary of summaries) {
+		for (const [weekday, count] of summary.weekdayCounts) {
+			weekdayCounts.set(weekday, (weekdayCounts.get(weekday) ?? 0) + count);
 		}
 	}
-	const mostCommonWeekday = computeMode([
-		...groups.flatMap((g) => g.entries.map((e) => e.sentAt.getDay())),
-	]);
+	const topWeekdays = mostCommonWeekdays(weekdayCounts);
 
 	return (
-		<Card variant="primary" className="p-4 sm:p-6 mb-6 sm:mb-8">
-			<div className="flex flex-col sm:flex-row gap-4 sm:gap-8 sm:items-end">
-				<div className="flex-1">
-					<p className="text-xs font-black uppercase text-nb-black/50 mb-1">
-						Gesamt
+		<Card className="p-6 sm:p-8 mb-12 flex flex-col sm:flex-row sm:items-end gap-6 sm:gap-10">
+			<div className="flex-1">
+				<p className="headline text-6xl sm:text-7xl leading-none">{total}</p>
+				<p className="text-lg mt-3">
+					Veröffentlichungen von {summaries.length}{" "}
+					{summaries.length === 1
+						? "Justizprüfungsamt"
+						: "Justizprüfungsämtern"}{" "}
+					erfasst
+				</p>
+				{topWeekdays.length > 0 && (
+					<p className="text-[15px] text-ink/60 mt-1">
+						Am häufigsten an einem{" "}
+						{topWeekdays.map((weekday, index) => (
+							<Fragment key={weekday}>
+								{index > 0 &&
+									(index === topWeekdays.length - 1 ? " oder " : ", ")}
+								<span className="marker font-semibold text-ink">
+									{WEEKDAYS_FULL[weekday]}
+								</span>
+							</Fragment>
+						))}
 					</p>
-					<p className="text-3xl sm:text-4xl font-black">
-						{totalReleases}{" "}
-						<span className="text-base font-bold">Veröffentlichungen</span>
-					</p>
-					<p className="text-sm font-medium mt-1">
-						von {groups.length}{" "}
-						{groups.length === 1 ? "Justizprüfungsamt" : "Justizprüfungsämtern"}
-					</p>
-					{totalReleases > 0 && (
-						<p className="text-sm font-bold mt-1">
-							Häufigster Wochentag:{" "}
-							<span className="bg-nb-black text-nb-yellow px-1">
-								{WEEKDAYS_FULL[mostCommonWeekday]}
-							</span>
-						</p>
-					)}
-				</div>
-				{totalReleases > 0 && (
-					<div>
-						<p className="text-xs font-black uppercase text-nb-black/50 mb-2">
-							Wochentage
-						</p>
-						<WeekdayBar weekdayCounts={allWeekdayCounts} />
-					</div>
 				)}
+			</div>
+			<div>
+				<Eyebrow className="mb-2">Wochentage</Eyebrow>
+				<WeekdayBar weekdayCounts={weekdayCounts} />
 			</div>
 		</Card>
 	);
 }
 
-// Describes where in the month a JPA tends to publish, derived from the median
-// offset to the last working day (so an end-of-month office reads "zum
-// Monatsende" even when it occasionally slips into the next month).
-function monthPositionLabel(offsetDays: number): string {
-	if (offsetDays >= -1) return "am letzten Werktag des Monats";
-	if (offsetDays >= -4) return "in den letzten Tagen des Monats";
-	if (offsetDays >= -12) return "in der zweiten Monatshälfte";
-	if (offsetDays >= -20) return "um die Monatsmitte";
-	return "in der ersten Monatshälfte";
-}
-
-const CONFIDENCE_LABEL: Record<PredictionConfidence, string> = {
-	high: "hohe Sicherheit",
-	medium: "mittlere Sicherheit",
-	low: "grobe Schätzung",
-};
-
-const shortDate = (date: Date) =>
-	date.toLocaleDateString("de-DE", { day: "numeric", month: "short" });
-
-function JpaCard({ group }: { group: JpaGroup }) {
-	const sortedEntries = [...group.entries].sort(
-		(a, b) => b.sentAt.getTime() - a.sentAt.getTime(),
-	);
-
-	const compactDates = sortedEntries
-		.map((e) =>
-			e.sentAt.toLocaleString("de-DE", {
-				day: "numeric",
-				month: "short",
-				year: "2-digit",
-				hour: "2-digit",
-				minute: "2-digit",
-			}),
-		)
-		.join(", ");
-
-	const prediction = predictNextRelease(
-		group.entries.map((e) => e.sentAt),
-		new Date(),
-	);
-	const daysUntil = prediction
-		? Math.ceil(
-				(prediction.date.getTime() - Date.now()) / (1000 * 60 * 60 * 24),
-			)
-		: null;
-	const isOverdue = daysUntil !== null && daysUntil < 0;
-	const relativeLabel =
-		daysUntil === null
-			? null
-			: isOverdue
-				? Math.abs(daysUntil) < 7
-					? `seit ${Math.abs(daysUntil)} Tagen überfällig`
-					: `seit ${Math.round(Math.abs(daysUntil) / 7)} Wochen überfällig`
-				: daysUntil === 0
-					? "heute erwartet"
-					: daysUntil <= 14
-						? `in ${daysUntil} Tagen`
-						: `in ${Math.round(daysUntil / 7)} Wochen`;
+/**
+ * One office as a native <details>: the summary row carries what most people
+ * came for (the next expected date), the body the pattern behind it. Native
+ * disclosure keeps a long list scannable without any state of our own.
+ */
+function JpaDetails({
+	summary,
+	defaultOpen,
+}: {
+	summary: JpaReleaseSummary;
+	defaultOpen: boolean;
+}) {
+	const { prediction, daysUntil } = summary;
+	const overdue = daysUntil !== null && daysUntil < 0;
+	// Owned per office (keyed by slug), so re-sorting the list after a search
+	// never overrides what the reader opened or closed.
+	const [open, setOpen] = useState(defaultOpen);
 
 	return (
-		<Card className="p-4 sm:p-6">
-			<div className="mb-3">
-				{group.jpaWebsiteUrl ? (
-					<a
-						href={group.jpaWebsiteUrl}
-						target="_blank"
-						rel="noopener noreferrer"
-						className="text-base sm:text-lg font-black uppercase inline-flex items-center gap-1 underline decoration-2 hover:bg-nb-yellow transition-colors"
-					>
-						{group.jpaName}
-						<ExternalLink className="w-4 h-4 shrink-0" />
-					</a>
-				) : (
-					<span className="text-base sm:text-lg font-black uppercase">
-						{group.jpaName}
-					</span>
-				)}
-
-				<p className="text-sm font-medium mt-1">
-					Letzte Veröffentlichung:{" "}
-					{group.lastRelease.toLocaleString("de-DE", {
-						dateStyle: "long",
-						timeStyle: "short",
-					})}
-				</p>
-
-				<p className="text-sm font-bold mt-0.5">
-					Meist{" "}
-					{prediction && (
-						<>
-							<span className="bg-nb-yellow px-1">
-								{monthPositionLabel(prediction.medianOffsetDays)}
+		<Card variant="flat" className="overflow-hidden">
+			<details
+				open={open}
+				onToggle={(event) => setOpen(event.currentTarget.open)}
+				className="group"
+			>
+				{/* <summary> only allows phrasing content, so everything in the row
+				    is a span; the office name is the disclosure's own label. */}
+				<summary className="list-none cursor-pointer select-none px-5 py-4 sm:px-6 sm:py-5 flex items-center gap-4 transition-colors hover:bg-ink/[0.02] [&::-webkit-details-marker]:hidden">
+					<span className="flex-1 min-w-0 sm:flex sm:items-center sm:gap-5">
+						<span className="block sm:flex-1 min-w-0">
+							<span className="block text-lg font-semibold leading-tight">
+								{summary.name}
 							</span>
-							{", "}
-						</>
-					)}
-					gegen{" "}
-					<span className="bg-nb-yellow px-1">{group.typicalHour} Uhr</span>
-				</p>
+							<span className="block text-[13px] text-ink/50 mt-0.5">
+								zuletzt am {formatDayMonth(summary.lastRelease)}
+							</span>
+						</span>
+						<span className="block mt-2 sm:mt-0">
+							{prediction && daysUntil !== null ? (
+								<PredictionNote
+									prediction={prediction}
+									daysUntil={daysUntil}
+									prefix="voraussichtlich"
+									detail="relative"
+								/>
+							) : (
+								<span className="text-[15px] text-ink/45">
+									noch keine Prognose
+								</span>
+							)}
+						</span>
+					</span>
+					<ChevronDown
+						className="w-5 h-5 shrink-0 text-ink/40 transition-transform group-open:rotate-180"
+						aria-hidden
+					/>
+				</summary>
 
-				{prediction && (
-					<p className="text-sm font-bold mt-1">
-						Nächste Veröffentlichung voraussichtlich{" "}
-						<span
-							className={`border border-nb-black px-1 ${isOverdue ? "bg-nb-coral" : "bg-nb-teal"}`}
+				<div className="border-t border-ink/10 px-5 py-5 sm:px-6 sm:py-6">
+					<div className="grid gap-6 md:grid-cols-2">
+						<div
+							className={cn(
+								"rounded-md p-5",
+								overdue ? "bg-seal-soft" : "bg-paper/70 ring-1 ring-ink/5",
+							)}
 						>
-							{prediction.date.toLocaleDateString("de-DE", {
-								day: "numeric",
-								month: "long",
-							})}
-						</span>{" "}
-						<span className="font-medium text-nb-black/50">
-							({relativeLabel})
-						</span>
-						<span className="block text-xs font-medium text-nb-black/50 mt-0.5">
-							Zeitfenster {shortDate(prediction.windowStart)} –{" "}
-							{shortDate(prediction.windowEnd)} ·{" "}
-							{CONFIDENCE_LABEL[prediction.confidence]}
-						</span>
-					</p>
-				)}
-			</div>
+							<Eyebrow className="mb-2">Nächste Veröffentlichung</Eyebrow>
+							{prediction && daysUntil !== null ? (
+								<>
+									<p className="headline text-4xl leading-none">
+										<span className={overdue ? undefined : "marker"}>
+											{formatDayMonth(prediction.date)}
+										</span>
+									</p>
+									<p
+										className={cn("font-semibold mt-3", overdue && "text-seal")}
+									>
+										{relativeLabel(daysUntil)}
+									</p>
+									<p className="text-[13px] mt-1 text-ink/55">
+										Wahrscheinlich zwischen dem{" "}
+										{formatDayMonthShort(prediction.windowStart)} und dem{" "}
+										{formatDayMonthShort(prediction.windowEnd)} ·{" "}
+										{CONFIDENCE_LABEL[prediction.confidence]}
+									</p>
+								</>
+							) : (
+								<p className="text-[15px] text-ink/70">
+									Für eine Prognose brauchen wir mindestens zwei
+									Veröffentlichungen. Bisher ist eine erfasst
+									{summary.dates.length > 1
+										? ` (${summary.dates.length} Meldungen innerhalb einer Woche).`
+										: "."}
+								</p>
+							)}
+						</div>
 
-			<div className="mb-3">
-				<WeekdayBar weekdayCounts={group.weekdayCounts} />
-			</div>
+						<div className="flex flex-col justify-between gap-5">
+							<dl className="space-y-3">
+								<div>
+									<dt>
+										<Eyebrow>Zuletzt</Eyebrow>
+									</dt>
+									<dd className="font-medium">
+										{summary.lastRelease.toLocaleString("de-DE", {
+											dateStyle: "long",
+											timeStyle: "short",
+										})}{" "}
+										Uhr
+									</dd>
+								</div>
+								<div>
+									<dt>
+										<Eyebrow>Typisch</Eyebrow>
+									</dt>
+									<dd className="font-medium">
+										{prediction
+											? `${monthPositionLabel(prediction.medianOffsetDays)}, `
+											: ""}
+										gegen {summary.typicalHour} Uhr
+									</dd>
+								</div>
+							</dl>
+							<WeekdayBar weekdayCounts={summary.weekdayCounts} />
+						</div>
+					</div>
 
-			<p className="text-xs font-medium text-nb-black/50">{compactDates}</p>
+					<div className="mt-6 pt-5 border-t border-ink/10 flex flex-wrap items-end justify-between gap-4">
+						<div>
+							<Eyebrow className="mb-2">Erfasste Meldungen</Eyebrow>
+							<ul className="flex flex-wrap gap-1.5">
+								{summary.dates.map((date) => (
+									<li
+										key={date.getTime()}
+										className="figures text-xs rounded-md bg-ink/[0.05] px-2 py-1 text-ink/70"
+									>
+										{date.toLocaleString("de-DE", {
+											day: "numeric",
+											month: "short",
+											year: "numeric",
+											hour: "2-digit",
+											minute: "2-digit",
+										})}
+									</li>
+								))}
+							</ul>
+						</div>
+						{summary.websiteUrl && (
+							<a
+								href={summary.websiteUrl}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="text-sm font-medium text-seal inline-flex items-center gap-1 underline decoration-1 underline-offset-4 hover:decoration-2"
+							>
+								Website des Prüfungsamts
+								<ExternalLink className="w-3.5 h-3.5 shrink-0" />
+							</a>
+						)}
+					</div>
+				</div>
+			</details>
 		</Card>
 	);
 }
 
 function HistoryPage() {
 	const historyQuery = trpc.jpa.getHistory.useQuery();
+	const summaries = summarizeReleases(historyQuery.data ?? [], new Date());
+	const search = useJpaSearch(summaries);
 
-	if (historyQuery.isLoading) {
-		return (
-			<div className="flex-1 flex items-center justify-center bg-nb-cream">
-				<div className="w-12 h-12 border-4 border-nb-black border-t-nb-yellow animate-spin" />
-			</div>
-		);
-	}
-
-	const entries = historyQuery.data ?? [];
-	const groups = groupByJpa(entries);
+	if (historyQuery.isLoading) return <PageSpinner />;
 
 	return (
-		<div className="flex-1 py-4 sm:py-8 px-4 bg-nb-cream">
+		<div className="flex-1 py-12 sm:py-20 px-4 sm:px-6">
 			<div className="max-w-4xl mx-auto">
-				<div className="mb-6 sm:mb-8">
-					<h1 className="text-3xl sm:text-4xl font-black uppercase mb-2">
-						Ergebnis-Historie
-					</h1>
-					<p className="font-medium text-sm sm:text-base">
-						Hier siehst du, wann die Justizprüfungsämter zuletzt Ergebnisse
-						veröffentlicht haben.
-					</p>
-				</div>
+				<SectionIntro
+					as="h1"
+					title="Wann kommen die Ergebnisse?"
+					className="mb-10 sm:mb-14"
+				>
+					Hier siehst du, wann die Justizprüfungsämter bisher Examensergebnisse
+					veröffentlicht haben – und wann die nächsten voraussichtlich kommen.
+				</SectionIntro>
 
-				{groups.length === 0 ? (
-					<Card className="p-8 text-center">
-						<div className="w-16 h-16 bg-nb-yellow border-4 border-nb-black flex items-center justify-center mx-auto mb-4">
-							<History className="w-8 h-8" />
-						</div>
-						<p className="font-bold">Noch keine Ergebnisse veröffentlicht.</p>
+				{summaries.length === 0 ? (
+					<Card className="p-10 text-center">
+						<CalendarClock className="w-8 h-8 mx-auto mb-4 text-seal" />
+						<p className="text-lg text-ink/70">
+							Noch keine Veröffentlichungen erfasst. Sobald ein Prüfungsamt
+							Ergebnisse veröffentlicht, erscheint es hier.
+						</p>
 					</Card>
 				) : (
 					<>
-						<OverviewCard groups={groups} />
-						<div className="space-y-4">
-							{groups.map((group) => (
-								<JpaCard key={group.jpaSlug} group={group} />
-							))}
+						<Overview summaries={summaries} />
+
+						<div className="flex flex-wrap items-end justify-between gap-4 mb-5">
+							<div>
+								<h2 className="text-2xl font-semibold leading-tight">
+									Nach Prüfungsamt
+								</h2>
+								<p className="text-[15px] text-ink/55 mt-1">
+									Sortiert nach der nächsten erwarteten Veröffentlichung. Wähle
+									ein Amt aus, um Details zu sehen.
+								</p>
+							</div>
+							{search.searchable && (
+								<JpaSearchInput
+									value={search.search}
+									onChange={search.setSearch}
+								/>
+							)}
 						</div>
+
+						{search.empty ? (
+							<JpaSearchEmpty query={search.search} />
+						) : (
+							<div className="space-y-3">
+								{search.visible.map((summary, index) => (
+									<JpaDetails
+										key={summary.slug}
+										summary={summary}
+										defaultOpen={index === 0}
+									/>
+								))}
+							</div>
+						)}
 					</>
 				)}
 			</div>

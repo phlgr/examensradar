@@ -2,143 +2,198 @@
 
 @import 'tw-animate-css';
 
+/* Self-hosted type (German audience — no Google Fonts requests). Fraunces, a
+   soft old-style serif, for headlines; Geist for reading; Geist Mono for dates
+   and counts. */
+@import '@fontsource-variable/fraunces/opsz.css';
+@import '@fontsource-variable/fraunces/opsz-italic.css';
+@import '@fontsource-variable/geist/wght.css';
+@import '@fontsource-variable/geist-mono/wght.css';
+
 @custom-variant dark (&:is(.dark *));
 
-/* Neobrutalism Theme */
+/* "Schönfelder & Textmarker": the law student's desk. Warm paper, ink, the red
+   of the Schönfelder binder as the one brand colour, a yellow highlighter for
+   what matters (dates, mostly). */
 :root {
-  /* Core neobrutalism colors */
-  --nb-black: #000000;
-  --nb-white: #ffffff;
-  --nb-cream: #fffef0;
-
-  /* Accent colors */
-  --nb-coral: #ff6b6b;
-  --nb-yellow: #ffd93d;
-  --nb-teal: #4ecdc4;
-  --nb-mint: #a8e6cf;
-  --nb-purple: #a855f7;
-
-  /* Semantic mappings */
-  --background: var(--nb-cream);
-  --foreground: var(--nb-black);
-  --card: var(--nb-white);
-  --card-foreground: var(--nb-black);
-  --popover: var(--nb-white);
-  --popover-foreground: var(--nb-black);
-  --primary: var(--nb-yellow);
-  --primary-foreground: var(--nb-black);
-  --secondary: var(--nb-white);
-  --secondary-foreground: var(--nb-black);
-  --muted: var(--nb-cream);
-  --muted-foreground: var(--nb-black);
-  --accent: var(--nb-teal);
-  --accent-foreground: var(--nb-black);
-  --destructive: var(--nb-coral);
-  --destructive-foreground: var(--nb-black);
-  --success: var(--nb-mint);
-  --success-foreground: var(--nb-black);
-  --border: var(--nb-black);
-  --input: var(--nb-white);
-  --ring: var(--nb-black);
-
-  /* Neobrutalism specific */
-  --nb-border-width: 4px;
-  --nb-shadow-offset: 6px;
-  --nb-shadow: var(--nb-shadow-offset) var(--nb-shadow-offset) 0px 0px var(--nb-black);
-  --nb-shadow-sm: 4px 4px 0px 0px var(--nb-black);
-
-  /* No border radius for brutalism */
-  --radius: 0px;
+  --ink: #17171a;
+  --paper: #f4efe4;
+  --sheet: #fffdf8;
+  --seal: #b3261e;
+  --seal-deep: #8c1c16;
+  --seal-soft: #f8e1dc;
+  --mark: #ffe25a;
+  --ok: #1d6b47;
+  --ok-soft: #e1eee2;
+  --shadow-paper:
+    0 1px 2px rgb(23 23 26 / 0.06), 0 10px 28px -14px rgb(23 23 26 / 0.22);
+  --shadow-lift:
+    0 2px 4px rgb(23 23 26 / 0.06), 0 30px 60px -24px rgb(23 23 26 / 0.4);
 }
 
-/* Neobrutalism color utilities */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-success: var(--success);
-  --color-success-foreground: var(--success-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
+  --color-ink: var(--ink);
+  --color-paper: var(--paper);
+  --color-sheet: var(--sheet);
+  --color-seal: var(--seal);
+  --color-seal-deep: var(--seal-deep);
+  --color-seal-soft: var(--seal-soft);
+  --color-mark: var(--mark);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --shadow-paper: var(--shadow-paper);
+  --shadow-lift: var(--shadow-lift);
 
-  /* Neobrutalism palette */
-  --color-nb-black: var(--nb-black);
-  --color-nb-white: var(--nb-white);
-  --color-nb-cream: var(--nb-cream);
-  --color-nb-coral: var(--nb-coral);
-  --color-nb-yellow: var(--nb-yellow);
-  --color-nb-teal: var(--nb-teal);
-  --color-nb-mint: var(--nb-mint);
-  --color-nb-purple: var(--nb-purple);
+  --font-sans: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-serif: 'Fraunces Variable', Georgia, 'Times New Roman', serif;
+  --font-figures: 'Geist Mono Variable', ui-monospace, monospace;
 
-  --radius-sm: 0px;
-  --radius-md: 0px;
-  --radius-lg: 0px;
-  --radius-xl: 0px;
+  --animate-rise: rise 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-notify: notify 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.1) both;
+  --animate-stamp: stamp 0.45s 0.9s cubic-bezier(0.3, 0, 0.3, 1.4) both;
+
+  /* The rubber stamp coming down on the mail. */
+  @keyframes stamp {
+    from {
+      opacity: 0;
+      transform: scale(1.8);
+    }
+    to {
+      transform: scale(1);
+    }
+  }
+  /* A fresh notification dropping onto the stack. */
+  @keyframes notify {
+    from {
+      opacity: 0;
+      transform: translateY(-18px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 }
 
 @layer base {
   * {
-    @apply border-border;
+    @apply border-ink/10;
+  }
+
+  /* Keep the scrollbar's space reserved so the header doesn't jump between
+     pages that scroll and pages that don't. */
+  html {
+    scrollbar-gutter: stable;
+    /* Anchor jumps (#anmelden) must clear the sticky 4rem header. */
+    scroll-padding-top: 5rem;
   }
 
   body {
-    @apply bg-nb-cream text-nb-black font-mono m-0 antialiased;
+    @apply bg-paper text-ink font-sans m-0 antialiased;
   }
 
-  /* Neobrutalism focus styles */
+  ::selection {
+    background: var(--mark);
+    color: var(--ink);
+  }
+
   :focus-visible {
-    @apply outline-4 outline-nb-black outline-offset-2;
+    outline: 2px solid var(--seal);
+    outline-offset: 3px;
   }
 }
 
-/* Neobrutalism utility classes */
 @layer utilities {
-  .nb-shadow {
-    box-shadow: var(--nb-shadow);
+  /* Headline serif at its display optical size. */
+  .headline {
+    font-family: var(--font-serif);
+    font-optical-sizing: auto;
+    font-weight: 500;
+    letter-spacing: -0.03em;
   }
 
-  .nb-shadow-sm {
-    box-shadow: var(--nb-shadow-sm);
+  /* Figures that line up: dates, times, counts. */
+  .figures {
+    font-family: var(--font-figures);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
   }
 
-  .nb-shadow-none {
-    box-shadow: none;
+  /* A highlighter stroke behind inline text, ragged at the ends like by hand. */
+  .marker {
+    background-image: linear-gradient(
+      100deg,
+      transparent 0.15em,
+      var(--mark) 0.3em,
+      color-mix(in srgb, var(--mark) 82%, white) 70%,
+      var(--mark) calc(100% - 0.3em),
+      transparent calc(100% - 0.15em)
+    );
+    background-repeat: no-repeat;
+    background-size: 100% 0.58em;
+    background-position: 0 88%;
+    padding-inline: 0.15em;
+    margin-inline: -0.15em;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+  /* The stroke drawn left to right as the hero enters. */
+  .marker-draw {
+    animation: marker-draw 0.9s 0.6s cubic-bezier(0.6, 0, 0.2, 1) both;
+  }
+  @keyframes marker-draw {
+    from {
+      background-size: 0% 0.58em;
+    }
+    to {
+      background-size: 100% 0.58em;
+    }
   }
 
-  .nb-border {
-    border: var(--nb-border-width) solid var(--nb-black);
+  /* Faint ruled lines, like a Klausurbogen. */
+  .bg-ruled {
+    background-image: linear-gradient(
+      to bottom,
+      transparent calc(100% - 1px),
+      rgb(23 23 26 / 0.07) calc(100% - 1px)
+    );
+    background-size: 100% 2rem;
   }
 
-  .nb-border-3 {
-    border: 3px solid var(--nb-black);
+  /* Scroll-triggered reveal; `.reveal-hidden` is toggled by IntersectionObserver. */
+  .reveal {
+    transition:
+      opacity 0.7s ease-out,
+      transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
-
-  .nb-hover {
-    @apply transition-all;
+  .reveal-hidden {
+    opacity: 0;
+    transform: translateY(20px);
   }
+}
 
-  .nb-hover:hover {
-    box-shadow: none;
-    transform: translate(var(--nb-shadow-offset), var(--nb-shadow-offset));
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal-hidden {
+    opacity: 1;
+    transform: none;
+    transition: none;
   }
-
-  .nb-hover-sm:hover {
-    box-shadow: none;
-    transform: translate(4px, 4px);
+  .marker-draw,
+  .animate-stamp,
+  .animate-rise,
+  .animate-notify {
+    animation-duration: 0.01ms;
+    animation-delay: 0ms;
   }
 }
