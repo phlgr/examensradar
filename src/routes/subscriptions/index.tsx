@@ -362,11 +362,11 @@ function SubscriptionsPage() {
 								</div>
 								<p className="text-xs sm:text-sm font-medium flex-1">
 									<span className="font-black">
-										Push über ntfy wird in Kürze eingestellt.
+										Push über ntfy wurde eingestellt.
 									</span>{" "}
+									Über diese Abos kommen keine Benachrichtigungen mehr.
 									Abonniere dein Prüfungsamt oben per E-Mail, um weiterhin
-									benachrichtigt zu werden. Bestehende Push-Abos funktionieren
-									bis zur Abschaltung weiter.
+									benachrichtigt zu werden.
 								</p>
 							</div>
 						</Card>

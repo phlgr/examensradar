@@ -22,7 +22,7 @@ function describeScrapeOutcome(outcome: CheckOutcome): string {
 		case "baseline":
 			return "Baseline gespeichert — ab jetzt wird verglichen.";
 		case "notified":
-			return `Änderung erkannt — ${outcome.push} Push und ${outcome.mail} Mails in Zustellung.`;
+			return `Änderung erkannt — ${outcome.mail} Mails in Zustellung.`;
 		case "paused":
 			return "Änderung erkannt, aber Benachrichtigungen sind pausiert.";
 		case "already-claimed":
