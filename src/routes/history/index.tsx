@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { CalendarClock, ChevronDown, ExternalLink } from "lucide-react";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import {
 	JpaSearchEmpty,
 	JpaSearchInput,
@@ -37,24 +37,24 @@ const WEEKDAYS_FULL = [
 	"Samstag",
 ] as const;
 
-function mostCommonWeekday(counts: Map<number, number>): number | null {
-	let best: number | null = null;
-	let bestCount = 0;
-	for (const [weekday, count] of counts) {
-		if (count > bestCount) {
-			best = weekday;
-			bestCount = count;
-		}
-	}
-	return best;
+const WEEK_ORDER = [1, 2, 3, 4, 5, 6, 0]; // Mo–So
+
+/**
+ * The weekdays sharing the top count, Mo–So. Empty when every weekday seen is
+ * tied: then none of them is "most common".
+ */
+function mostCommonWeekdays(counts: Map<number, number>): number[] {
+	const seen = WEEK_ORDER.filter((weekday) => (counts.get(weekday) ?? 0) > 0);
+	const max = Math.max(0, ...counts.values());
+	const top = seen.filter((weekday) => counts.get(weekday) === max);
+	return top.length < seen.length ? top : [];
 }
 
 function WeekdayBar({ weekdayCounts }: { weekdayCounts: Map<number, number> }) {
 	const max = Math.max(...weekdayCounts.values(), 1);
-	const order = [1, 2, 3, 4, 5, 6, 0]; // Mo–So
 	return (
 		<div className="flex gap-1.5 items-end">
-			{order.map((weekday) => {
+			{WEEK_ORDER.map((weekday) => {
 				const count = weekdayCounts.get(weekday) ?? 0;
 				const height = Math.round((count / max) * 32) + 4;
 				return (
@@ -91,7 +91,7 @@ function Overview({ summaries }: { summaries: JpaReleaseSummary[] }) {
 			weekdayCounts.set(weekday, (weekdayCounts.get(weekday) ?? 0) + count);
 		}
 	}
-	const weekday = mostCommonWeekday(weekdayCounts);
+	const topWeekdays = mostCommonWeekdays(weekdayCounts);
 
 	return (
 		<Card className="p-6 sm:p-8 mb-12 flex flex-col sm:flex-row sm:items-end gap-6 sm:gap-10">
@@ -104,12 +104,18 @@ function Overview({ summaries }: { summaries: JpaReleaseSummary[] }) {
 						: "Justizprüfungsämtern"}{" "}
 					erfasst
 				</p>
-				{weekday !== null && (
+				{topWeekdays.length > 0 && (
 					<p className="text-[15px] text-ink/60 mt-1">
 						Am häufigsten an einem{" "}
-						<span className="marker font-semibold text-ink">
-							{WEEKDAYS_FULL[weekday]}
-						</span>
+						{topWeekdays.map((weekday, index) => (
+							<Fragment key={weekday}>
+								{index > 0 &&
+									(index === topWeekdays.length - 1 ? " oder " : ", ")}
+								<span className="marker font-semibold text-ink">
+									{WEEKDAYS_FULL[weekday]}
+								</span>
+							</Fragment>
+						))}
 					</p>
 				)}
 			</div>
