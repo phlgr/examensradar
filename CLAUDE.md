@@ -32,7 +32,7 @@ bun run db:seed      # Seed database with JPAs
 ```
 src/
 ├── routes/           # File-based routing (TanStack Router)
-│   ├── api/          # Server endpoints (webhook, admin auth)
+│   ├── api/          # Server endpoints (admin auth, email unsubscribe, tRPC)
 │   └── *.tsx         # Page components
 ├── server/
 │   ├── trpc.ts       # tRPC context + procedures (publicProcedure, deviceProcedure, adminProcedure)
