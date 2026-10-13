@@ -12,10 +12,36 @@ const setup = new Database(DB_PATH);
 setup.run("PRAGMA journal_mode = WAL");
 migrate(drizzle(setup), { migrationsFolder: "./drizzle/migrations" });
 
+// Stand-in for the SMTP transport: every mail the app hands to nodemailer is
+// captured here instead of leaving the machine. Registered before the app
+// modules load so src/lib/mail.ts can never build the real transport.
+type SentMail = {
+	to: string;
+	subject: string;
+	headers?: Record<string, string>;
+};
+const sentMails: SentMail[] = [];
+mock.module("nodemailer", () => ({
+	default: {
+		createTransport: () => ({
+			sendMail: async (mail: SentMail) => {
+				sentMails.push(mail);
+				return { messageId: "test" };
+			},
+		}),
+	},
+}));
+process.env.SMTP_HOST = "smtp.invalid";
+process.env.SMTP_USER = "test";
+process.env.SMTP_PASS = "test";
+
 const {
+	addEmailSubscription,
 	claimScrapeChange,
+	confirmSubscriber,
 	createJpa,
 	ensureScrapeState,
+	upsertPendingSubscriber,
 	recordScrapeError,
 	recordScrapeSuccess,
 	resetScrapeState,
@@ -162,6 +188,44 @@ test("errors accumulate until a success resets them", async () => {
 	state = await ensureScrapeState(jpa.id);
 	expect(state.errorCount).toBe(0);
 	expect(state.lastError).toBeNull();
+});
+
+test("a published change mails confirmed subscribers once, through the real fan-out", async () => {
+	const jpa = await scrapableJpa();
+
+	const confirmed = await upsertPendingSubscriber(
+		"confirmed@example.org",
+		null,
+	);
+	await addEmailSubscription(confirmed.id, jpa.id);
+	await confirmSubscriber(confirmed.confirmToken);
+
+	// Never clicked the confirm link — must not be mailed.
+	const pending = await upsertPendingSubscriber("pending@example.org", null);
+	await addEmailSubscription(pending.id, jpa.id);
+
+	const mailsTo = () =>
+		sentMails.filter((mail) => mail.subject === `Neue Ergebnisse: ${jpa.name}`);
+
+	serveHtml(page("alte Meldung"));
+	expect((await checkJpa(jpa)).result).toBe("baseline");
+
+	serveHtml(page("Neue Ergebnisse!"));
+	expect(await checkJpa(jpa)).toEqual({
+		result: "notified",
+		push: 0,
+		mail: 1,
+	});
+	expect((await checkJpa(jpa)).result).toBe("unchanged");
+
+	// The fan-out runs detached from checkJpa; give it a moment to drain.
+	for (let i = 0; i < 50 && mailsTo().length === 0; i++) await Bun.sleep(10);
+	await Bun.sleep(50);
+
+	expect(mailsTo().map((mail) => mail.to)).toEqual(["confirmed@example.org"]);
+	expect(mailsTo()[0].headers?.["List-Unsubscribe-Post"]).toBe(
+		"List-Unsubscribe=One-Click",
+	);
 });
 
 test("queueResultsNotifications respects the notifications pause", async () => {
