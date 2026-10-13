@@ -26,7 +26,7 @@ export type CheckOutcome =
 	| { result: "baseline" }
 	/** Content changed, but the JPA's notifications are paused. */
 	| { result: "paused" }
-	| { result: "notified"; push: number; mail: number };
+	| { result: "notified"; mail: number };
 
 /**
  * One JPA, one check: fetch → narrow → hash → compare against the stored
@@ -78,7 +78,7 @@ export async function checkJpa(
 
 	if (state.contentHash === null) {
 		// First observation ever — we cannot know whether this content is news,
-		// so it only becomes the baseline. Notifying here would mass-push a false
+		// so it only becomes the baseline. Notifying here would mass-notify a false
 		// positive on every fresh deployment.
 		console.log(`[scraper] ${jpa.slug}: baseline stored`);
 		return { result: "baseline" };
@@ -88,11 +88,11 @@ export async function checkJpa(
 	console.log(
 		outcome.status === "disabled"
 			? `[scraper] ${jpa.slug}: changed, but notifications are paused`
-			: `[scraper] ${jpa.slug}: changed — queued ${outcome.push} push, ${outcome.mail} mail`,
+			: `[scraper] ${jpa.slug}: changed — queued ${outcome.mail} mail`,
 	);
 	return outcome.status === "disabled"
 		? { result: "paused" }
-		: { result: "notified", push: outcome.push, mail: outcome.mail };
+		: { result: "notified", mail: outcome.mail };
 }
 
 async function runScrapeCycle(): Promise<void> {
@@ -112,7 +112,7 @@ export function startScraper(): void {
 
 	let running = false;
 	const tick = async () => {
-		// A cycle that outlives the interval (slow JPA site, long ntfy backoff)
+		// A cycle that outlives the interval (slow JPA site)
 		// must not get another stacked on top of it.
 		if (running) return;
 		running = true;

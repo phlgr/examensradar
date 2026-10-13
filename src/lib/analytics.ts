@@ -22,15 +22,15 @@ export function trackEvent(
 
 /** First path segment of the routes whose second segment is a credential. */
 const TOKEN_ROUTES = new Set(["confirm", "unsubscribe"]);
-/** Query parameters that carry a credential (`?manage=` token, `?restore=` device id). */
-const TOKEN_PARAMS = ["manage", "restore"];
+/** Query parameters that carry a credential (`?manage=` token). */
+const TOKEN_PARAMS = ["manage"];
 const REDACTED = "REDACTED";
 
 /**
  * Strips bearer credentials out of a URL before analytics sees it.
  *
  * `/confirm/<token>` and its siblings put the credential in the path, and
- * `?manage=<token>` / `?restore=<deviceId>` put one in the query — each is
+ * `?manage=<token>` puts one in the query — each is
  * enough on its own to act as the subscriber. Plausible captures pageviews
  * automatically, so without this every such visit would file the credential
  * away in analytics storage, where nothing treats it as a secret.

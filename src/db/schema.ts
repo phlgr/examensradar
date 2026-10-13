@@ -51,6 +51,7 @@ export const scrapeState = sqliteTable("scrape_state", {
 	lastError: text("last_error"),
 });
 
+/** Legacy ntfy subscriptions. Kept as an archive only — nothing reads or writes it. */
 export const subscription = sqliteTable(
 	"subscription",
 	{
@@ -126,17 +127,6 @@ export const emailSubscription = sqliteTable(
 		jpaId: text("jpa_id")
 			.notNull()
 			.references(() => jpa.id, { onDelete: "cascade" }),
-		/**
-		 * The device that signed this address up, when there was one. On
-		 * confirmation the matching ntfy subscription for the same JPA is deleted,
-		 * so nobody receives both a push and a mail for one publication.
-		 *
-		 * Recorded here rather than read at confirmation time because the
-		 * confirmation link is often opened on a different device than the signup,
-		 * and it is per-JPA so migrating one office never silently drops the push
-		 * for another.
-		 */
-		deviceId: text("device_id"),
 		createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
 	},
 	(table) => [
@@ -164,7 +154,6 @@ export const adminSession = sqliteTable("admin_session", {
 });
 
 export const jpaRelations = relations(jpa, ({ many }) => ({
-	subscriptions: many(subscription),
 	emailSubscriptions: many(emailSubscription),
 	notificationLogs: many(notificationLog),
 }));
@@ -186,13 +175,6 @@ export const emailSubscriptionRelations = relations(
 		}),
 	}),
 );
-
-export const subscriptionRelations = relations(subscription, ({ one }) => ({
-	jpa: one(jpa, {
-		fields: [subscription.jpaId],
-		references: [jpa.id],
-	}),
-}));
 
 export const notificationLogRelations = relations(
 	notificationLog,

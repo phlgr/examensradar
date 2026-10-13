@@ -9,22 +9,13 @@ interface Context {
 	request: Request;
 	/** Response headers the fetch adapter merges in — how mutations set cookies. */
 	resHeaders: Headers;
-	deviceId: string | null;
 }
 
 export async function createContext(
 	opts: FetchCreateContextFnOptions & { context?: unknown },
 ): Promise<Context> {
 	const { req, resHeaders } = opts;
-
-	// Extract device ID from header
-	const deviceId = req.headers.get("X-Device-ID");
-
-	return {
-		request: req,
-		resHeaders,
-		deviceId,
-	};
+	return { request: req, resHeaders };
 }
 
 const t = initTRPC.context<Context>().create({
@@ -36,35 +27,6 @@ const t = initTRPC.context<Context>().create({
 
 export const router = t.router;
 export const publicProcedure = t.procedure;
-
-// Device procedure that requires a device ID header
-export const deviceProcedure = t.procedure.use(async ({ ctx, next }) => {
-	const deviceId = ctx.deviceId;
-
-	if (!deviceId) {
-		throw new TRPCError({
-			code: "BAD_REQUEST",
-			message: "Device ID required",
-		});
-	}
-
-	// Validate device ID format (UUID)
-	const uuidRegex =
-		/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-	if (!uuidRegex.test(deviceId)) {
-		throw new TRPCError({
-			code: "BAD_REQUEST",
-			message: "Invalid device ID format",
-		});
-	}
-
-	return next({
-		ctx: {
-			...ctx,
-			deviceId,
-		},
-	});
-});
 
 /**
  * Requires the manage cookie set by `email.signIn`. The subscriber it

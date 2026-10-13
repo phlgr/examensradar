@@ -42,7 +42,6 @@ const scrapableJpa = () =>
 const notifyMock = () =>
 	mock(async () => ({
 		status: "queued" as const,
-		push: 0,
 		mail: 0,
 		total: 0,
 	}));
@@ -174,7 +173,6 @@ test("a published change mails confirmed subscribers once, through the real fan-
 	serveHtml(page("Neue Ergebnisse!"));
 	expect(await checkJpa(jpa)).toEqual({
 		result: "notified",
-		push: 0,
 		mail: 1,
 	});
 	expect((await checkJpa(jpa)).result).toBe("unchanged");
@@ -201,5 +199,5 @@ test("queueResultsNotifications respects the notifications pause", async () => {
 test("queueResultsNotifications with no subscribers queues nothing", async () => {
 	const jpa = await scrapableJpa();
 	const outcome = await queueResultsNotifications(jpa);
-	expect(outcome).toEqual({ status: "queued", push: 0, mail: 0, total: 0 });
+	expect(outcome).toEqual({ status: "queued", mail: 0, total: 0 });
 });
