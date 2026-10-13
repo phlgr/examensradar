@@ -1,16 +1,9 @@
 import { Database } from "bun:sqlite";
 import { afterAll, expect, test } from "bun:test";
-import { drizzle } from "drizzle-orm/bun-sqlite";
-import { migrate } from "drizzle-orm/bun-sqlite/migrator";
 
-// src/db/index.ts opens its connection at import time, so the path has to be
-// set before that module is pulled in — hence the dynamic import below.
-const DB_PATH = `${process.env.TMPDIR ?? "/tmp"}/examensradar-email-test-${crypto.randomUUID()}.db`;
-process.env.DATABASE_PATH = DB_PATH;
-
-const setup = new Database(DB_PATH);
-setup.run("PRAGMA journal_mode = WAL");
-migrate(drizzle(setup), { migrationsFolder: "./drizzle/migrations" });
+// The shared, already-migrated test DB that src/test-setup.ts (preloaded via
+// bunfig.toml) points src/db/index.ts at — a raw handle for direct inspection.
+const setup = new Database(process.env.DATABASE_PATH as string);
 
 const {
 	addEmailSubscription,
@@ -30,11 +23,6 @@ const {
 
 afterAll(() => {
 	setup.close();
-	for (const suffix of ["", "-wal", "-shm"]) {
-		Bun.file(`${DB_PATH}${suffix}`)
-			.delete()
-			.catch(() => {});
-	}
 });
 
 const jpa = async (slug: string) =>
