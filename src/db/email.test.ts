@@ -15,6 +15,7 @@ const {
 	getSubscriberByEmail,
 	getSubscriberByManageToken,
 	getSubscriberJpas,
+	getSubscriptionCountsByJpa,
 	normalizeEmail,
 	removeEmailSubscription,
 	unsubscribeSubscriber,
@@ -127,6 +128,31 @@ test("a pending subscriber is never mailable", async () => {
 	// The subscription exists — it just earns no mail until confirmed.
 	expect(await countEmailSubscriptionsByJpa(office.id)).toBe(1);
 	expect(await getMailableSubscribersByJpa(office.id)).toEqual([]);
+});
+
+test("admin counts only mailable subscribers, not ntfy or pending", async () => {
+	const office = await jpa("admin-count");
+	setup.run(
+		"INSERT INTO subscription (id, device_id, jpa_id, ntfy_topic, setup_completed_at, created_at) VALUES (?,?,?,?,?,?)",
+		[
+			"sub-admin-count",
+			crypto.randomUUID(),
+			office.id,
+			"examensradar-admin-count",
+			Date.now(),
+			Date.now(),
+		],
+	);
+	const pending = await upsertPendingSubscriber(
+		"count-pending@example.com",
+		null,
+	);
+	await addEmailSubscription(pending.id, office.id);
+	const confirmed = await upsertPendingSubscriber("count-ok@example.com", null);
+	await addEmailSubscription(confirmed.id, office.id);
+	await confirmSubscriber(confirmed.confirmToken);
+
+	expect((await getSubscriptionCountsByJpa()).get(office.id)).toBe(1);
 });
 
 test("confirming makes the address mailable and consumes the link", async () => {

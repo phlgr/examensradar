@@ -255,15 +255,34 @@ export const countSubscriptionsByJpa = async (
 		.all().length;
 };
 
+/**
+ * Per-JPA count of the people a publication would actually reach: mailable
+ * email subscribers only (same filter as getMailableSubscribersByJpa). Legacy
+ * ntfy subscriptions are left out — that channel is sunset.
+ */
 export const getSubscriptionCountsByJpa = async (): Promise<
 	Map<string, number>
 > => {
-	const subscriptions = await db.select().from(schema.subscription).all();
-	const counts = new Map<string, number>();
-	for (const sub of subscriptions) {
-		counts.set(sub.jpaId, (counts.get(sub.jpaId) ?? 0) + 1);
-	}
-	return counts;
+	const rows = await db
+		.select({
+			jpaId: schema.emailSubscription.jpaId,
+			count: sql<number>`count(*)`,
+		})
+		.from(schema.emailSubscription)
+		.innerJoin(
+			schema.subscriber,
+			eq(schema.emailSubscription.subscriberId, schema.subscriber.id),
+		)
+		.where(
+			and(
+				isNotNull(schema.subscriber.confirmedAt),
+				isNull(schema.subscriber.unsubscribedAt),
+				isNull(schema.subscriber.bouncedAt),
+			),
+		)
+		.groupBy(schema.emailSubscription.jpaId)
+		.all();
+	return new Map(rows.map((row) => [row.jpaId, row.count]));
 };
 
 export const deleteSubscription = async (
