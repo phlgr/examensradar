@@ -115,18 +115,18 @@ export function NotificationPreview({
 			<div className="relative">
 				{/* Earlier notifications, stacked like letters on a desk. */}
 				<div
-					className="absolute inset-0 rounded-2xl bg-sheet ring-1 ring-ink/10 shadow-paper rotate-[3.5deg] translate-x-3 translate-y-2"
+					className="absolute inset-0 rounded-lg bg-sheet ring-1 ring-ink/10 shadow-paper rotate-[3.5deg] translate-x-3 translate-y-2"
 					aria-hidden
 				/>
 				<div
-					className="absolute inset-0 rounded-2xl bg-sheet ring-1 ring-ink/10 shadow-paper -rotate-[2.5deg] -translate-x-2 translate-y-1"
+					className="absolute inset-0 rounded-lg bg-sheet ring-1 ring-ink/10 shadow-paper -rotate-[2.5deg] -translate-x-2 translate-y-1"
 					aria-hidden
 				/>
 
 				<article
 					key={swap}
 					className={cn(
-						"relative rounded-2xl bg-sheet ring-1 ring-ink/10 shadow-lift overflow-hidden",
+						"relative rounded-lg bg-sheet ring-1 ring-ink/10 shadow-lift overflow-hidden",
 						swap > 0 && "animate-notify",
 					)}
 				>

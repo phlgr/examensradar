@@ -1,5 +1,4 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { NotificationPreview } from "@/components/landing/NotificationPreview";
 import { Reveal } from "@/components/landing/Reveal";
@@ -28,10 +27,10 @@ const STEPS = [
 	},
 ] as const;
 
-/** The F5 key as a real keycap, pressed every few seconds. */
+/** The F5 key as a real keycap. */
 function Keycap({ children }: { children: string }) {
 	return (
-		<kbd className="animate-keypress relative inline-grid place-items-center align-[0.14em] min-w-[1.45em] h-[1.18em] px-[0.18em] mx-[0.04em] rounded-[0.2em] bg-gradient-to-b from-sheet to-[#efe8d8] ring-1 ring-ink/15 font-sans font-semibold text-[0.62em] tracking-normal text-ink/80">
+		<kbd className="shadow-[0_5px_0_0_#d9d0bd,0_6px_0_0_rgb(23_23_26/0.3)] relative inline-grid place-items-center align-[0.14em] min-w-[1.45em] h-[1.18em] px-[0.18em] mx-[0.04em] rounded-[0.2em] bg-gradient-to-b from-sheet to-[#efe8d8] ring-1 ring-ink/15 font-sans font-semibold text-[0.62em] tracking-normal text-ink/80">
 			<span className="-translate-y-[0.04em]">{children}</span>
 		</kbd>
 	);
@@ -150,7 +149,7 @@ function LandingPage() {
 									<p className="headline text-seal text-5xl sm:text-6xl leading-none mb-6">
 										§&thinsp;{index + 1}
 									</p>
-									<h3 className="headline text-2xl leading-tight mb-3">
+									<h3 className="text-lg font-semibold leading-tight mb-2">
 										{step.title}
 									</h3>
 									<p className="text-ink/65 leading-relaxed">
@@ -169,54 +168,25 @@ function LandingPage() {
 				loading={historyQuery.isLoading}
 			/>
 
-			{/* Closing call + footer. */}
-			<div className="bg-ink text-sheet">
-				<section className="px-4 sm:px-6 py-24 sm:py-32">
-					<Reveal className="max-w-4xl mx-auto text-center">
-						<h2 className="headline text-[2.6rem] sm:text-7xl leading-[1.02] mb-6">
-							Mach den Tab zu.
-							<br />
-							<span className="text-mark">Wir melden uns.</span>
-						</h2>
-						<p className="text-lg text-sheet/60 mb-10">
-							Eine E-Mail, wenn dein Prüfungsamt Ergebnisse veröffentlicht. Kein
-							Newsletter, keine Werbung.
-						</p>
-						<a
-							href="#anmelden"
-							className="group inline-flex items-center justify-center gap-2 h-14 px-8 w-full sm:w-auto rounded-full bg-mark text-ink text-base font-semibold transition-transform hover:-translate-y-0.5"
+			<footer className="px-4 sm:px-6 py-8 border-t border-ink/10">
+				<div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-ink/50">
+					<p>
+						&copy; {new Date().getFullYear()}{" "}
+						<span className="headline text-base text-ink/80">Examensradar</span>
+					</p>
+					<nav className="flex items-center gap-6">
+						<Link to="/history" className="hover:text-ink transition-colors">
+							Historie
+						</Link>
+						<Link
+							to="/subscriptions"
+							className="hover:text-ink transition-colors"
 						>
-							Kostenlos benachrichtigen lassen
-							<ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
-						</a>
-					</Reveal>
-				</section>
-
-				<footer className="px-4 sm:px-6 py-8 border-t border-sheet/10">
-					<div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-sheet/50">
-						<p>
-							&copy; {new Date().getFullYear()}{" "}
-							<span className="headline text-base text-sheet/80">
-								Examensradar
-							</span>
-						</p>
-						<nav className="flex items-center gap-6">
-							<Link
-								to="/history"
-								className="hover:text-sheet transition-colors"
-							>
-								Historie
-							</Link>
-							<Link
-								to="/subscriptions"
-								className="hover:text-sheet transition-colors"
-							>
-								Benachrichtigungen
-							</Link>
-						</nav>
-					</div>
-				</footer>
-			</div>
+							Benachrichtigungen
+						</Link>
+					</nav>
+				</div>
+			</footer>
 		</div>
 	);
 }

@@ -62,13 +62,13 @@ export function SignupForm({
 				ref={successRef}
 				tabIndex={-1}
 				role="status"
-				className="rounded-2xl bg-sheet ring-1 ring-ink/10 shadow-paper p-5 sm:p-6 flex gap-4 items-start"
+				className="rounded-lg bg-sheet ring-1 ring-ink/10 p-5 sm:p-6 flex gap-4 items-start"
 			>
 				<span className="w-11 h-11 shrink-0 rounded-full bg-mark grid place-items-center">
 					<MailCheck className="w-5 h-5" />
 				</span>
 				<div>
-					<p className="headline text-2xl leading-tight">Fast geschafft.</p>
+					<p className="text-xl font-semibold leading-tight">Fast geschafft.</p>
 					<p className="text-[15px] text-ink/75 mt-1.5 leading-relaxed">
 						Wir haben eine E-Mail an{" "}
 						<strong className="font-semibold text-ink">{email}</strong>{" "}
@@ -88,7 +88,7 @@ export function SignupForm({
 	return (
 		<form
 			id="anmelden"
-			className="rounded-2xl bg-sheet ring-1 ring-ink/10 shadow-paper p-4 sm:p-5"
+			className="rounded-lg bg-sheet ring-1 ring-ink/10 p-4 sm:p-5"
 			onSubmit={(event) => {
 				event.preventDefault();
 				if (canSubmit) subscribe.mutate({ email, jpaId });
@@ -145,7 +145,7 @@ export function SignupForm({
 					<button
 						type="submit"
 						disabled={!canSubmit}
-						className="group h-12 w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-[12px] bg-ink px-5 text-[15px] font-semibold text-sheet shadow-[inset_0_-2px_0_rgb(0_0_0/0.35)] transition-colors hover:bg-seal disabled:cursor-not-allowed disabled:bg-ink/25 disabled:shadow-none cursor-pointer"
+						className="group h-12 w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-md bg-ink px-5 text-[15px] font-semibold text-sheet transition-colors hover:bg-seal disabled:cursor-not-allowed disabled:bg-ink/25 cursor-pointer"
 					>
 						{subscribe.isPending ? (
 							<Loader2 className="w-5 h-5 animate-spin" />

@@ -151,7 +151,7 @@ function JpaDetails({
 				<summary className="list-none cursor-pointer select-none px-5 py-4 sm:px-6 sm:py-5 flex items-center gap-4 transition-colors hover:bg-ink/[0.02] [&::-webkit-details-marker]:hidden">
 					<span className="flex-1 min-w-0 sm:flex sm:items-center sm:gap-5">
 						<span className="block sm:flex-1 min-w-0">
-							<span className="block headline text-xl sm:text-2xl leading-tight">
+							<span className="block text-lg font-semibold leading-tight">
 								{summary.name}
 							</span>
 							<span className="block text-[13px] text-ink/50 mt-0.5">
@@ -183,7 +183,7 @@ function JpaDetails({
 					<div className="grid gap-6 md:grid-cols-2">
 						<div
 							className={cn(
-								"rounded-xl p-5",
+								"rounded-md p-5",
 								overdue ? "bg-seal-soft" : "bg-paper/70 ring-1 ring-ink/5",
 							)}
 						>
@@ -319,7 +319,7 @@ function HistoryPage() {
 
 						<div className="flex flex-wrap items-end justify-between gap-4 mb-5">
 							<div>
-								<h2 className="headline text-3xl sm:text-4xl leading-tight">
+								<h2 className="text-2xl font-semibold leading-tight">
 									Nach Prüfungsamt
 								</h2>
 								<p className="text-[15px] text-ink/55 mt-1">

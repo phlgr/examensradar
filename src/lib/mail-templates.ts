@@ -58,8 +58,8 @@ function escapeHtml(value: string): string {
 
 function button(url: string, label: string): string {
 	return `<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-<td style="background:${INK};border-radius:12px">
-<a href="${escapeHtml(url)}" style="display:inline-block;padding:14px 24px;font-family:${FONT};font-size:15px;font-weight:600;line-height:1;color:${SHEET};text-decoration:none;border-radius:12px">${escapeHtml(label)}&nbsp;&rarr;</a>
+<td style="background:${INK};border-radius:6px">
+<a href="${escapeHtml(url)}" style="display:inline-block;padding:14px 24px;font-family:${FONT};font-size:15px;font-weight:600;line-height:1;color:${SHEET};text-decoration:none;border-radius:6px">${escapeHtml(label)}&nbsp;&rarr;</a>
 </td></tr></table>`;
 }
 
@@ -82,7 +82,7 @@ function layout({ heading, body, cta, footer }: LayoutOptions): string {
 <span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${SEAL};margin-right:8px;vertical-align:1px"></span>Examensradar
 </td></tr>
 <tr><td>
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:${SHEET};border:1px solid ${LINE};border-radius:16px"><tr>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:${SHEET};border:1px solid ${LINE};border-radius:8px"><tr>
 <td style="padding:32px 28px;font-family:${FONT};font-size:16px;line-height:1.6;color:${INK}">
 <h1 style="margin:0 0 16px;font-family:${SERIF};font-size:30px;line-height:1.15;font-weight:normal;letter-spacing:-.01em;color:${INK}">${escapeHtml(heading)}</h1>
 ${body}

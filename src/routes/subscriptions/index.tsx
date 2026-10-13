@@ -176,7 +176,7 @@ function Managing({ email, jpaIds }: { email: string; jpaIds: string[] }) {
 
 			<section>
 				<div className="flex flex-wrap items-end justify-between gap-4 mb-5">
-					<h2 className="headline text-3xl sm:text-4xl leading-tight">
+					<h2 className="text-2xl font-semibold leading-tight">
 						Justizprüfungsämter
 					</h2>
 					{search.searchable && (
@@ -206,7 +206,7 @@ function Managing({ email, jpaIds }: { email: string; jpaIds: string[] }) {
 									<div className="flex flex-col sm:flex-row sm:items-center gap-4">
 										<div className="flex-1 min-w-0">
 											<div className="flex items-center gap-3 flex-wrap">
-												<h3 className="headline text-xl sm:text-2xl leading-tight">
+												<h3 className="text-lg font-semibold leading-tight">
 													{jpa.name}
 												</h3>
 												{isSubscribed && <Badge>Aktiv</Badge>}

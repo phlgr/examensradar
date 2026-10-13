@@ -2,11 +2,11 @@ import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-const cardVariants = cva("rounded-2xl ring-1", {
+const cardVariants = cva("rounded-lg ring-1", {
 	variants: {
 		variant: {
 			/** A sheet lying on the desk. */
-			default: "bg-sheet ring-ink/10 shadow-paper",
+			default: "bg-sheet ring-ink/10",
 			/** Same sheet, flat — for lists of many. */
 			flat: "bg-sheet ring-ink/10",
 			/** Recessed, for notes and side information. */
