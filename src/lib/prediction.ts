@@ -2,9 +2,10 @@
  * Release-date prediction for Justizprüfungsämter.
  *
  * The historical signal we have is `notification_log.sent_at` — one row per
- * webhook fire. A real publication can trigger more than one fire (the office
- * edits the page again a day later), so we first collapse near-adjacent fires
- * into single release events.
+ * detected change (historically webhook fires, now the in-app scraper). A real
+ * publication can trigger more than one fire (the office edits the page again
+ * a day later), so we first collapse near-adjacent fires into single release
+ * events.
  *
  * Offices publish on a fixed point in their monthly/quarterly cycle — for the
  * NRW offices that point is the *last working day of the month*, and they
