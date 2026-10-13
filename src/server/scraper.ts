@@ -112,7 +112,7 @@ export function startScraper(): void {
 
 	let running = false;
 	const tick = async () => {
-		// A cycle that outlives the interval (slow JPA site, long SMTP backoff)
+		// A cycle that outlives the interval (slow JPA site)
 		// must not get another stacked on top of it.
 		if (running) return;
 		running = true;
