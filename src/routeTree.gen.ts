@@ -14,6 +14,7 @@ import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as ConfirmTokenRouteImport } from './routes/confirm/$token'
 import { Route as HistoryIndexRouteImport } from './routes/history/index'
+import { Route as StatistikIndexRouteImport } from './routes/statistik/index'
 import { Route as SubscriptionsIndexRouteImport } from './routes/subscriptions/index'
 import { Route as UnsubscribeTokenRouteImport } from './routes/unsubscribe/$token'
 import { Route as ApiAdminCheckRouteImport } from './routes/api/admin/check'
@@ -45,6 +46,11 @@ const ConfirmTokenRoute = ConfirmTokenRouteImport.update({
 const HistoryIndexRoute = HistoryIndexRouteImport.update({
   id: '/history/',
   path: '/history/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StatistikIndexRoute = StatistikIndexRouteImport.update({
+  id: '/statistik/',
+  path: '/statistik/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SubscriptionsIndexRoute = SubscriptionsIndexRouteImport.update({
@@ -91,6 +97,7 @@ export interface FileRoutesByFullPath {
   '/unsubscribe/$token': typeof UnsubscribeTokenRoute
   '/admin/': typeof AdminIndexRoute
   '/history/': typeof HistoryIndexRoute
+  '/statistik/': typeof StatistikIndexRoute
   '/subscriptions/': typeof SubscriptionsIndexRoute
   '/api/admin/check': typeof ApiAdminCheckRoute
   '/api/admin/login': typeof ApiAdminLoginRoute
@@ -105,6 +112,7 @@ export interface FileRoutesByTo {
   '/unsubscribe/$token': typeof UnsubscribeTokenRoute
   '/admin': typeof AdminIndexRoute
   '/history': typeof HistoryIndexRoute
+  '/statistik': typeof StatistikIndexRoute
   '/subscriptions': typeof SubscriptionsIndexRoute
   '/api/admin/check': typeof ApiAdminCheckRoute
   '/api/admin/login': typeof ApiAdminLoginRoute
@@ -120,6 +128,7 @@ export interface FileRoutesById {
   '/unsubscribe/$token': typeof UnsubscribeTokenRoute
   '/admin/': typeof AdminIndexRoute
   '/history/': typeof HistoryIndexRoute
+  '/statistik/': typeof StatistikIndexRoute
   '/subscriptions/': typeof SubscriptionsIndexRoute
   '/api/admin/check': typeof ApiAdminCheckRoute
   '/api/admin/login': typeof ApiAdminLoginRoute
@@ -136,6 +145,7 @@ export interface FileRouteTypes {
     | '/unsubscribe/$token'
     | '/admin/'
     | '/history/'
+    | '/statistik/'
     | '/subscriptions/'
     | '/api/admin/check'
     | '/api/admin/login'
@@ -150,6 +160,7 @@ export interface FileRouteTypes {
     | '/unsubscribe/$token'
     | '/admin'
     | '/history'
+    | '/statistik'
     | '/subscriptions'
     | '/api/admin/check'
     | '/api/admin/login'
@@ -164,6 +175,7 @@ export interface FileRouteTypes {
     | '/unsubscribe/$token'
     | '/admin/'
     | '/history/'
+    | '/statistik/'
     | '/subscriptions/'
     | '/api/admin/check'
     | '/api/admin/login'
@@ -179,6 +191,7 @@ export interface RootRouteChildren {
   UnsubscribeTokenRoute: typeof UnsubscribeTokenRoute
   AdminIndexRoute: typeof AdminIndexRoute
   HistoryIndexRoute: typeof HistoryIndexRoute
+  StatistikIndexRoute: typeof StatistikIndexRoute
   SubscriptionsIndexRoute: typeof SubscriptionsIndexRoute
   ApiAdminCheckRoute: typeof ApiAdminCheckRoute
   ApiAdminLoginRoute: typeof ApiAdminLoginRoute
@@ -222,6 +235,13 @@ declare module '@tanstack/react-router' {
       path: '/history'
       fullPath: '/history/'
       preLoaderRoute: typeof HistoryIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/statistik/': {
+      id: '/statistik/'
+      path: '/statistik'
+      fullPath: '/statistik/'
+      preLoaderRoute: typeof StatistikIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/subscriptions/': {
@@ -283,6 +303,7 @@ const rootRouteChildren: RootRouteChildren = {
   UnsubscribeTokenRoute: UnsubscribeTokenRoute,
   AdminIndexRoute: AdminIndexRoute,
   HistoryIndexRoute: HistoryIndexRoute,
+  StatistikIndexRoute: StatistikIndexRoute,
   SubscriptionsIndexRoute: SubscriptionsIndexRoute,
   ApiAdminCheckRoute: ApiAdminCheckRoute,
   ApiAdminLoginRoute: ApiAdminLoginRoute,

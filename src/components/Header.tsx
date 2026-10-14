@@ -1,5 +1,11 @@
 import { Link, type LinkProps } from "@tanstack/react-router";
-import { Bell, CalendarClock, type LucideIcon, Radar } from "lucide-react";
+import {
+	Bell,
+	CalendarClock,
+	ChartColumn,
+	type LucideIcon,
+	Radar,
+} from "lucide-react";
 
 function NavLink({
 	to,
@@ -40,6 +46,9 @@ export default function Header() {
 				<nav className="flex items-center gap-1 sm:gap-2">
 					<NavLink to="/history" icon={CalendarClock}>
 						Historie
+					</NavLink>
+					<NavLink to="/statistik" icon={ChartColumn}>
+						Statistik
 					</NavLink>
 					<NavLink to="/subscriptions" icon={Bell}>
 						Benachrichtigungen

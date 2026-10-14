@@ -51,6 +51,28 @@ export const scrapeState = sqliteTable("scrape_state", {
 	lastError: text("last_error"),
 });
 
+/**
+ * One row per published "nicht bestanden" Kennziffern list (see
+ * src/lib/failed-lists.ts). The URL is the identity: offices replace the file
+ * monthly under a new name, and two overlapping instances counting the same
+ * list must not store it twice.
+ */
+export const failedList = sqliteTable(
+	"failed_list",
+	{
+		id: text("id").primaryKey(),
+		jpaId: text("jpa_id")
+			.notNull()
+			.references(() => jpa.id, { onDelete: "cascade" }),
+		url: text("url").notNull().unique(),
+		/** "yyyy-mm" the exams were written; null when the file name doesn't say. */
+		examMonth: text("exam_month"),
+		failedCount: integer("failed_count").notNull(),
+		firstSeenAt: integer("first_seen_at", { mode: "timestamp_ms" }).notNull(),
+	},
+	(table) => [index("failed_list_jpaId_idx").on(table.jpaId)],
+);
+
 export const subscription = sqliteTable(
 	"subscription",
 	{
@@ -212,4 +234,5 @@ export const schema = {
 	notificationLog,
 	adminSession,
 	scrapeState,
+	failedList,
 };

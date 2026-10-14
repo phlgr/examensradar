@@ -13,7 +13,7 @@ count.txt
 .wrangler
 .output
 .vinxi
-data/
+/data/
 todos.json
 
 # Secrets

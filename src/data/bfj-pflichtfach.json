@@ -1,0 +1,4178 @@
+[
+	{
+		"year": 2009,
+		"asOf": "2011-03-23",
+		"laender": {
+			"Baden-Württemberg": {
+				"examined": 1476,
+				"examinedWomen": 774,
+				"passed": 1005,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 38,
+					"vollbefriedigend": 178,
+					"befriedigend": 384,
+					"ausreichend": 405
+				},
+				"failed": 471,
+				"failedWomen": 271,
+				"failedFinal": null
+			},
+			"Bayern": {
+				"examined": 2085,
+				"examinedWomen": 1134,
+				"passed": 1461,
+				"grades": {
+					"sehrGut": 9,
+					"gut": 58,
+					"vollbefriedigend": 237,
+					"befriedigend": 540,
+					"ausreichend": 617
+				},
+				"failed": 624,
+				"failedWomen": 369,
+				"failedFinal": null
+			},
+			"Berlin": {
+				"examined": 666,
+				"examinedWomen": 367,
+				"passed": 484,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 11,
+					"vollbefriedigend": 108,
+					"befriedigend": 236,
+					"ausreichend": 129
+				},
+				"failed": 182,
+				"failedWomen": 116,
+				"failedFinal": null
+			},
+			"Brandenburg": {
+				"examined": 231,
+				"examinedWomen": 137,
+				"passed": 167,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 1,
+					"vollbefriedigend": 31,
+					"befriedigend": 79,
+					"ausreichend": 56
+				},
+				"failed": 64,
+				"failedWomen": 43,
+				"failedFinal": null
+			},
+			"Bremen": {
+				"examined": 209,
+				"examinedWomen": 134,
+				"passed": 158,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 4,
+					"vollbefriedigend": 35,
+					"befriedigend": 82,
+					"ausreichend": 37
+				},
+				"failed": 51,
+				"failedWomen": 32,
+				"failedFinal": null
+			},
+			"Hamburg": {
+				"examined": 426,
+				"examinedWomen": 197,
+				"passed": 358,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 16,
+					"vollbefriedigend": 90,
+					"befriedigend": 164,
+					"ausreichend": 88
+				},
+				"failed": 68,
+				"failedWomen": 37,
+				"failedFinal": null
+			},
+			"Hessen": {
+				"examined": 818,
+				"examinedWomen": 470,
+				"passed": 554,
+				"grades": {
+					"sehrGut": 2,
+					"gut": 22,
+					"vollbefriedigend": 98,
+					"befriedigend": 225,
+					"ausreichend": 207
+				},
+				"failed": 264,
+				"failedWomen": 175,
+				"failedFinal": null
+			},
+			"Mecklenburg-Vorpommern": {
+				"examined": 216,
+				"examinedWomen": 137,
+				"passed": 132,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 5,
+					"vollbefriedigend": 28,
+					"befriedigend": 43,
+					"ausreichend": 56
+				},
+				"failed": 84,
+				"failedWomen": 59,
+				"failedFinal": null
+			},
+			"Niedersachsen": {
+				"examined": 698,
+				"examinedWomen": 346,
+				"passed": 520,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 16,
+					"vollbefriedigend": 96,
+					"befriedigend": 217,
+					"ausreichend": 191
+				},
+				"failed": 178,
+				"failedWomen": 99,
+				"failedFinal": null
+			},
+			"Nordrhein-Westfalen": {
+				"examined": 2774,
+				"examinedWomen": 1477,
+				"passed": 1881,
+				"grades": {
+					"sehrGut": 2,
+					"gut": 63,
+					"vollbefriedigend": 364,
+					"befriedigend": 762,
+					"ausreichend": 690
+				},
+				"failed": 893,
+				"failedWomen": 527,
+				"failedFinal": null
+			},
+			"Rheinland-Pfalz": {
+				"examined": 639,
+				"examinedWomen": 364,
+				"passed": 509,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 16,
+					"vollbefriedigend": 93,
+					"befriedigend": 246,
+					"ausreichend": 154
+				},
+				"failed": 130,
+				"failedWomen": 77,
+				"failedFinal": null
+			},
+			"Saarland": {
+				"examined": 160,
+				"examinedWomen": 97,
+				"passed": 130,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 4,
+					"vollbefriedigend": 28,
+					"befriedigend": 35,
+					"ausreichend": 63
+				},
+				"failed": 30,
+				"failedWomen": 16,
+				"failedFinal": null
+			},
+			"Sachsen": {
+				"examined": 309,
+				"examinedWomen": 167,
+				"passed": 209,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 9,
+					"vollbefriedigend": 33,
+					"befriedigend": 79,
+					"ausreichend": 87
+				},
+				"failed": 100,
+				"failedWomen": 62,
+				"failedFinal": null
+			},
+			"Sachsen-Anhalt": {
+				"examined": 100,
+				"examinedWomen": 65,
+				"passed": 61,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 1,
+					"vollbefriedigend": 8,
+					"befriedigend": 28,
+					"ausreichend": 23
+				},
+				"failed": 39,
+				"failedWomen": 29,
+				"failedFinal": null
+			},
+			"Schleswig-Holstein": {
+				"examined": 163,
+				"examinedWomen": 87,
+				"passed": 108,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 1,
+					"vollbefriedigend": 16,
+					"befriedigend": 52,
+					"ausreichend": 39
+				},
+				"failed": 55,
+				"failedWomen": 39,
+				"failedFinal": null
+			},
+			"Thüringen": {
+				"examined": 206,
+				"examinedWomen": 137,
+				"passed": 161,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 1,
+					"vollbefriedigend": 26,
+					"befriedigend": 75,
+					"ausreichend": 59
+				},
+				"failed": 45,
+				"failedWomen": 32,
+				"failedFinal": null
+			}
+		},
+		"total": {
+			"examined": 11176,
+			"examinedWomen": 6090,
+			"passed": 7898,
+			"grades": {
+				"sehrGut": 15,
+				"gut": 266,
+				"vollbefriedigend": 1469,
+				"befriedigend": 3247,
+				"ausreichend": 2901
+			},
+			"failed": 3278,
+			"failedWomen": 1983,
+			"failedFinal": null
+		}
+	},
+	{
+		"year": 2010,
+		"asOf": "2011-12-06",
+		"laender": {
+			"Baden-Württemberg": {
+				"examined": 1502,
+				"examinedWomen": 823,
+				"passed": 1057,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 42,
+					"vollbefriedigend": 177,
+					"befriedigend": 411,
+					"ausreichend": 427
+				},
+				"failed": 445,
+				"failedWomen": 281,
+				"failedFinal": null
+			},
+			"Bayern": {
+				"examined": 2295,
+				"examinedWomen": 1262,
+				"passed": 1627,
+				"grades": {
+					"sehrGut": 7,
+					"gut": 67,
+					"vollbefriedigend": 263,
+					"befriedigend": 627,
+					"ausreichend": 663
+				},
+				"failed": 668,
+				"failedWomen": 405,
+				"failedFinal": null
+			},
+			"Berlin": {
+				"examined": 795,
+				"examinedWomen": 443,
+				"passed": 552,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 17,
+					"vollbefriedigend": 123,
+					"befriedigend": 259,
+					"ausreichend": 153
+				},
+				"failed": 243,
+				"failedWomen": 143,
+				"failedFinal": null
+			},
+			"Brandenburg": {
+				"examined": 251,
+				"examinedWomen": 143,
+				"passed": 180,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 0,
+					"vollbefriedigend": 40,
+					"befriedigend": 86,
+					"ausreichend": 54
+				},
+				"failed": 71,
+				"failedWomen": 45,
+				"failedFinal": null
+			},
+			"Bremen": {
+				"examined": 172,
+				"examinedWomen": 104,
+				"passed": 122,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 0,
+					"vollbefriedigend": 20,
+					"befriedigend": 65,
+					"ausreichend": 37
+				},
+				"failed": 50,
+				"failedWomen": 33,
+				"failedFinal": null
+			},
+			"Hamburg": {
+				"examined": 443,
+				"examinedWomen": 223,
+				"passed": 361,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 20,
+					"vollbefriedigend": 105,
+					"befriedigend": 145,
+					"ausreichend": 91
+				},
+				"failed": 82,
+				"failedWomen": 44,
+				"failedFinal": null
+			},
+			"Hessen": {
+				"examined": 746,
+				"examinedWomen": 428,
+				"passed": 570,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 12,
+					"vollbefriedigend": 83,
+					"befriedigend": 212,
+					"ausreichend": 263
+				},
+				"failed": 176,
+				"failedWomen": 113,
+				"failedFinal": null
+			},
+			"Mecklenburg-Vorpommern": {
+				"examined": 217,
+				"examinedWomen": 137,
+				"passed": 149,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 3,
+					"vollbefriedigend": 19,
+					"befriedigend": 49,
+					"ausreichend": 78
+				},
+				"failed": 68,
+				"failedWomen": 51,
+				"failedFinal": null
+			},
+			"Niedersachsen": {
+				"examined": 756,
+				"examinedWomen": 373,
+				"passed": 570,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 16,
+					"vollbefriedigend": 109,
+					"befriedigend": 249,
+					"ausreichend": 196
+				},
+				"failed": 186,
+				"failedWomen": 103,
+				"failedFinal": null
+			},
+			"Nordrhein-Westfalen": {
+				"examined": 2898,
+				"examinedWomen": 1582,
+				"passed": 1995,
+				"grades": {
+					"sehrGut": 3,
+					"gut": 63,
+					"vollbefriedigend": 406,
+					"befriedigend": 788,
+					"ausreichend": 735
+				},
+				"failed": 903,
+				"failedWomen": 535,
+				"failedFinal": null
+			},
+			"Rheinland-Pfalz": {
+				"examined": 608,
+				"examinedWomen": 336,
+				"passed": 470,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 7,
+					"vollbefriedigend": 78,
+					"befriedigend": 208,
+					"ausreichend": 177
+				},
+				"failed": 138,
+				"failedWomen": 79,
+				"failedFinal": null
+			},
+			"Saarland": {
+				"examined": 192,
+				"examinedWomen": 101,
+				"passed": 141,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 6,
+					"vollbefriedigend": 27,
+					"befriedigend": 45,
+					"ausreichend": 63
+				},
+				"failed": 51,
+				"failedWomen": 27,
+				"failedFinal": null
+			},
+			"Sachsen": {
+				"examined": 321,
+				"examinedWomen": 190,
+				"passed": 201,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 7,
+					"vollbefriedigend": 33,
+					"befriedigend": 74,
+					"ausreichend": 87
+				},
+				"failed": 120,
+				"failedWomen": 78,
+				"failedFinal": null
+			},
+			"Sachsen-Anhalt": {
+				"examined": 184,
+				"examinedWomen": 129,
+				"passed": 144,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 4,
+					"vollbefriedigend": 20,
+					"befriedigend": 53,
+					"ausreichend": 67
+				},
+				"failed": 40,
+				"failedWomen": 34,
+				"failedFinal": null
+			},
+			"Schleswig-Holstein": {
+				"examined": 186,
+				"examinedWomen": 97,
+				"passed": 129,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 2,
+					"vollbefriedigend": 27,
+					"befriedigend": 54,
+					"ausreichend": 46
+				},
+				"failed": 57,
+				"failedWomen": 37,
+				"failedFinal": null
+			},
+			"Thüringen": {
+				"examined": 285,
+				"examinedWomen": 186,
+				"passed": 196,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 1,
+					"vollbefriedigend": 28,
+					"befriedigend": 78,
+					"ausreichend": 89
+				},
+				"failed": 89,
+				"failedWomen": 64,
+				"failedFinal": null
+			}
+		},
+		"total": {
+			"examined": 11851,
+			"examinedWomen": 6557,
+			"passed": 8464,
+			"grades": {
+				"sehrGut": 10,
+				"gut": 267,
+				"vollbefriedigend": 1558,
+				"befriedigend": 3403,
+				"ausreichend": 3226
+			},
+			"failed": 3387,
+			"failedWomen": 2072,
+			"failedFinal": null
+		}
+	},
+	{
+		"year": 2011,
+		"asOf": "2012-10-24",
+		"laender": {
+			"Baden-Württemberg": {
+				"examined": 1352,
+				"examinedWomen": 773,
+				"passed": 893,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 39,
+					"vollbefriedigend": 190,
+					"befriedigend": 328,
+					"ausreichend": 335
+				},
+				"failed": 459,
+				"failedWomen": 281,
+				"failedFinal": null
+			},
+			"Bayern": {
+				"examined": 2437,
+				"examinedWomen": 1421,
+				"passed": 1769,
+				"grades": {
+					"sehrGut": 6,
+					"gut": 53,
+					"vollbefriedigend": 253,
+					"befriedigend": 686,
+					"ausreichend": 771
+				},
+				"failed": 668,
+				"failedWomen": 443,
+				"failedFinal": null
+			},
+			"Berlin": {
+				"examined": 808,
+				"examinedWomen": 453,
+				"passed": 616,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 14,
+					"vollbefriedigend": 141,
+					"befriedigend": 266,
+					"ausreichend": 195
+				},
+				"failed": 192,
+				"failedWomen": 117,
+				"failedFinal": null
+			},
+			"Brandenburg": {
+				"examined": 246,
+				"examinedWomen": 157,
+				"passed": 178,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 4,
+					"vollbefriedigend": 38,
+					"befriedigend": 77,
+					"ausreichend": 59
+				},
+				"failed": 68,
+				"failedWomen": 44,
+				"failedFinal": null
+			},
+			"Bremen": {
+				"examined": 195,
+				"examinedWomen": 120,
+				"passed": 132,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 2,
+					"vollbefriedigend": 18,
+					"befriedigend": 62,
+					"ausreichend": 50
+				},
+				"failed": 63,
+				"failedWomen": 38,
+				"failedFinal": null
+			},
+			"Hamburg": {
+				"examined": 469,
+				"examinedWomen": 237,
+				"passed": 391,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 12,
+					"vollbefriedigend": 103,
+					"befriedigend": 161,
+					"ausreichend": 115
+				},
+				"failed": 78,
+				"failedWomen": 51,
+				"failedFinal": null
+			},
+			"Hessen": {
+				"examined": 727,
+				"examinedWomen": 454,
+				"passed": 527,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 25,
+					"vollbefriedigend": 94,
+					"befriedigend": 193,
+					"ausreichend": 214
+				},
+				"failed": 200,
+				"failedWomen": 137,
+				"failedFinal": null
+			},
+			"Mecklenburg-Vorpommern": {
+				"examined": 225,
+				"examinedWomen": 147,
+				"passed": 134,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 2,
+					"vollbefriedigend": 16,
+					"befriedigend": 60,
+					"ausreichend": 56
+				},
+				"failed": 91,
+				"failedWomen": 68,
+				"failedFinal": null
+			},
+			"Niedersachsen": {
+				"examined": 720,
+				"examinedWomen": 391,
+				"passed": 552,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 22,
+					"vollbefriedigend": 104,
+					"befriedigend": 221,
+					"ausreichend": 204
+				},
+				"failed": 168,
+				"failedWomen": 103,
+				"failedFinal": null
+			},
+			"Nordrhein-Westfalen": {
+				"examined": 2842,
+				"examinedWomen": 1569,
+				"passed": 1934,
+				"grades": {
+					"sehrGut": 2,
+					"gut": 61,
+					"vollbefriedigend": 358,
+					"befriedigend": 775,
+					"ausreichend": 738
+				},
+				"failed": 908,
+				"failedWomen": 541,
+				"failedFinal": null
+			},
+			"Rheinland-Pfalz": {
+				"examined": 511,
+				"examinedWomen": 288,
+				"passed": 365,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 6,
+					"vollbefriedigend": 69,
+					"befriedigend": 154,
+					"ausreichend": 135
+				},
+				"failed": 146,
+				"failedWomen": 98,
+				"failedFinal": null
+			},
+			"Saarland": {
+				"examined": 182,
+				"examinedWomen": 107,
+				"passed": 129,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 8,
+					"vollbefriedigend": 24,
+					"befriedigend": 34,
+					"ausreichend": 62
+				},
+				"failed": 53,
+				"failedWomen": 37,
+				"failedFinal": null
+			},
+			"Sachsen": {
+				"examined": 286,
+				"examinedWomen": 176,
+				"passed": 174,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 6,
+					"vollbefriedigend": 29,
+					"befriedigend": 54,
+					"ausreichend": 85
+				},
+				"failed": 112,
+				"failedWomen": 75,
+				"failedFinal": null
+			},
+			"Sachsen-Anhalt": {
+				"examined": 179,
+				"examinedWomen": 128,
+				"passed": 149,
+				"grades": {
+					"sehrGut": 2,
+					"gut": 9,
+					"vollbefriedigend": 24,
+					"befriedigend": 66,
+					"ausreichend": 48
+				},
+				"failed": 30,
+				"failedWomen": 25,
+				"failedFinal": null
+			},
+			"Schleswig-Holstein": {
+				"examined": 215,
+				"examinedWomen": 124,
+				"passed": 145,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 5,
+					"vollbefriedigend": 17,
+					"befriedigend": 71,
+					"ausreichend": 52
+				},
+				"failed": 70,
+				"failedWomen": 37,
+				"failedFinal": null
+			},
+			"Thüringen": {
+				"examined": 291,
+				"examinedWomen": 176,
+				"passed": 208,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 3,
+					"vollbefriedigend": 33,
+					"befriedigend": 85,
+					"ausreichend": 87
+				},
+				"failed": 83,
+				"failedWomen": 55,
+				"failedFinal": null
+			}
+		},
+		"total": {
+			"examined": 11685,
+			"examinedWomen": 6721,
+			"passed": 8296,
+			"grades": {
+				"sehrGut": 15,
+				"gut": 271,
+				"vollbefriedigend": 1511,
+				"befriedigend": 3293,
+				"ausreichend": 3206
+			},
+			"failed": 3389,
+			"failedWomen": 2150,
+			"failedFinal": null
+		}
+	},
+	{
+		"year": 2012,
+		"asOf": "2013-10-24",
+		"laender": {
+			"Baden-Württemberg": {
+				"examined": 1331,
+				"examinedWomen": 756,
+				"passed": 1003,
+				"grades": {
+					"sehrGut": 3,
+					"gut": 60,
+					"vollbefriedigend": 196,
+					"befriedigend": 379,
+					"ausreichend": 365
+				},
+				"failed": 328,
+				"failedWomen": 204,
+				"failedFinal": 65
+			},
+			"Bayern": {
+				"examined": 2363,
+				"examinedWomen": 1422,
+				"passed": 1615,
+				"grades": {
+					"sehrGut": 6,
+					"gut": 48,
+					"vollbefriedigend": 254,
+					"befriedigend": 605,
+					"ausreichend": 702
+				},
+				"failed": 748,
+				"failedWomen": 497,
+				"failedFinal": 146
+			},
+			"Berlin": {
+				"examined": 835,
+				"examinedWomen": 475,
+				"passed": 623,
+				"grades": {
+					"sehrGut": 2,
+					"gut": 31,
+					"vollbefriedigend": 142,
+					"befriedigend": 273,
+					"ausreichend": 175
+				},
+				"failed": 212,
+				"failedWomen": 134,
+				"failedFinal": 30
+			},
+			"Brandenburg": {
+				"examined": 272,
+				"examinedWomen": 178,
+				"passed": 204,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 3,
+					"vollbefriedigend": 43,
+					"befriedigend": 91,
+					"ausreichend": 67
+				},
+				"failed": 68,
+				"failedWomen": 47,
+				"failedFinal": 15
+			},
+			"Bremen": {
+				"examined": 174,
+				"examinedWomen": 117,
+				"passed": 123,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 2,
+					"vollbefriedigend": 21,
+					"befriedigend": 49,
+					"ausreichend": 51
+				},
+				"failed": 51,
+				"failedWomen": 38,
+				"failedFinal": 8
+			},
+			"Hamburg": {
+				"examined": 505,
+				"examinedWomen": 256,
+				"passed": 424,
+				"grades": {
+					"sehrGut": 2,
+					"gut": 17,
+					"vollbefriedigend": 119,
+					"befriedigend": 162,
+					"ausreichend": 124
+				},
+				"failed": 81,
+				"failedWomen": 41,
+				"failedFinal": 9
+			},
+			"Hessen": {
+				"examined": 657,
+				"examinedWomen": 406,
+				"passed": 463,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 13,
+					"vollbefriedigend": 67,
+					"befriedigend": 180,
+					"ausreichend": 203
+				},
+				"failed": 194,
+				"failedWomen": 135,
+				"failedFinal": 46
+			},
+			"Mecklenburg-Vorpommern": {
+				"examined": 186,
+				"examinedWomen": 106,
+				"passed": 123,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 1,
+					"vollbefriedigend": 17,
+					"befriedigend": 49,
+					"ausreichend": 56
+				},
+				"failed": 63,
+				"failedWomen": 37,
+				"failedFinal": 18
+			},
+			"Niedersachsen": {
+				"examined": 722,
+				"examinedWomen": 416,
+				"passed": 525,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 19,
+					"vollbefriedigend": 105,
+					"befriedigend": 207,
+					"ausreichend": 194
+				},
+				"failed": 197,
+				"failedWomen": 125,
+				"failedFinal": 23
+			},
+			"Nordrhein-Westfalen": {
+				"examined": 2714,
+				"examinedWomen": 1538,
+				"passed": 1864,
+				"grades": {
+					"sehrGut": 4,
+					"gut": 74,
+					"vollbefriedigend": 361,
+					"befriedigend": 753,
+					"ausreichend": 672
+				},
+				"failed": 850,
+				"failedWomen": 513,
+				"failedFinal": 116
+			},
+			"Rheinland-Pfalz": {
+				"examined": 578,
+				"examinedWomen": 348,
+				"passed": 443,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 15,
+					"vollbefriedigend": 92,
+					"befriedigend": 198,
+					"ausreichend": 138
+				},
+				"failed": 135,
+				"failedWomen": 80,
+				"failedFinal": 27
+			},
+			"Saarland": {
+				"examined": 161,
+				"examinedWomen": 90,
+				"passed": 111,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 7,
+					"vollbefriedigend": 20,
+					"befriedigend": 30,
+					"ausreichend": 54
+				},
+				"failed": 50,
+				"failedWomen": 25,
+				"failedFinal": 7
+			},
+			"Sachsen": {
+				"examined": 383,
+				"examinedWomen": 255,
+				"passed": 235,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 7,
+					"vollbefriedigend": 30,
+					"befriedigend": 81,
+					"ausreichend": 117
+				},
+				"failed": 148,
+				"failedWomen": 110,
+				"failedFinal": 36
+			},
+			"Sachsen-Anhalt": {
+				"examined": 125,
+				"examinedWomen": 92,
+				"passed": 95,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 1,
+					"vollbefriedigend": 13,
+					"befriedigend": 43,
+					"ausreichend": 38
+				},
+				"failed": 30,
+				"failedWomen": 21,
+				"failedFinal": 9
+			},
+			"Schleswig-Holstein": {
+				"examined": 309,
+				"examinedWomen": 174,
+				"passed": 206,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 6,
+					"vollbefriedigend": 31,
+					"befriedigend": 87,
+					"ausreichend": 82
+				},
+				"failed": 103,
+				"failedWomen": 67,
+				"failedFinal": 8
+			},
+			"Thüringen": {
+				"examined": 265,
+				"examinedWomen": 163,
+				"passed": 201,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 4,
+					"vollbefriedigend": 35,
+					"befriedigend": 76,
+					"ausreichend": 86
+				},
+				"failed": 64,
+				"failedWomen": 44,
+				"failedFinal": 10
+			}
+		},
+		"total": {
+			"examined": 11580,
+			"examinedWomen": 6792,
+			"passed": 8258,
+			"grades": {
+				"sehrGut": 17,
+				"gut": 308,
+				"vollbefriedigend": 1546,
+				"befriedigend": 3263,
+				"ausreichend": 3124
+			},
+			"failed": 3322,
+			"failedWomen": 2118,
+			"failedFinal": 573
+		}
+	},
+	{
+		"year": 2013,
+		"asOf": "2014-10-31",
+		"laender": {
+			"Baden-Württemberg": {
+				"examined": 1339,
+				"examinedWomen": 757,
+				"passed": 953,
+				"grades": {
+					"sehrGut": 7,
+					"gut": 47,
+					"vollbefriedigend": 190,
+					"befriedigend": 358,
+					"ausreichend": 351
+				},
+				"failed": 386,
+				"failedWomen": 254,
+				"failedFinal": 70
+			},
+			"Bayern": {
+				"examined": 2288,
+				"examinedWomen": 1363,
+				"passed": 1555,
+				"grades": {
+					"sehrGut": 6,
+					"gut": 66,
+					"vollbefriedigend": 279,
+					"befriedigend": 594,
+					"ausreichend": 610
+				},
+				"failed": 733,
+				"failedWomen": 491,
+				"failedFinal": 155
+			},
+			"Berlin": {
+				"examined": 823,
+				"examinedWomen": 489,
+				"passed": 621,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 24,
+					"vollbefriedigend": 154,
+					"befriedigend": 275,
+					"ausreichend": 168
+				},
+				"failed": 202,
+				"failedWomen": 119,
+				"failedFinal": 36
+			},
+			"Brandenburg": {
+				"examined": 325,
+				"examinedWomen": 209,
+				"passed": 224,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 3,
+					"vollbefriedigend": 27,
+					"befriedigend": 86,
+					"ausreichend": 108
+				},
+				"failed": 101,
+				"failedWomen": 72,
+				"failedFinal": 16
+			},
+			"Bremen": {
+				"examined": 179,
+				"examinedWomen": 106,
+				"passed": 105,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 3,
+					"vollbefriedigend": 19,
+					"befriedigend": 45,
+					"ausreichend": 37
+				},
+				"failed": 74,
+				"failedWomen": 53,
+				"failedFinal": 7
+			},
+			"Hamburg": {
+				"examined": 554,
+				"examinedWomen": 288,
+				"passed": 416,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 22,
+					"vollbefriedigend": 119,
+					"befriedigend": 159,
+					"ausreichend": 116
+				},
+				"failed": 138,
+				"failedWomen": 84,
+				"failedFinal": 13
+			},
+			"Hessen": {
+				"examined": 712,
+				"examinedWomen": 455,
+				"passed": 510,
+				"grades": {
+					"sehrGut": 2,
+					"gut": 19,
+					"vollbefriedigend": 76,
+					"befriedigend": 198,
+					"ausreichend": 215
+				},
+				"failed": 202,
+				"failedWomen": 132,
+				"failedFinal": 45
+			},
+			"Mecklenburg-Vorpommern": {
+				"examined": 201,
+				"examinedWomen": 119,
+				"passed": 125,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 4,
+					"vollbefriedigend": 14,
+					"befriedigend": 52,
+					"ausreichend": 55
+				},
+				"failed": 76,
+				"failedWomen": 53,
+				"failedFinal": 25
+			},
+			"Niedersachsen": {
+				"examined": 772,
+				"examinedWomen": 445,
+				"passed": 595,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 20,
+					"vollbefriedigend": 113,
+					"befriedigend": 226,
+					"ausreichend": 235
+				},
+				"failed": 177,
+				"failedWomen": 115,
+				"failedFinal": 17
+			},
+			"Nordrhein-Westfalen": {
+				"examined": 2899,
+				"examinedWomen": 1708,
+				"passed": 1951,
+				"grades": {
+					"sehrGut": 5,
+					"gut": 90,
+					"vollbefriedigend": 369,
+					"befriedigend": 756,
+					"ausreichend": 731
+				},
+				"failed": 948,
+				"failedWomen": 611,
+				"failedFinal": 127
+			},
+			"Rheinland-Pfalz": {
+				"examined": 554,
+				"examinedWomen": 341,
+				"passed": 430,
+				"grades": {
+					"sehrGut": 2,
+					"gut": 22,
+					"vollbefriedigend": 68,
+					"befriedigend": 187,
+					"ausreichend": 151
+				},
+				"failed": 124,
+				"failedWomen": 76,
+				"failedFinal": 26
+			},
+			"Saarland": {
+				"examined": 182,
+				"examinedWomen": 114,
+				"passed": 136,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 8,
+					"vollbefriedigend": 16,
+					"befriedigend": 56,
+					"ausreichend": 55
+				},
+				"failed": 46,
+				"failedWomen": 31,
+				"failedFinal": 11
+			},
+			"Sachsen": {
+				"examined": 361,
+				"examinedWomen": 219,
+				"passed": 219,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 11,
+					"vollbefriedigend": 34,
+					"befriedigend": 88,
+					"ausreichend": 86
+				},
+				"failed": 142,
+				"failedWomen": 108,
+				"failedFinal": 21
+			},
+			"Sachsen-Anhalt": {
+				"examined": 123,
+				"examinedWomen": 84,
+				"passed": 93,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 6,
+					"vollbefriedigend": 14,
+					"befriedigend": 39,
+					"ausreichend": 34
+				},
+				"failed": 30,
+				"failedWomen": 18,
+				"failedFinal": 5
+			},
+			"Schleswig-Holstein": {
+				"examined": 270,
+				"examinedWomen": 169,
+				"passed": 188,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 5,
+					"vollbefriedigend": 27,
+					"befriedigend": 73,
+					"ausreichend": 83
+				},
+				"failed": 82,
+				"failedWomen": 55,
+				"failedFinal": 14
+			},
+			"Thüringen": {
+				"examined": 266,
+				"examinedWomen": 183,
+				"passed": 203,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 3,
+					"vollbefriedigend": 40,
+					"befriedigend": 72,
+					"ausreichend": 88
+				},
+				"failed": 63,
+				"failedWomen": 46,
+				"failedFinal": 13
+			}
+		},
+		"total": {
+			"examined": 11848,
+			"examinedWomen": 7049,
+			"passed": 8324,
+			"grades": {
+				"sehrGut": 25,
+				"gut": 353,
+				"vollbefriedigend": 1559,
+				"befriedigend": 3264,
+				"ausreichend": 3123
+			},
+			"failed": 3524,
+			"failedWomen": 2318,
+			"failedFinal": 601
+		}
+	},
+	{
+		"year": 2014,
+		"asOf": "2016-03-09",
+		"laender": {
+			"Baden-Württemberg": {
+				"examined": 1410,
+				"examinedWomen": 801,
+				"passed": 1021,
+				"grades": {
+					"sehrGut": 4,
+					"gut": 58,
+					"vollbefriedigend": 199,
+					"befriedigend": 409,
+					"ausreichend": 351
+				},
+				"failed": 389,
+				"failedWomen": 249,
+				"failedFinal": 68
+			},
+			"Bayern": {
+				"examined": 2416,
+				"examinedWomen": 1510,
+				"passed": 1670,
+				"grades": {
+					"sehrGut": 6,
+					"gut": 86,
+					"vollbefriedigend": 293,
+					"befriedigend": 622,
+					"ausreichend": 663
+				},
+				"failed": 746,
+				"failedWomen": 489,
+				"failedFinal": 161
+			},
+			"Berlin": {
+				"examined": 779,
+				"examinedWomen": 482,
+				"passed": 594,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 21,
+					"vollbefriedigend": 150,
+					"befriedigend": 267,
+					"ausreichend": 156
+				},
+				"failed": 185,
+				"failedWomen": 127,
+				"failedFinal": 31
+			},
+			"Brandenburg": {
+				"examined": 353,
+				"examinedWomen": 234,
+				"passed": 231,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 6,
+					"vollbefriedigend": 28,
+					"befriedigend": 119,
+					"ausreichend": 78
+				},
+				"failed": 122,
+				"failedWomen": 92,
+				"failedFinal": 19
+			},
+			"Bremen": {
+				"examined": 125,
+				"examinedWomen": 79,
+				"passed": 73,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 1,
+					"vollbefriedigend": 10,
+					"befriedigend": 25,
+					"ausreichend": 36
+				},
+				"failed": 52,
+				"failedWomen": 36,
+				"failedFinal": 10
+			},
+			"Hamburg": {
+				"examined": 552,
+				"examinedWomen": 304,
+				"passed": 416,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 25,
+					"vollbefriedigend": 122,
+					"befriedigend": 155,
+					"ausreichend": 113
+				},
+				"failed": 136,
+				"failedWomen": 73,
+				"failedFinal": 19
+			},
+			"Hessen": {
+				"examined": 689,
+				"examinedWomen": 426,
+				"passed": 560,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 13,
+					"vollbefriedigend": 100,
+					"befriedigend": 223,
+					"ausreichend": 223
+				},
+				"failed": 129,
+				"failedWomen": 81,
+				"failedFinal": 39
+			},
+			"Mecklenburg-Vorpommern": {
+				"examined": 167,
+				"examinedWomen": 100,
+				"passed": 109,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 2,
+					"vollbefriedigend": 9,
+					"befriedigend": 46,
+					"ausreichend": 51
+				},
+				"failed": 58,
+				"failedWomen": 40,
+				"failedFinal": 11
+			},
+			"Niedersachsen": {
+				"examined": 752,
+				"examinedWomen": 436,
+				"passed": 541,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 12,
+					"vollbefriedigend": 108,
+					"befriedigend": 213,
+					"ausreichend": 207
+				},
+				"failed": 211,
+				"failedWomen": 133,
+				"failedFinal": 29
+			},
+			"Nordrhein-Westfalen": {
+				"examined": 2864,
+				"examinedWomen": 1666,
+				"passed": 1940,
+				"grades": {
+					"sehrGut": 6,
+					"gut": 111,
+					"vollbefriedigend": 376,
+					"befriedigend": 765,
+					"ausreichend": 682
+				},
+				"failed": 924,
+				"failedWomen": 597,
+				"failedFinal": 47
+			},
+			"Rheinland-Pfalz": {
+				"examined": 618,
+				"examinedWomen": 383,
+				"passed": 482,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 17,
+					"vollbefriedigend": 110,
+					"befriedigend": 215,
+					"ausreichend": 140
+				},
+				"failed": 136,
+				"failedWomen": 96,
+				"failedFinal": 14
+			},
+			"Saarland": {
+				"examined": 259,
+				"examinedWomen": 163,
+				"passed": 180,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 6,
+					"vollbefriedigend": 44,
+					"befriedigend": 52,
+					"ausreichend": 77
+				},
+				"failed": 79,
+				"failedWomen": 58,
+				"failedFinal": 15
+			},
+			"Sachsen": {
+				"examined": 396,
+				"examinedWomen": 236,
+				"passed": 235,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 9,
+					"vollbefriedigend": 32,
+					"befriedigend": 78,
+					"ausreichend": 116
+				},
+				"failed": 161,
+				"failedWomen": 106,
+				"failedFinal": 22
+			},
+			"Sachsen-Anhalt": {
+				"examined": 138,
+				"examinedWomen": 80,
+				"passed": 94,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 3,
+					"vollbefriedigend": 16,
+					"befriedigend": 37,
+					"ausreichend": 38
+				},
+				"failed": 44,
+				"failedWomen": 26,
+				"failedFinal": 9
+			},
+			"Schleswig-Holstein": {
+				"examined": 268,
+				"examinedWomen": 162,
+				"passed": 186,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 6,
+					"vollbefriedigend": 19,
+					"befriedigend": 82,
+					"ausreichend": 79
+				},
+				"failed": 82,
+				"failedWomen": 49,
+				"failedFinal": 14
+			},
+			"Thüringen": {
+				"examined": 242,
+				"examinedWomen": 154,
+				"passed": 201,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 8,
+					"vollbefriedigend": 43,
+					"befriedigend": 80,
+					"ausreichend": 70
+				},
+				"failed": 41,
+				"failedWomen": 26,
+				"failedFinal": 9
+			}
+		},
+		"total": {
+			"examined": 12028,
+			"examinedWomen": 7216,
+			"passed": 8533,
+			"grades": {
+				"sehrGut": 22,
+				"gut": 384,
+				"vollbefriedigend": 1659,
+				"befriedigend": 3388,
+				"ausreichend": 3080
+			},
+			"failed": 3495,
+			"failedWomen": 2278,
+			"failedFinal": 517
+		}
+	},
+	{
+		"year": 2015,
+		"asOf": "2016-10-21",
+		"laender": {
+			"Baden-Württemberg": {
+				"examined": 1509,
+				"examinedWomen": 848,
+				"passed": 1077,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 52,
+					"vollbefriedigend": 226,
+					"befriedigend": 419,
+					"ausreichend": 380
+				},
+				"failed": 432,
+				"failedWomen": 253,
+				"failedFinal": 87
+			},
+			"Bayern": {
+				"examined": 2659,
+				"examinedWomen": 1657,
+				"passed": 1702,
+				"grades": {
+					"sehrGut": 4,
+					"gut": 71,
+					"vollbefriedigend": 266,
+					"befriedigend": 629,
+					"ausreichend": 732
+				},
+				"failed": 957,
+				"failedWomen": 640,
+				"failedFinal": 211
+			},
+			"Berlin": {
+				"examined": 879,
+				"examinedWomen": 542,
+				"passed": 672,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 19,
+					"vollbefriedigend": 183,
+					"befriedigend": 336,
+					"ausreichend": 134
+				},
+				"failed": 207,
+				"failedWomen": 139,
+				"failedFinal": 37
+			},
+			"Brandenburg": {
+				"examined": 413,
+				"examinedWomen": 263,
+				"passed": 268,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 3,
+					"vollbefriedigend": 39,
+					"befriedigend": 133,
+					"ausreichend": 92
+				},
+				"failed": 145,
+				"failedWomen": 100,
+				"failedFinal": 13
+			},
+			"Bremen": {
+				"examined": 154,
+				"examinedWomen": 89,
+				"passed": 99,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 2,
+					"vollbefriedigend": 20,
+					"befriedigend": 33,
+					"ausreichend": 44
+				},
+				"failed": 55,
+				"failedWomen": 33,
+				"failedFinal": 13
+			},
+			"Hamburg": {
+				"examined": 579,
+				"examinedWomen": 320,
+				"passed": 458,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 23,
+					"vollbefriedigend": 133,
+					"befriedigend": 166,
+					"ausreichend": 136
+				},
+				"failed": 121,
+				"failedWomen": 78,
+				"failedFinal": 12
+			},
+			"Hessen": {
+				"examined": 1006,
+				"examinedWomen": 632,
+				"passed": 708,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 20,
+					"vollbefriedigend": 105,
+					"befriedigend": 303,
+					"ausreichend": 280
+				},
+				"failed": 298,
+				"failedWomen": 207,
+				"failedFinal": 42
+			},
+			"Mecklenburg-Vorpommern": {
+				"examined": 171,
+				"examinedWomen": 106,
+				"passed": 96,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 7,
+					"vollbefriedigend": 8,
+					"befriedigend": 38,
+					"ausreichend": 43
+				},
+				"failed": 75,
+				"failedWomen": 51,
+				"failedFinal": 22
+			},
+			"Niedersachsen": {
+				"examined": 667,
+				"examinedWomen": 407,
+				"passed": 487,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 18,
+					"vollbefriedigend": 89,
+					"befriedigend": 199,
+					"ausreichend": 180
+				},
+				"failed": 180,
+				"failedWomen": 117,
+				"failedFinal": 21
+			},
+			"Nordrhein-Westfalen": {
+				"examined": 3022,
+				"examinedWomen": 1785,
+				"passed": 2071,
+				"grades": {
+					"sehrGut": 9,
+					"gut": 122,
+					"vollbefriedigend": 438,
+					"befriedigend": 786,
+					"ausreichend": 716
+				},
+				"failed": 951,
+				"failedWomen": 621,
+				"failedFinal": 97
+			},
+			"Rheinland-Pfalz": {
+				"examined": 509,
+				"examinedWomen": 317,
+				"passed": 382,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 12,
+					"vollbefriedigend": 66,
+					"befriedigend": 167,
+					"ausreichend": 137
+				},
+				"failed": 127,
+				"failedWomen": 90,
+				"failedFinal": 22
+			},
+			"Saarland": {
+				"examined": 178,
+				"examinedWomen": 115,
+				"passed": 134,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 4,
+					"vollbefriedigend": 25,
+					"befriedigend": 46,
+					"ausreichend": 58
+				},
+				"failed": 44,
+				"failedWomen": 28,
+				"failedFinal": 8
+			},
+			"Sachsen": {
+				"examined": 396,
+				"examinedWomen": 235,
+				"passed": 246,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 7,
+					"vollbefriedigend": 43,
+					"befriedigend": 79,
+					"ausreichend": 117
+				},
+				"failed": 150,
+				"failedWomen": 102,
+				"failedFinal": 31
+			},
+			"Sachsen-Anhalt": {
+				"examined": 167,
+				"examinedWomen": 114,
+				"passed": 119,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 6,
+					"vollbefriedigend": 21,
+					"befriedigend": 46,
+					"ausreichend": 46
+				},
+				"failed": 48,
+				"failedWomen": 40,
+				"failedFinal": 9
+			},
+			"Schleswig-Holstein": {
+				"examined": 259,
+				"examinedWomen": 156,
+				"passed": 196,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 6,
+					"vollbefriedigend": 34,
+					"befriedigend": 81,
+					"ausreichend": 75
+				},
+				"failed": 63,
+				"failedWomen": 36,
+				"failedFinal": 11
+			},
+			"Thüringen": {
+				"examined": 176,
+				"examinedWomen": 93,
+				"passed": 125,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 3,
+					"vollbefriedigend": 27,
+					"befriedigend": 53,
+					"ausreichend": 42
+				},
+				"failed": 51,
+				"failedWomen": 29,
+				"failedFinal": 6
+			}
+		},
+		"total": {
+			"examined": 12744,
+			"examinedWomen": 7679,
+			"passed": 8840,
+			"grades": {
+				"sehrGut": 16,
+				"gut": 375,
+				"vollbefriedigend": 1723,
+				"befriedigend": 3514,
+				"ausreichend": 3212
+			},
+			"failed": 3904,
+			"failedWomen": 2564,
+			"failedFinal": 642
+		}
+	},
+	{
+		"year": 2016,
+		"asOf": "2020-02-07",
+		"laender": {
+			"Baden-Württemberg": {
+				"examined": 1705,
+				"examinedWomen": 951,
+				"passed": 1205,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 50,
+					"vollbefriedigend": 259,
+					"befriedigend": 481,
+					"ausreichend": 414
+				},
+				"failed": 500,
+				"failedWomen": 321,
+				"failedFinal": 77
+			},
+			"Bayern": {
+				"examined": 3213,
+				"examinedWomen": 2014,
+				"passed": 2301,
+				"grades": {
+					"sehrGut": 6,
+					"gut": 97,
+					"vollbefriedigend": 391,
+					"befriedigend": 858,
+					"ausreichend": 949
+				},
+				"failed": 912,
+				"failedWomen": 635,
+				"failedFinal": 202
+			},
+			"Berlin": {
+				"examined": 787,
+				"examinedWomen": 459,
+				"passed": 597,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 30,
+					"vollbefriedigend": 177,
+					"befriedigend": 277,
+					"ausreichend": 112
+				},
+				"failed": 190,
+				"failedWomen": 121,
+				"failedFinal": 37
+			},
+			"Brandenburg": {
+				"examined": 456,
+				"examinedWomen": 285,
+				"passed": 278,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 3,
+					"vollbefriedigend": 29,
+					"befriedigend": 133,
+					"ausreichend": 113
+				},
+				"failed": 178,
+				"failedWomen": 120,
+				"failedFinal": 22
+			},
+			"Bremen": {
+				"examined": 165,
+				"examinedWomen": 103,
+				"passed": 107,
+				"grades": {
+					"sehrGut": 2,
+					"gut": 0,
+					"vollbefriedigend": 17,
+					"befriedigend": 39,
+					"ausreichend": 49
+				},
+				"failed": 58,
+				"failedWomen": 45,
+				"failedFinal": 16
+			},
+			"Hamburg": {
+				"examined": 714,
+				"examinedWomen": 396,
+				"passed": 561,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 24,
+					"vollbefriedigend": 130,
+					"befriedigend": 240,
+					"ausreichend": 167
+				},
+				"failed": 153,
+				"failedWomen": 105,
+				"failedFinal": 14
+			},
+			"Hessen": {
+				"examined": 1108,
+				"examinedWomen": 670,
+				"passed": 790,
+				"grades": {
+					"sehrGut": 2,
+					"gut": 23,
+					"vollbefriedigend": 146,
+					"befriedigend": 317,
+					"ausreichend": 302
+				},
+				"failed": 318,
+				"failedWomen": 215,
+				"failedFinal": 41
+			},
+			"Mecklenburg-Vorpommern": {
+				"examined": 170,
+				"examinedWomen": 92,
+				"passed": 103,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 3,
+					"vollbefriedigend": 13,
+					"befriedigend": 26,
+					"ausreichend": 61
+				},
+				"failed": 67,
+				"failedWomen": 39,
+				"failedFinal": 19
+			},
+			"Niedersachsen": {
+				"examined": 788,
+				"examinedWomen": 455,
+				"passed": 555,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 17,
+					"vollbefriedigend": 109,
+					"befriedigend": 229,
+					"ausreichend": 200
+				},
+				"failed": 233,
+				"failedWomen": 157,
+				"failedFinal": 33
+			},
+			"Nordrhein-Westfalen": {
+				"examined": 3077,
+				"examinedWomen": 1773,
+				"passed": 2116,
+				"grades": {
+					"sehrGut": 7,
+					"gut": 94,
+					"vollbefriedigend": 438,
+					"befriedigend": 838,
+					"ausreichend": 739
+				},
+				"failed": 961,
+				"failedWomen": 605,
+				"failedFinal": 112
+			},
+			"Rheinland-Pfalz": {
+				"examined": 528,
+				"examinedWomen": 317,
+				"passed": 400,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 16,
+					"vollbefriedigend": 72,
+					"befriedigend": 176,
+					"ausreichend": 135
+				},
+				"failed": 128,
+				"failedWomen": 84,
+				"failedFinal": 16
+			},
+			"Saarland": {
+				"examined": 202,
+				"examinedWomen": 124,
+				"passed": 155,
+				"grades": {
+					"sehrGut": 2,
+					"gut": 6,
+					"vollbefriedigend": 21,
+					"befriedigend": 61,
+					"ausreichend": 65
+				},
+				"failed": 47,
+				"failedWomen": 33,
+				"failedFinal": 7
+			},
+			"Sachsen": {
+				"examined": 441,
+				"examinedWomen": 246,
+				"passed": 285,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 15,
+					"vollbefriedigend": 39,
+					"befriedigend": 94,
+					"ausreichend": 137
+				},
+				"failed": 156,
+				"failedWomen": 106,
+				"failedFinal": 26
+			},
+			"Sachsen-Anhalt": {
+				"examined": 212,
+				"examinedWomen": 124,
+				"passed": 161,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 7,
+					"vollbefriedigend": 34,
+					"befriedigend": 79,
+					"ausreichend": 41
+				},
+				"failed": 51,
+				"failedWomen": 39,
+				"failedFinal": 9
+			},
+			"Schleswig-Holstein": {
+				"examined": 251,
+				"examinedWomen": 153,
+				"passed": 167,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 10,
+					"vollbefriedigend": 37,
+					"befriedigend": 59,
+					"ausreichend": 61
+				},
+				"failed": 84,
+				"failedWomen": 58,
+				"failedFinal": 7
+			},
+			"Thüringen": {
+				"examined": 194,
+				"examinedWomen": 109,
+				"passed": 148,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 6,
+					"vollbefriedigend": 27,
+					"befriedigend": 65,
+					"ausreichend": 50
+				},
+				"failed": 46,
+				"failedWomen": 30,
+				"failedFinal": 7
+			}
+		},
+		"total": {
+			"examined": 14011,
+			"examinedWomen": 8271,
+			"passed": 9929,
+			"grades": {
+				"sehrGut": 22,
+				"gut": 401,
+				"vollbefriedigend": 1939,
+				"befriedigend": 3972,
+				"ausreichend": 3595
+			},
+			"failed": 4082,
+			"failedWomen": 2713,
+			"failedFinal": 645
+		}
+	},
+	{
+		"year": 2017,
+		"asOf": "2019-02-28",
+		"laender": {
+			"Baden-Württemberg": {
+				"examined": 1987,
+				"examinedWomen": 1076,
+				"passed": 1478,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 54,
+					"vollbefriedigend": 297,
+					"befriedigend": 610,
+					"ausreichend": 516
+				},
+				"failed": 509,
+				"failedWomen": 305,
+				"failedFinal": 98
+			},
+			"Bayern": {
+				"examined": 2881,
+				"examinedWomen": 1760,
+				"passed": 2056,
+				"grades": {
+					"sehrGut": 3,
+					"gut": 81,
+					"vollbefriedigend": 349,
+					"befriedigend": 720,
+					"ausreichend": 903
+				},
+				"failed": 825,
+				"failedWomen": 576,
+				"failedFinal": 198
+			},
+			"Berlin": {
+				"examined": 861,
+				"examinedWomen": 535,
+				"passed": 655,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 28,
+					"vollbefriedigend": 191,
+					"befriedigend": 322,
+					"ausreichend": 113
+				},
+				"failed": 206,
+				"failedWomen": 145,
+				"failedFinal": 37
+			},
+			"Brandenburg": {
+				"examined": 485,
+				"examinedWomen": 310,
+				"passed": 293,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 3,
+					"vollbefriedigend": 31,
+					"befriedigend": 143,
+					"ausreichend": 116
+				},
+				"failed": 192,
+				"failedWomen": 149,
+				"failedFinal": 22
+			},
+			"Bremen": {
+				"examined": 179,
+				"examinedWomen": 102,
+				"passed": 108,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 2,
+					"vollbefriedigend": 20,
+					"befriedigend": 43,
+					"ausreichend": 43
+				},
+				"failed": 71,
+				"failedWomen": 42,
+				"failedFinal": 7
+			},
+			"Hamburg": {
+				"examined": 591,
+				"examinedWomen": 347,
+				"passed": 466,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 28,
+					"vollbefriedigend": 115,
+					"befriedigend": 184,
+					"ausreichend": 139
+				},
+				"failed": 125,
+				"failedWomen": 80,
+				"failedFinal": 40
+			},
+			"Hessen": {
+				"examined": 1132,
+				"examinedWomen": 689,
+				"passed": 771,
+				"grades": {
+					"sehrGut": 2,
+					"gut": 25,
+					"vollbefriedigend": 141,
+					"befriedigend": 298,
+					"ausreichend": 305
+				},
+				"failed": 361,
+				"failedWomen": 235,
+				"failedFinal": 63
+			},
+			"Mecklenburg-Vorpommern": {
+				"examined": 181,
+				"examinedWomen": 99,
+				"passed": 106,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 5,
+					"vollbefriedigend": 18,
+					"befriedigend": 27,
+					"ausreichend": 55
+				},
+				"failed": 75,
+				"failedWomen": 44,
+				"failedFinal": 31
+			},
+			"Niedersachsen": {
+				"examined": 826,
+				"examinedWomen": 463,
+				"passed": 623,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 17,
+					"vollbefriedigend": 121,
+					"befriedigend": 298,
+					"ausreichend": 186
+				},
+				"failed": 203,
+				"failedWomen": 133,
+				"failedFinal": 31
+			},
+			"Nordrhein-Westfalen": {
+				"examined": 3158,
+				"examinedWomen": 1902,
+				"passed": 2183,
+				"grades": {
+					"sehrGut": 5,
+					"gut": 105,
+					"vollbefriedigend": 437,
+					"befriedigend": 886,
+					"ausreichend": 750
+				},
+				"failed": 975,
+				"failedWomen": 620,
+				"failedFinal": 120
+			},
+			"Rheinland-Pfalz": {
+				"examined": 610,
+				"examinedWomen": 370,
+				"passed": 440,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 16,
+					"vollbefriedigend": 85,
+					"befriedigend": 196,
+					"ausreichend": 142
+				},
+				"failed": 170,
+				"failedWomen": 106,
+				"failedFinal": 29
+			},
+			"Saarland": {
+				"examined": 188,
+				"examinedWomen": 108,
+				"passed": 141,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 4,
+					"vollbefriedigend": 21,
+					"befriedigend": 44,
+					"ausreichend": 71
+				},
+				"failed": 47,
+				"failedWomen": 30,
+				"failedFinal": 8
+			},
+			"Sachsen": {
+				"examined": 463,
+				"examinedWomen": 267,
+				"passed": 315,
+				"grades": {
+					"sehrGut": 2,
+					"gut": 12,
+					"vollbefriedigend": 63,
+					"befriedigend": 104,
+					"ausreichend": 134
+				},
+				"failed": 148,
+				"failedWomen": 96,
+				"failedFinal": 21
+			},
+			"Sachsen-Anhalt": {
+				"examined": 233,
+				"examinedWomen": 141,
+				"passed": 189,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 7,
+					"vollbefriedigend": 44,
+					"befriedigend": 92,
+					"ausreichend": 46
+				},
+				"failed": 44,
+				"failedWomen": 33,
+				"failedFinal": 14
+			},
+			"Schleswig-Holstein": {
+				"examined": 282,
+				"examinedWomen": 176,
+				"passed": 191,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 5,
+					"vollbefriedigend": 24,
+					"befriedigend": 82,
+					"ausreichend": 80
+				},
+				"failed": 91,
+				"failedWomen": 66,
+				"failedFinal": 12
+			},
+			"Thüringen": {
+				"examined": 175,
+				"examinedWomen": 94,
+				"passed": 129,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 7,
+					"vollbefriedigend": 20,
+					"befriedigend": 62,
+					"ausreichend": 40
+				},
+				"failed": 46,
+				"failedWomen": 34,
+				"failedFinal": 7
+			}
+		},
+		"total": {
+			"examined": 14232,
+			"examinedWomen": 8439,
+			"passed": 10144,
+			"grades": {
+				"sehrGut": 18,
+				"gut": 399,
+				"vollbefriedigend": 1977,
+				"befriedigend": 4111,
+				"ausreichend": 3639
+			},
+			"failed": 4088,
+			"failedWomen": 2694,
+			"failedFinal": 738
+		}
+	},
+	{
+		"year": 2018,
+		"asOf": "2020-03-05",
+		"laender": {
+			"Baden-Württemberg": {
+				"examined": 1989,
+				"examinedWomen": 1153,
+				"passed": 1501,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 55,
+					"vollbefriedigend": 297,
+					"befriedigend": 605,
+					"ausreichend": 543
+				},
+				"failed": 488,
+				"failedWomen": 302,
+				"failedFinal": 76
+			},
+			"Bayern": {
+				"examined": 2798,
+				"examinedWomen": 1738,
+				"passed": 2001,
+				"grades": {
+					"sehrGut": 6,
+					"gut": 90,
+					"vollbefriedigend": 377,
+					"befriedigend": 729,
+					"ausreichend": 799
+				},
+				"failed": 797,
+				"failedWomen": 537,
+				"failedFinal": 185
+			},
+			"Berlin": {
+				"examined": 847,
+				"examinedWomen": 509,
+				"passed": 663,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 18,
+					"vollbefriedigend": 173,
+					"befriedigend": 309,
+					"ausreichend": 162
+				},
+				"failed": 184,
+				"failedWomen": 118,
+				"failedFinal": 31
+			},
+			"Brandenburg": {
+				"examined": 400,
+				"examinedWomen": 255,
+				"passed": 231,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 1,
+					"vollbefriedigend": 30,
+					"befriedigend": 113,
+					"ausreichend": 87
+				},
+				"failed": 169,
+				"failedWomen": 117,
+				"failedFinal": 27
+			},
+			"Bremen": {
+				"examined": 165,
+				"examinedWomen": 100,
+				"passed": 106,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 1,
+					"vollbefriedigend": 14,
+					"befriedigend": 41,
+					"ausreichend": 49
+				},
+				"failed": 59,
+				"failedWomen": 40,
+				"failedFinal": 12
+			},
+			"Hamburg": {
+				"examined": 611,
+				"examinedWomen": 353,
+				"passed": 486,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 26,
+					"vollbefriedigend": 117,
+					"befriedigend": 187,
+					"ausreichend": 155
+				},
+				"failed": 125,
+				"failedWomen": 85,
+				"failedFinal": 18
+			},
+			"Hessen": {
+				"examined": 1375,
+				"examinedWomen": 847,
+				"passed": 928,
+				"grades": {
+					"sehrGut": 2,
+					"gut": 18,
+					"vollbefriedigend": 167,
+					"befriedigend": 395,
+					"ausreichend": 346
+				},
+				"failed": 447,
+				"failedWomen": 300,
+				"failedFinal": 121
+			},
+			"Mecklenburg-Vorpommern": {
+				"examined": 106,
+				"examinedWomen": 64,
+				"passed": 61,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 2,
+					"vollbefriedigend": 8,
+					"befriedigend": 28,
+					"ausreichend": 23
+				},
+				"failed": 45,
+				"failedWomen": 31,
+				"failedFinal": 9
+			},
+			"Niedersachsen": {
+				"examined": 892,
+				"examinedWomen": 512,
+				"passed": 663,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 21,
+					"vollbefriedigend": 112,
+					"befriedigend": 294,
+					"ausreichend": 235
+				},
+				"failed": 229,
+				"failedWomen": 142,
+				"failedFinal": 26
+			},
+			"Nordrhein-Westfalen": {
+				"examined": 3565,
+				"examinedWomen": 2202,
+				"passed": 2532,
+				"grades": {
+					"sehrGut": 4,
+					"gut": 106,
+					"vollbefriedigend": 519,
+					"befriedigend": 1028,
+					"ausreichend": 875
+				},
+				"failed": 1033,
+				"failedWomen": 684,
+				"failedFinal": 105
+			},
+			"Rheinland-Pfalz": {
+				"examined": 652,
+				"examinedWomen": 377,
+				"passed": 487,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 14,
+					"vollbefriedigend": 99,
+					"befriedigend": 214,
+					"ausreichend": 160
+				},
+				"failed": 165,
+				"failedWomen": 100,
+				"failedFinal": 25
+			},
+			"Saarland": {
+				"examined": 190,
+				"examinedWomen": 108,
+				"passed": 145,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 7,
+					"vollbefriedigend": 31,
+					"befriedigend": 50,
+					"ausreichend": 57
+				},
+				"failed": 45,
+				"failedWomen": 29,
+				"failedFinal": 11
+			},
+			"Sachsen": {
+				"examined": 412,
+				"examinedWomen": 235,
+				"passed": 277,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 15,
+					"vollbefriedigend": 34,
+					"befriedigend": 95,
+					"ausreichend": 133
+				},
+				"failed": 135,
+				"failedWomen": 84,
+				"failedFinal": 26
+			},
+			"Sachsen-Anhalt": {
+				"examined": 290,
+				"examinedWomen": 164,
+				"passed": 221,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 8,
+					"vollbefriedigend": 56,
+					"befriedigend": 93,
+					"ausreichend": 64
+				},
+				"failed": 69,
+				"failedWomen": 52,
+				"failedFinal": 9
+			},
+			"Schleswig-Holstein": {
+				"examined": 237,
+				"examinedWomen": 152,
+				"passed": 165,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 1,
+					"vollbefriedigend": 27,
+					"befriedigend": 71,
+					"ausreichend": 66
+				},
+				"failed": 72,
+				"failedWomen": 55,
+				"failedFinal": 18
+			},
+			"Thüringen": {
+				"examined": 124,
+				"examinedWomen": 69,
+				"passed": 92,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 2,
+					"vollbefriedigend": 11,
+					"befriedigend": 42,
+					"ausreichend": 36
+				},
+				"failed": 32,
+				"failedWomen": 14,
+				"failedFinal": 3
+			}
+		},
+		"total": {
+			"examined": 14653,
+			"examinedWomen": 8838,
+			"passed": 10559,
+			"grades": {
+				"sehrGut": 18,
+				"gut": 385,
+				"vollbefriedigend": 2072,
+				"befriedigend": 4294,
+				"ausreichend": 3790
+			},
+			"failed": 4094,
+			"failedWomen": 2690,
+			"failedFinal": 702
+		}
+	},
+	{
+		"year": 2019,
+		"asOf": "2022-03-14",
+		"laender": {
+			"Baden-Württemberg": {
+				"examined": 1964,
+				"examinedWomen": 1148,
+				"passed": 1388,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 45,
+					"vollbefriedigend": 304,
+					"befriedigend": 558,
+					"ausreichend": 480
+				},
+				"failed": 576,
+				"failedWomen": 362,
+				"failedFinal": 87
+			},
+			"Bayern": {
+				"examined": 2752,
+				"examinedWomen": 1696,
+				"passed": 2092,
+				"grades": {
+					"sehrGut": 10,
+					"gut": 76,
+					"vollbefriedigend": 366,
+					"befriedigend": 850,
+					"ausreichend": 790
+				},
+				"failed": 660,
+				"failedWomen": 465,
+				"failedFinal": 131
+			},
+			"Berlin": {
+				"examined": 811,
+				"examinedWomen": 462,
+				"passed": 644,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 32,
+					"vollbefriedigend": 175,
+					"befriedigend": 287,
+					"ausreichend": 149
+				},
+				"failed": 167,
+				"failedWomen": 94,
+				"failedFinal": 24
+			},
+			"Brandenburg": {
+				"examined": 398,
+				"examinedWomen": 277,
+				"passed": 219,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 2,
+					"vollbefriedigend": 21,
+					"befriedigend": 113,
+					"ausreichend": 83
+				},
+				"failed": 179,
+				"failedWomen": 132,
+				"failedFinal": 33
+			},
+			"Bremen": {
+				"examined": 141,
+				"examinedWomen": 76,
+				"passed": 99,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 3,
+					"vollbefriedigend": 20,
+					"befriedigend": 29,
+					"ausreichend": 46
+				},
+				"failed": 42,
+				"failedWomen": 27,
+				"failedFinal": 7
+			},
+			"Hamburg": {
+				"examined": 644,
+				"examinedWomen": 373,
+				"passed": 510,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 37,
+					"vollbefriedigend": 142,
+					"befriedigend": 204,
+					"ausreichend": 127
+				},
+				"failed": 134,
+				"failedWomen": 82,
+				"failedFinal": 13
+			},
+			"Hessen": {
+				"examined": 1164,
+				"examinedWomen": 698,
+				"passed": 872,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 24,
+					"vollbefriedigend": 179,
+					"befriedigend": 353,
+					"ausreichend": 316
+				},
+				"failed": 292,
+				"failedWomen": 184,
+				"failedFinal": 8
+			},
+			"Mecklenburg-Vorpommern": {
+				"examined": 98,
+				"examinedWomen": 53,
+				"passed": 67,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 1,
+					"vollbefriedigend": 11,
+					"befriedigend": 24,
+					"ausreichend": 31
+				},
+				"failed": 31,
+				"failedWomen": 19,
+				"failedFinal": 11
+			},
+			"Niedersachsen": {
+				"examined": 922,
+				"examinedWomen": 558,
+				"passed": 707,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 23,
+					"vollbefriedigend": 152,
+					"befriedigend": 300,
+					"ausreichend": 232
+				},
+				"failed": 215,
+				"failedWomen": 143,
+				"failedFinal": 29
+			},
+			"Nordrhein-Westfalen": {
+				"examined": 3517,
+				"examinedWomen": 2167,
+				"passed": 2443,
+				"grades": {
+					"sehrGut": 11,
+					"gut": 119,
+					"vollbefriedigend": 514,
+					"befriedigend": 975,
+					"ausreichend": 824
+				},
+				"failed": 1074,
+				"failedWomen": 725,
+				"failedFinal": 107
+			},
+			"Rheinland-Pfalz": {
+				"examined": 666,
+				"examinedWomen": 410,
+				"passed": 487,
+				"grades": {
+					"sehrGut": 2,
+					"gut": 13,
+					"vollbefriedigend": 84,
+					"befriedigend": 222,
+					"ausreichend": 166
+				},
+				"failed": 179,
+				"failedWomen": 125,
+				"failedFinal": 29
+			},
+			"Saarland": {
+				"examined": 184,
+				"examinedWomen": 87,
+				"passed": 153,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 11,
+					"vollbefriedigend": 20,
+					"befriedigend": 62,
+					"ausreichend": 60
+				},
+				"failed": 31,
+				"failedWomen": 10,
+				"failedFinal": 7
+			},
+			"Sachsen": {
+				"examined": 372,
+				"examinedWomen": 218,
+				"passed": 263,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 6,
+					"vollbefriedigend": 39,
+					"befriedigend": 98,
+					"ausreichend": 120
+				},
+				"failed": 109,
+				"failedWomen": 74,
+				"failedFinal": 18
+			},
+			"Sachsen-Anhalt": {
+				"examined": 259,
+				"examinedWomen": 139,
+				"passed": 216,
+				"grades": {
+					"sehrGut": 2,
+					"gut": 14,
+					"vollbefriedigend": 44,
+					"befriedigend": 98,
+					"ausreichend": 58
+				},
+				"failed": 43,
+				"failedWomen": 25,
+				"failedFinal": 15
+			},
+			"Schleswig-Holstein": {
+				"examined": 253,
+				"examinedWomen": 132,
+				"passed": 171,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 10,
+					"vollbefriedigend": 24,
+					"befriedigend": 65,
+					"ausreichend": 71
+				},
+				"failed": 82,
+				"failedWomen": 48,
+				"failedFinal": 36
+			},
+			"Thüringen": {
+				"examined": 133,
+				"examinedWomen": 79,
+				"passed": 105,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 6,
+					"vollbefriedigend": 16,
+					"befriedigend": 50,
+					"ausreichend": 32
+				},
+				"failed": 28,
+				"failedWomen": 20,
+				"failedFinal": 8
+			}
+		},
+		"total": {
+			"examined": 14278,
+			"examinedWomen": 8573,
+			"passed": 10436,
+			"grades": {
+				"sehrGut": 30,
+				"gut": 422,
+				"vollbefriedigend": 2111,
+				"befriedigend": 4288,
+				"ausreichend": 3585
+			},
+			"failed": 3842,
+			"failedWomen": 2535,
+			"failedFinal": 563
+		}
+	},
+	{
+		"year": 2020,
+		"asOf": "2022-11-11",
+		"laender": {
+			"Baden-Württemberg": {
+				"examined": 1918,
+				"examinedWomen": 1097,
+				"passed": 1401,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 40,
+					"vollbefriedigend": 304,
+					"befriedigend": 575,
+					"ausreichend": 482
+				},
+				"failed": 517,
+				"failedWomen": 310,
+				"failedFinal": 107
+			},
+			"Bayern": {
+				"examined": 2714,
+				"examinedWomen": 1653,
+				"passed": 1964,
+				"grades": {
+					"sehrGut": 8,
+					"gut": 127,
+					"vollbefriedigend": 379,
+					"befriedigend": 763,
+					"ausreichend": 687
+				},
+				"failed": 750,
+				"failedWomen": 506,
+				"failedFinal": 152
+			},
+			"Berlin": {
+				"examined": 595,
+				"examinedWomen": 340,
+				"passed": 478,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 37,
+					"vollbefriedigend": 136,
+					"befriedigend": 200,
+					"ausreichend": 105
+				},
+				"failed": 117,
+				"failedWomen": 72,
+				"failedFinal": 15
+			},
+			"Brandenburg": {
+				"examined": 320,
+				"examinedWomen": 218,
+				"passed": 173,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 4,
+					"vollbefriedigend": 25,
+					"befriedigend": 74,
+					"ausreichend": 70
+				},
+				"failed": 147,
+				"failedWomen": 111,
+				"failedFinal": 26
+			},
+			"Bremen": {
+				"examined": 217,
+				"examinedWomen": 145,
+				"passed": 153,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 9,
+					"vollbefriedigend": 29,
+					"befriedigend": 82,
+					"ausreichend": 33
+				},
+				"failed": 64,
+				"failedWomen": 44,
+				"failedFinal": 7
+			},
+			"Hamburg": {
+				"examined": 582,
+				"examinedWomen": 328,
+				"passed": 448,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 24,
+					"vollbefriedigend": 111,
+					"befriedigend": 205,
+					"ausreichend": 108
+				},
+				"failed": 134,
+				"failedWomen": 83,
+				"failedFinal": 9
+			},
+			"Hessen": {
+				"examined": 1229,
+				"examinedWomen": 777,
+				"passed": 850,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 26,
+					"vollbefriedigend": 165,
+					"befriedigend": 388,
+					"ausreichend": 270
+				},
+				"failed": 379,
+				"failedWomen": 253,
+				"failedFinal": 79
+			},
+			"Mecklenburg-Vorpommern": {
+				"examined": 106,
+				"examinedWomen": 57,
+				"passed": 73,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 2,
+					"vollbefriedigend": 8,
+					"befriedigend": 32,
+					"ausreichend": 31
+				},
+				"failed": 33,
+				"failedWomen": 22,
+				"failedFinal": 5
+			},
+			"Niedersachsen": {
+				"examined": 887,
+				"examinedWomen": 574,
+				"passed": 667,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 32,
+					"vollbefriedigend": 165,
+					"befriedigend": 314,
+					"ausreichend": 156
+				},
+				"failed": 220,
+				"failedWomen": 158,
+				"failedFinal": 35
+			},
+			"Nordrhein-Westfalen": {
+				"examined": 3485,
+				"examinedWomen": 2153,
+				"passed": 2424,
+				"grades": {
+					"sehrGut": 10,
+					"gut": 114,
+					"vollbefriedigend": 536,
+					"befriedigend": 983,
+					"ausreichend": 781
+				},
+				"failed": 1061,
+				"failedWomen": 745,
+				"failedFinal": 100
+			},
+			"Rheinland-Pfalz": {
+				"examined": 695,
+				"examinedWomen": 420,
+				"passed": 501,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 18,
+					"vollbefriedigend": 97,
+					"befriedigend": 224,
+					"ausreichend": 161
+				},
+				"failed": 194,
+				"failedWomen": 133,
+				"failedFinal": 38
+			},
+			"Saarland": {
+				"examined": 167,
+				"examinedWomen": 103,
+				"passed": 138,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 2,
+					"vollbefriedigend": 20,
+					"befriedigend": 55,
+					"ausreichend": 60
+				},
+				"failed": 29,
+				"failedWomen": 22,
+				"failedFinal": 9
+			},
+			"Sachsen": {
+				"examined": 431,
+				"examinedWomen": 256,
+				"passed": 301,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 13,
+					"vollbefriedigend": 48,
+					"befriedigend": 112,
+					"ausreichend": 128
+				},
+				"failed": 130,
+				"failedWomen": 91,
+				"failedFinal": 27
+			},
+			"Sachsen-Anhalt": {
+				"examined": 218,
+				"examinedWomen": 109,
+				"passed": 194,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 10,
+					"vollbefriedigend": 44,
+					"befriedigend": 88,
+					"ausreichend": 51
+				},
+				"failed": 24,
+				"failedWomen": 17,
+				"failedFinal": 5
+			},
+			"Schleswig-Holstein": {
+				"examined": 292,
+				"examinedWomen": 183,
+				"passed": 201,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 1,
+					"vollbefriedigend": 30,
+					"befriedigend": 82,
+					"ausreichend": 88
+				},
+				"failed": 91,
+				"failedWomen": 65,
+				"failedFinal": 24
+			},
+			"Thüringen": {
+				"examined": 186,
+				"examinedWomen": 103,
+				"passed": 151,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 8,
+					"vollbefriedigend": 30,
+					"befriedigend": 77,
+					"ausreichend": 36
+				},
+				"failed": 35,
+				"failedWomen": 22,
+				"failedFinal": 2
+			}
+		},
+		"total": {
+			"examined": 14042,
+			"examinedWomen": 8516,
+			"passed": 10117,
+			"grades": {
+				"sehrGut": 22,
+				"gut": 467,
+				"vollbefriedigend": 2127,
+				"befriedigend": 4254,
+				"ausreichend": 3247
+			},
+			"failed": 3925,
+			"failedWomen": 2654,
+			"failedFinal": 640
+		}
+	},
+	{
+		"year": 2021,
+		"asOf": "2023-09-06",
+		"laender": {
+			"Baden-Württemberg": {
+				"examined": 1677,
+				"examinedWomen": 996,
+				"passed": 1285,
+				"grades": {
+					"sehrGut": 2,
+					"gut": 47,
+					"vollbefriedigend": 264,
+					"befriedigend": 527,
+					"ausreichend": 445
+				},
+				"failed": 392,
+				"failedWomen": 237,
+				"failedFinal": 73
+			},
+			"Bayern": {
+				"examined": 2427,
+				"examinedWomen": 1477,
+				"passed": 1890,
+				"grades": {
+					"sehrGut": 10,
+					"gut": 96,
+					"vollbefriedigend": 375,
+					"befriedigend": 758,
+					"ausreichend": 651
+				},
+				"failed": 537,
+				"failedWomen": 368,
+				"failedFinal": 133
+			},
+			"Berlin": {
+				"examined": 739,
+				"examinedWomen": 425,
+				"passed": 616,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 35,
+					"vollbefriedigend": 177,
+					"befriedigend": 295,
+					"ausreichend": 109
+				},
+				"failed": 123,
+				"failedWomen": 84,
+				"failedFinal": 23
+			},
+			"Brandenburg": {
+				"examined": 332,
+				"examinedWomen": 198,
+				"passed": 197,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 2,
+					"vollbefriedigend": 21,
+					"befriedigend": 104,
+					"ausreichend": 70
+				},
+				"failed": 135,
+				"failedWomen": 94,
+				"failedFinal": 32
+			},
+			"Bremen": {
+				"examined": 154,
+				"examinedWomen": 97,
+				"passed": 108,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 8,
+					"vollbefriedigend": 28,
+					"befriedigend": 50,
+					"ausreichend": 22
+				},
+				"failed": 46,
+				"failedWomen": 32,
+				"failedFinal": 4
+			},
+			"Hamburg": {
+				"examined": 531,
+				"examinedWomen": 305,
+				"passed": 427,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 30,
+					"vollbefriedigend": 107,
+					"befriedigend": 155,
+					"ausreichend": 135
+				},
+				"failed": 104,
+				"failedWomen": 72,
+				"failedFinal": 13
+			},
+			"Hessen": {
+				"examined": 1084,
+				"examinedWomen": 656,
+				"passed": 774,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 30,
+					"vollbefriedigend": 153,
+					"befriedigend": 359,
+					"ausreichend": 232
+				},
+				"failed": 310,
+				"failedWomen": 205,
+				"failedFinal": 64
+			},
+			"Mecklenburg-Vorpommern": {
+				"examined": 100,
+				"examinedWomen": 62,
+				"passed": 65,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 1,
+					"vollbefriedigend": 11,
+					"befriedigend": 29,
+					"ausreichend": 24
+				},
+				"failed": 35,
+				"failedWomen": 24,
+				"failedFinal": 6
+			},
+			"Niedersachsen": {
+				"examined": 894,
+				"examinedWomen": 528,
+				"passed": 690,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 31,
+					"vollbefriedigend": 159,
+					"befriedigend": 303,
+					"ausreichend": 197
+				},
+				"failed": 204,
+				"failedWomen": 139,
+				"failedFinal": 31
+			},
+			"Nordrhein-Westfalen": {
+				"examined": 2479,
+				"examinedWomen": 1527,
+				"passed": 1762,
+				"grades": {
+					"sehrGut": 9,
+					"gut": 95,
+					"vollbefriedigend": 411,
+					"befriedigend": 706,
+					"ausreichend": 541
+				},
+				"failed": 717,
+				"failedWomen": 491,
+				"failedFinal": 114
+			},
+			"Rheinland-Pfalz": {
+				"examined": 559,
+				"examinedWomen": 338,
+				"passed": 430,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 18,
+					"vollbefriedigend": 90,
+					"befriedigend": 185,
+					"ausreichend": 136
+				},
+				"failed": 129,
+				"failedWomen": 81,
+				"failedFinal": 21
+			},
+			"Saarland": {
+				"examined": 174,
+				"examinedWomen": 110,
+				"passed": 145,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 10,
+					"vollbefriedigend": 34,
+					"befriedigend": 45,
+					"ausreichend": 56
+				},
+				"failed": 29,
+				"failedWomen": 23,
+				"failedFinal": 2
+			},
+			"Sachsen": {
+				"examined": 365,
+				"examinedWomen": 203,
+				"passed": 281,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 17,
+					"vollbefriedigend": 55,
+					"befriedigend": 105,
+					"ausreichend": 103
+				},
+				"failed": 84,
+				"failedWomen": 52,
+				"failedFinal": 11
+			},
+			"Sachsen-Anhalt": {
+				"examined": 211,
+				"examinedWomen": 111,
+				"passed": 172,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 12,
+					"vollbefriedigend": 55,
+					"befriedigend": 75,
+					"ausreichend": 30
+				},
+				"failed": 39,
+				"failedWomen": 26,
+				"failedFinal": 8
+			},
+			"Schleswig-Holstein": {
+				"examined": 270,
+				"examinedWomen": 172,
+				"passed": 189,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 6,
+					"vollbefriedigend": 41,
+					"befriedigend": 86,
+					"ausreichend": 56
+				},
+				"failed": 81,
+				"failedWomen": 59,
+				"failedFinal": 19
+			},
+			"Thüringen": {
+				"examined": 148,
+				"examinedWomen": 92,
+				"passed": 119,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 12,
+					"vollbefriedigend": 22,
+					"befriedigend": 49,
+					"ausreichend": 35
+				},
+				"failed": 29,
+				"failedWomen": 22,
+				"failedFinal": 8
+			}
+		},
+		"total": {
+			"examined": 12144,
+			"examinedWomen": 7297,
+			"passed": 9150,
+			"grades": {
+				"sehrGut": 24,
+				"gut": 450,
+				"vollbefriedigend": 2003,
+				"befriedigend": 3831,
+				"ausreichend": 2842
+			},
+			"failed": 2994,
+			"failedWomen": 2009,
+			"failedFinal": 562
+		}
+	},
+	{
+		"year": 2022,
+		"asOf": "2024-03-13",
+		"laender": {
+			"Baden-Württemberg": {
+				"examined": 1697,
+				"examinedWomen": 1020,
+				"passed": 1248,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 53,
+					"vollbefriedigend": 265,
+					"befriedigend": 489,
+					"ausreichend": 441
+				},
+				"failed": 449,
+				"failedWomen": 306,
+				"failedFinal": 68
+			},
+			"Bayern": {
+				"examined": 2679,
+				"examinedWomen": 1620,
+				"passed": 1989,
+				"grades": {
+					"sehrGut": 7,
+					"gut": 105,
+					"vollbefriedigend": 394,
+					"befriedigend": 747,
+					"ausreichend": 736
+				},
+				"failed": 690,
+				"failedWomen": 488,
+				"failedFinal": 144
+			},
+			"Berlin": {
+				"examined": 727,
+				"examinedWomen": 421,
+				"passed": 598,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 30,
+					"vollbefriedigend": 181,
+					"befriedigend": 258,
+					"ausreichend": 129
+				},
+				"failed": 129,
+				"failedWomen": 84,
+				"failedFinal": 12
+			},
+			"Brandenburg": {
+				"examined": 402,
+				"examinedWomen": 270,
+				"passed": 234,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 2,
+					"vollbefriedigend": 33,
+					"befriedigend": 112,
+					"ausreichend": 87
+				},
+				"failed": 168,
+				"failedWomen": 118,
+				"failedFinal": 28
+			},
+			"Bremen": {
+				"examined": 161,
+				"examinedWomen": 100,
+				"passed": 105,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 2,
+					"vollbefriedigend": 15,
+					"befriedigend": 57,
+					"ausreichend": 30
+				},
+				"failed": 56,
+				"failedWomen": 39,
+				"failedFinal": 12
+			},
+			"Hamburg": {
+				"examined": 662,
+				"examinedWomen": 393,
+				"passed": 531,
+				"grades": {
+					"sehrGut": 5,
+					"gut": 32,
+					"vollbefriedigend": 116,
+					"befriedigend": 238,
+					"ausreichend": 140
+				},
+				"failed": 131,
+				"failedWomen": 94,
+				"failedFinal": 12
+			},
+			"Hessen": {
+				"examined": 1143,
+				"examinedWomen": 688,
+				"passed": 856,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 39,
+					"vollbefriedigend": 190,
+					"befriedigend": 342,
+					"ausreichend": 284
+				},
+				"failed": 287,
+				"failedWomen": 198,
+				"failedFinal": 41
+			},
+			"Mecklenburg-Vorpommern": {
+				"examined": 101,
+				"examinedWomen": 60,
+				"passed": 73,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 3,
+					"vollbefriedigend": 13,
+					"befriedigend": 29,
+					"ausreichend": 28
+				},
+				"failed": 28,
+				"failedWomen": 17,
+				"failedFinal": 4
+			},
+			"Niedersachsen": {
+				"examined": 851,
+				"examinedWomen": 534,
+				"passed": 628,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 33,
+					"vollbefriedigend": 188,
+					"befriedigend": 246,
+					"ausreichend": 161
+				},
+				"failed": 223,
+				"failedWomen": 155,
+				"failedFinal": 27
+			},
+			"Nordrhein-Westfalen": {
+				"examined": 2818,
+				"examinedWomen": 1798,
+				"passed": 2032,
+				"grades": {
+					"sehrGut": 6,
+					"gut": 102,
+					"vollbefriedigend": 496,
+					"befriedigend": 804,
+					"ausreichend": 624
+				},
+				"failed": 786,
+				"failedWomen": 500,
+				"failedFinal": 96
+			},
+			"Rheinland-Pfalz": {
+				"examined": 572,
+				"examinedWomen": 359,
+				"passed": 411,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 15,
+					"vollbefriedigend": 82,
+					"befriedigend": 176,
+					"ausreichend": 138
+				},
+				"failed": 161,
+				"failedWomen": 111,
+				"failedFinal": 22
+			},
+			"Saarland": {
+				"examined": 179,
+				"examinedWomen": 122,
+				"passed": 146,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 4,
+					"vollbefriedigend": 24,
+					"befriedigend": 61,
+					"ausreichend": 57
+				},
+				"failed": 33,
+				"failedWomen": 24,
+				"failedFinal": 2
+			},
+			"Sachsen": {
+				"examined": 424,
+				"examinedWomen": 237,
+				"passed": 287,
+				"grades": {
+					"sehrGut": 2,
+					"gut": 13,
+					"vollbefriedigend": 39,
+					"befriedigend": 104,
+					"ausreichend": 129
+				},
+				"failed": 137,
+				"failedWomen": 82,
+				"failedFinal": 14
+			},
+			"Sachsen-Anhalt": {
+				"examined": 226,
+				"examinedWomen": 134,
+				"passed": 179,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 12,
+					"vollbefriedigend": 48,
+					"befriedigend": 75,
+					"ausreichend": 43
+				},
+				"failed": 47,
+				"failedWomen": 33,
+				"failedFinal": 10
+			},
+			"Schleswig-Holstein": {
+				"examined": 252,
+				"examinedWomen": 166,
+				"passed": 182,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 2,
+					"vollbefriedigend": 37,
+					"befriedigend": 87,
+					"ausreichend": 55
+				},
+				"failed": 70,
+				"failedWomen": 53,
+				"failedFinal": 16
+			},
+			"Thüringen": {
+				"examined": 156,
+				"examinedWomen": 83,
+				"passed": 128,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 12,
+					"vollbefriedigend": 28,
+					"befriedigend": 48,
+					"ausreichend": 39
+				},
+				"failed": 28,
+				"failedWomen": 11,
+				"failedFinal": 5
+			}
+		},
+		"total": {
+			"examined": 13050,
+			"examinedWomen": 8005,
+			"passed": 9627,
+			"grades": {
+				"sehrGut": 25,
+				"gut": 459,
+				"vollbefriedigend": 2149,
+				"befriedigend": 3873,
+				"ausreichend": 3121
+			},
+			"failed": 3423,
+			"failedWomen": 2313,
+			"failedFinal": 513
+		}
+	},
+	{
+		"year": 2023,
+		"asOf": "2026-03-30",
+		"laender": {
+			"Baden-Württemberg": {
+				"examined": 1769,
+				"examinedWomen": 1052,
+				"passed": 1265,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 46,
+					"vollbefriedigend": 257,
+					"befriedigend": 493,
+					"ausreichend": 469
+				},
+				"failed": 504,
+				"failedWomen": 330,
+				"failedFinal": 49
+			},
+			"Bayern": {
+				"examined": 2666,
+				"examinedWomen": 1660,
+				"passed": 1941,
+				"grades": {
+					"sehrGut": 14,
+					"gut": 127,
+					"vollbefriedigend": 390,
+					"befriedigend": 748,
+					"ausreichend": 662
+				},
+				"failed": 725,
+				"failedWomen": 496,
+				"failedFinal": 126
+			},
+			"Berlin": {
+				"examined": 788,
+				"examinedWomen": 493,
+				"passed": 619,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 23,
+					"vollbefriedigend": 179,
+					"befriedigend": 290,
+					"ausreichend": 127
+				},
+				"failed": 169,
+				"failedWomen": 119,
+				"failedFinal": 7
+			},
+			"Brandenburg": {
+				"examined": 411,
+				"examinedWomen": 266,
+				"passed": 230,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 3,
+					"vollbefriedigend": 34,
+					"befriedigend": 98,
+					"ausreichend": 95
+				},
+				"failed": 181,
+				"failedWomen": 126,
+				"failedFinal": 25
+			},
+			"Bremen": {
+				"examined": 139,
+				"examinedWomen": 90,
+				"passed": 106,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 3,
+					"vollbefriedigend": 23,
+					"befriedigend": 53,
+					"ausreichend": 27
+				},
+				"failed": 33,
+				"failedWomen": 18,
+				"failedFinal": 5
+			},
+			"Hamburg": {
+				"examined": 649,
+				"examinedWomen": 379,
+				"passed": 523,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 38,
+					"vollbefriedigend": 131,
+					"befriedigend": 222,
+					"ausreichend": 131
+				},
+				"failed": 126,
+				"failedWomen": 90,
+				"failedFinal": 13
+			},
+			"Hessen": {
+				"examined": 1066,
+				"examinedWomen": 691,
+				"passed": 722,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 25,
+					"vollbefriedigend": 135,
+					"befriedigend": 305,
+					"ausreichend": 257
+				},
+				"failed": 344,
+				"failedWomen": 253,
+				"failedFinal": 49
+			},
+			"Mecklenburg-Vorpommern": {
+				"examined": 105,
+				"examinedWomen": 52,
+				"passed": 70,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 2,
+					"vollbefriedigend": 8,
+					"befriedigend": 29,
+					"ausreichend": 31
+				},
+				"failed": 35,
+				"failedWomen": 19,
+				"failedFinal": 2
+			},
+			"Niedersachsen": {
+				"examined": 815,
+				"examinedWomen": 493,
+				"passed": 617,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 37,
+					"vollbefriedigend": 139,
+					"befriedigend": 247,
+					"ausreichend": 193
+				},
+				"failed": 198,
+				"failedWomen": 126,
+				"failedFinal": 29
+			},
+			"Nordrhein-Westfalen": {
+				"examined": 2858,
+				"examinedWomen": 1832,
+				"passed": 2020,
+				"grades": {
+					"sehrGut": 3,
+					"gut": 106,
+					"vollbefriedigend": 438,
+					"befriedigend": 821,
+					"ausreichend": 652
+				},
+				"failed": 838,
+				"failedWomen": 595,
+				"failedFinal": 87
+			},
+			"Rheinland-Pfalz": {
+				"examined": 617,
+				"examinedWomen": 376,
+				"passed": 463,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 12,
+					"vollbefriedigend": 86,
+					"befriedigend": 228,
+					"ausreichend": 137
+				},
+				"failed": 154,
+				"failedWomen": 104,
+				"failedFinal": 24
+			},
+			"Saarland": {
+				"examined": 158,
+				"examinedWomen": 87,
+				"passed": 121,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 4,
+					"vollbefriedigend": 24,
+					"befriedigend": 48,
+					"ausreichend": 45
+				},
+				"failed": 37,
+				"failedWomen": 22,
+				"failedFinal": 6
+			},
+			"Sachsen": {
+				"examined": 512,
+				"examinedWomen": 301,
+				"passed": 384,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 9,
+					"vollbefriedigend": 63,
+					"befriedigend": 169,
+					"ausreichend": 142
+				},
+				"failed": 128,
+				"failedWomen": 81,
+				"failedFinal": 11
+			},
+			"Sachsen-Anhalt": {
+				"examined": 222,
+				"examinedWomen": 135,
+				"passed": 178,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 5,
+					"vollbefriedigend": 37,
+					"befriedigend": 86,
+					"ausreichend": 49
+				},
+				"failed": 44,
+				"failedWomen": 32,
+				"failedFinal": 9
+			},
+			"Schleswig-Holstein": {
+				"examined": 279,
+				"examinedWomen": 173,
+				"passed": 199,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 7,
+					"vollbefriedigend": 41,
+					"befriedigend": 81,
+					"ausreichend": 70
+				},
+				"failed": 80,
+				"failedWomen": 61,
+				"failedFinal": 12
+			},
+			"Thüringen": {
+				"examined": 166,
+				"examinedWomen": 106,
+				"passed": 130,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 6,
+					"vollbefriedigend": 28,
+					"befriedigend": 60,
+					"ausreichend": 35
+				},
+				"failed": 36,
+				"failedWomen": 29,
+				"failedFinal": 4
+			}
+		},
+		"total": {
+			"examined": 13220,
+			"examinedWomen": 8186,
+			"passed": 9588,
+			"grades": {
+				"sehrGut": 22,
+				"gut": 453,
+				"vollbefriedigend": 2013,
+				"befriedigend": 3978,
+				"ausreichend": 3122
+			},
+			"failed": 3632,
+			"failedWomen": 2501,
+			"failedFinal": 458
+		}
+	},
+	{
+		"year": 2024,
+		"asOf": "2026-06-11",
+		"laender": {
+			"Baden-Württemberg": {
+				"examined": 1632,
+				"examinedWomen": 958,
+				"passed": 1141,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 49,
+					"vollbefriedigend": 220,
+					"befriedigend": 473,
+					"ausreichend": 398
+				},
+				"failed": 491,
+				"failedWomen": 331,
+				"failedFinal": 68
+			},
+			"Bayern": {
+				"examined": 2611,
+				"examinedWomen": 1613,
+				"passed": 1876,
+				"grades": {
+					"sehrGut": 13,
+					"gut": 120,
+					"vollbefriedigend": 391,
+					"befriedigend": 712,
+					"ausreichend": 640
+				},
+				"failed": 735,
+				"failedWomen": 513,
+				"failedFinal": 102
+			},
+			"Berlin": {
+				"examined": 676,
+				"examinedWomen": 412,
+				"passed": 579,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 31,
+					"vollbefriedigend": 164,
+					"befriedigend": 274,
+					"ausreichend": 110
+				},
+				"failed": 97,
+				"failedWomen": 61,
+				"failedFinal": 7
+			},
+			"Brandenburg": {
+				"examined": 331,
+				"examinedWomen": 212,
+				"passed": 222,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 0,
+					"vollbefriedigend": 25,
+					"befriedigend": 98,
+					"ausreichend": 99
+				},
+				"failed": 109,
+				"failedWomen": 77,
+				"failedFinal": 17
+			},
+			"Bremen": {
+				"examined": 192,
+				"examinedWomen": 124,
+				"passed": 114,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 4,
+					"vollbefriedigend": 32,
+					"befriedigend": 54,
+					"ausreichend": 24
+				},
+				"failed": 78,
+				"failedWomen": 52,
+				"failedFinal": 3
+			},
+			"Hamburg": {
+				"examined": 726,
+				"examinedWomen": 438,
+				"passed": 578,
+				"grades": {
+					"sehrGut": 6,
+					"gut": 51,
+					"vollbefriedigend": 132,
+					"befriedigend": 224,
+					"ausreichend": 165
+				},
+				"failed": 148,
+				"failedWomen": 109,
+				"failedFinal": 13
+			},
+			"Hessen": {
+				"examined": 1122,
+				"examinedWomen": 705,
+				"passed": 809,
+				"grades": {
+					"sehrGut": 2,
+					"gut": 37,
+					"vollbefriedigend": 165,
+					"befriedigend": 320,
+					"ausreichend": 285
+				},
+				"failed": 313,
+				"failedWomen": 213,
+				"failedFinal": 41
+			},
+			"Mecklenburg-Vorpommern": {
+				"examined": 140,
+				"examinedWomen": 75,
+				"passed": 99,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 2,
+					"vollbefriedigend": 15,
+					"befriedigend": 35,
+					"ausreichend": 47
+				},
+				"failed": 41,
+				"failedWomen": 27,
+				"failedFinal": 1
+			},
+			"Niedersachsen": {
+				"examined": 884,
+				"examinedWomen": 560,
+				"passed": 653,
+				"grades": {
+					"sehrGut": 3,
+					"gut": 40,
+					"vollbefriedigend": 166,
+					"befriedigend": 268,
+					"ausreichend": 176
+				},
+				"failed": 231,
+				"failedWomen": 174,
+				"failedFinal": 29
+			},
+			"Nordrhein-Westfalen": {
+				"examined": 3086,
+				"examinedWomen": 1920,
+				"passed": 2167,
+				"grades": {
+					"sehrGut": 11,
+					"gut": 118,
+					"vollbefriedigend": 495,
+					"befriedigend": 847,
+					"ausreichend": 696
+				},
+				"failed": 919,
+				"failedWomen": 657,
+				"failedFinal": 69
+			},
+			"Rheinland-Pfalz": {
+				"examined": 648,
+				"examinedWomen": 409,
+				"passed": 493,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 11,
+					"vollbefriedigend": 74,
+					"befriedigend": 217,
+					"ausreichend": 191
+				},
+				"failed": 155,
+				"failedWomen": 114,
+				"failedFinal": 24
+			},
+			"Saarland": {
+				"examined": 168,
+				"examinedWomen": 95,
+				"passed": 132,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 11,
+					"vollbefriedigend": 21,
+					"befriedigend": 58,
+					"ausreichend": 42
+				},
+				"failed": 36,
+				"failedWomen": 25,
+				"failedFinal": 6
+			},
+			"Sachsen": {
+				"examined": 428,
+				"examinedWomen": 265,
+				"passed": 305,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 10,
+					"vollbefriedigend": 47,
+					"befriedigend": 112,
+					"ausreichend": 135
+				},
+				"failed": 123,
+				"failedWomen": 81,
+				"failedFinal": 14
+			},
+			"Sachsen-Anhalt": {
+				"examined": 253,
+				"examinedWomen": 132,
+				"passed": 216,
+				"grades": {
+					"sehrGut": 0,
+					"gut": 11,
+					"vollbefriedigend": 56,
+					"befriedigend": 99,
+					"ausreichend": 50
+				},
+				"failed": 37,
+				"failedWomen": 21,
+				"failedFinal": 2
+			},
+			"Schleswig-Holstein": {
+				"examined": 355,
+				"examinedWomen": 198,
+				"passed": 222,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 8,
+					"vollbefriedigend": 46,
+					"befriedigend": 83,
+					"ausreichend": 84
+				},
+				"failed": 133,
+				"failedWomen": 89,
+				"failedFinal": 14
+			},
+			"Thüringen": {
+				"examined": 175,
+				"examinedWomen": 104,
+				"passed": 142,
+				"grades": {
+					"sehrGut": 1,
+					"gut": 12,
+					"vollbefriedigend": 24,
+					"befriedigend": 62,
+					"ausreichend": 43
+				},
+				"failed": 33,
+				"failedWomen": 22,
+				"failedFinal": 3
+			}
+		},
+		"total": {
+			"examined": 13427,
+			"examinedWomen": 8220,
+			"passed": 9748,
+			"grades": {
+				"sehrGut": 39,
+				"gut": 515,
+				"vollbefriedigend": 2073,
+				"befriedigend": 3936,
+				"ausreichend": 3185
+			},
+			"failed": 3679,
+			"failedWomen": 2566,
+			"failedFinal": 413
+		}
+	}
+]

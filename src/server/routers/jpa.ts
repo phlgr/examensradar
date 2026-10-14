@@ -3,6 +3,7 @@ import { z } from "zod";
 import {
 	createJpa,
 	deleteJpa,
+	getFailedLists,
 	getJpaById,
 	getJpaBySlug,
 	getJpas,
@@ -129,5 +130,9 @@ export const jpaRouter = router({
 
 	getHistory: publicProcedure.query(async () => {
 		return getNotificationHistory();
+	}),
+
+	getFailedLists: publicProcedure.query(async () => {
+		return getFailedLists();
 	}),
 });

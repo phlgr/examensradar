@@ -6,6 +6,7 @@ import {
 	recordScrapeSuccess,
 } from "@/db";
 import { extractContent, fetchPage, hashContent } from "@/lib/scraper";
+import { recordFailedLists } from "./failed-lists";
 import { queueResultsNotifications } from "./notify-results";
 
 const DEFAULT_INTERVAL_MS = 5 * 60_000;
@@ -62,6 +63,9 @@ export async function checkJpa(
 		console.error(`[scraper] ${jpa.slug}: ${message}`);
 		return { result: "error", message };
 	}
+
+	// Fire-and-forget: a slow PDF download must not hold up the notification.
+	void recordFailedLists(jpa, jpa.scrapeUrl, content);
 
 	const hash = hashContent(content);
 

@@ -689,6 +689,50 @@ export const logNotification = async (
 		.run();
 };
 
+// Failed-list functions
+/** Which of these list URLs have already been counted. */
+export const getKnownFailedListUrls = async (
+	urls: string[],
+): Promise<Set<string>> => {
+	if (urls.length === 0) return new Set();
+	const rows = await db
+		.select({ url: schema.failedList.url })
+		.from(schema.failedList)
+		.where(inArray(schema.failedList.url, urls))
+		.all();
+	return new Set(rows.map((row) => row.url));
+};
+
+/** First writer wins — an overlapping instance counting the same list is a no-op. */
+export const recordFailedList = async (data: {
+	jpaId: string;
+	url: string;
+	examMonth: string | null;
+	failedCount: number;
+}): Promise<void> => {
+	await db
+		.insert(schema.failedList)
+		.values({ id: nanoid(), firstSeenAt: new Date(), ...data })
+		.onConflictDoNothing()
+		.run();
+};
+
+export const getFailedLists = async () => {
+	return db
+		.select({
+			examMonth: schema.failedList.examMonth,
+			failedCount: schema.failedList.failedCount,
+			firstSeenAt: schema.failedList.firstSeenAt,
+			url: schema.failedList.url,
+			jpaName: schema.jpa.name,
+			jpaSlug: schema.jpa.slug,
+		})
+		.from(schema.failedList)
+		.innerJoin(schema.jpa, eq(schema.failedList.jpaId, schema.jpa.id))
+		.orderBy(desc(schema.failedList.firstSeenAt))
+		.all();
+};
+
 // Admin session functions
 export const createAdminSession = async (
 	token: string,
