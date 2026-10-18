@@ -65,13 +65,13 @@
       transform: none;
     }
   }
+  /* No opacity fade: Chrome skips transparent text for LCP, so fading the
+     hero in pushed LCP back by the length of the animation. */
   @keyframes rise {
     from {
-      opacity: 0;
       transform: translateY(20px);
     }
     to {
-      opacity: 1;
       transform: translateY(0);
     }
   }
