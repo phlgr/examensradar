@@ -16,7 +16,7 @@ function serialize(parts: string[]): string {
 	return options.join("; ");
 }
 
-export function buildManageCookie(token: string): string {
+export function buildManageSessionCookie(token: string): string {
 	return serialize([`${COOKIE_NAME}=${token}`]);
 }
 

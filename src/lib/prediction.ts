@@ -4,6 +4,10 @@ const CLUSTER_GAP_DAYS = 7;
 
 const SLIP_THRESHOLD_DAY = 5;
 
+const OVERDUE_GRACE_DAYS = 5;
+
+const MAX_ANCHOR_STEPS = 1000;
+
 const MIN_WINDOW_RADIUS_DAYS = 2;
 
 export type PredictionConfidence = "high" | "medium" | "low";
@@ -109,7 +113,8 @@ export function predictNextRelease(
 	let predicted = predictForAnchor(targetAnchor);
 	for (
 		let guard = 0;
-		predicted.getTime() < now.getTime() - 5 * MS_PER_DAY && guard < 1000;
+		predicted.getTime() < now.getTime() - OVERDUE_GRACE_DAYS * MS_PER_DAY &&
+		guard < MAX_ANCHOR_STEPS;
 		guard++
 	) {
 		targetAnchor += monthStep;
