@@ -7,9 +7,10 @@ test("extractContent returns the inner HTML of the first match", () => {
 		<article id="mainArticle"><p>zweiter Treffer</p></article>
 	</body></html>`;
 
-	expect(extractContent(html, "article#mainArticle")).toBe(
-		"<p>Ergebnisse Mai 2026</p>",
-	);
+	expect(extractContent(html, "article#mainArticle")).toEqual({
+		matched: true,
+		content: "<p>Ergebnisse Mai 2026</p>",
+	});
 });
 
 test("extractContent handles the Köln :has/:contains selector", () => {
@@ -24,19 +25,20 @@ test("extractContent handles the Köln :has/:contains selector", () => {
 		</section>
 	</body></html>`;
 
-	const content = extractContent(
+	const extraction = extractContent(
 		html,
 		'section.article-zwischentext:has(.titlebarTitle:contains("§ 20"))',
 	);
 
-	expect(content).toContain("Klausurergebnisse");
-	expect(content).not.toContain("irrelevant");
+	if (!extraction.matched) throw new Error("selector should match");
+	expect(extraction.content).toContain("Klausurergebnisse");
+	expect(extraction.content).not.toContain("irrelevant");
 });
 
-test("extractContent returns null when the selector matches nothing", () => {
+test("extractContent reports no match when the selector matches nothing", () => {
 	expect(
 		extractContent("<html><body><p>relaunch</p></body></html>", "article#gone"),
-	).toBeNull();
+	).toEqual({ matched: false });
 });
 
 test("hashContent is stable and content-sensitive", () => {
