@@ -8,9 +8,8 @@ import {
 	getSubscriberByEmail,
 	getSubscriberByManageToken,
 	getSubscriberJpas,
-	isActiveSubscriber,
-	normalizeEmail,
 	removeEmailSubscription,
+	subscriberStatus,
 	unsubscribeSubscriber,
 	upsertPendingSubscriber,
 } from "@/db";
@@ -65,24 +64,23 @@ export const emailRouter = router({
 				});
 			}
 
-			const email = normalizeEmail(input.email);
 			const ip = getClientIp(ctx.request);
 
-			if (!allowMailTo(email, ip)) return { ok: true };
+			if (!allowMailTo(input.email, ip)) return { ok: true };
 
-			const existing = await getSubscriberByEmail(email);
+			const existing = await getSubscriberByEmail(input.email);
 
-			if (existing && isActiveSubscriber(existing)) {
+			if (existing && subscriberStatus(existing) === "active") {
 				sendManageLinkUnawaited(existing);
 				return { ok: true };
 			}
 
-			const subscriber = await upsertPendingSubscriber(email, ip);
+			const subscriber = await upsertPendingSubscriber(input.email, ip);
 			await addEmailSubscription(subscriber.id, jpa.id);
 
 			sendMailUnawaited({
 				...renderConfirmMail(subscriber.confirmToken),
-				to: email,
+				to: subscriber.email,
 			});
 
 			return { ok: true };
@@ -132,13 +130,12 @@ export const emailRouter = router({
 	resendManageLink: publicProcedure
 		.input(z.object({ email: emailInput }))
 		.mutation(async ({ ctx, input }) => {
-			const email = normalizeEmail(input.email);
+			if (!allowMailTo(input.email, getClientIp(ctx.request)))
+				return { ok: true };
 
-			if (!allowMailTo(email, getClientIp(ctx.request))) return { ok: true };
+			const subscriber = await getSubscriberByEmail(input.email);
 
-			const subscriber = await getSubscriberByEmail(email);
-
-			if (subscriber && isActiveSubscriber(subscriber)) {
+			if (subscriber && subscriberStatus(subscriber) === "active") {
 				sendManageLinkUnawaited(subscriber);
 			}
 

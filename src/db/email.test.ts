@@ -12,8 +12,8 @@ import {
 	getSubscriberByManageToken,
 	getSubscriberJpas,
 	getSubscriptionCountsByJpa,
-	normalizeEmail,
 	removeEmailSubscription,
+	subscriberStatus,
 	unsubscribeSubscriber,
 	upsertPendingSubscriber,
 } from "./index.ts";
@@ -43,8 +43,76 @@ test("manage and unsubscribe tokens are distinct credentials", async () => {
 	).toBeNull();
 });
 
-test("normalizeEmail folds case and whitespace", () => {
-	expect(normalizeEmail("  Philipp@Example.DE ")).toBe("philipp@example.de");
+test("an address is one subscriber regardless of case and whitespace", async () => {
+	const first = await upsertPendingSubscriber("  Mixed@Example.DE ", null);
+	expect(first.email).toBe("mixed@example.de");
+
+	const again = await upsertPendingSubscriber("MIXED@example.de", null);
+	expect(again.id).toBe(first.id);
+	expect((await getSubscriberByEmail(" mixed@EXAMPLE.de"))?.id).toBe(first.id);
+
+	await confirmSubscriber(again.confirmToken);
+	await expect(
+		upsertPendingSubscriber("Mixed@Example.de", null),
+	).rejects.toThrow();
+});
+
+test("only active subscribers are mailed and counted", async () => {
+	const office = await jpa("status");
+	const subscribe = async (email: string) => {
+		const subscriber = await upsertPendingSubscriber(email, null);
+		await addEmailSubscription(subscriber.id, office.id);
+		return subscriber;
+	};
+	const status = async (email: string) => {
+		const subscriber = await getSubscriberByEmail(email);
+		if (!subscriber) throw new Error(`missing subscriber ${email}`);
+		return subscriberStatus(subscriber);
+	};
+
+	await subscribe("status-pending@example.com");
+
+	const active = await subscribe("status-active@example.com");
+	await confirmSubscriber(active.confirmToken);
+
+	const bounced = await subscribe("status-bounced@example.com");
+	await confirmSubscriber(bounced.confirmToken);
+	setup.run("UPDATE subscriber SET bounced_at = ? WHERE email = ?", [
+		Date.now(),
+		"status-bounced@example.com",
+	]);
+
+	const unsubscribed = await subscribe("status-unsub@example.com");
+	await confirmSubscriber(unsubscribed.confirmToken);
+	await unsubscribeSubscriber(unsubscribed.id);
+
+	const reoptIn = await subscribe("status-reopt@example.com");
+	await confirmSubscriber(reoptIn.confirmToken);
+	await unsubscribeSubscriber(reoptIn.id);
+	await subscribe("status-reopt@example.com");
+
+	expect({
+		pending: await status("status-pending@example.com"),
+		active: await status("status-active@example.com"),
+		bounced: await status("status-bounced@example.com"),
+		unsubscribed: await status("status-unsub@example.com"),
+		reoptIn: await status("status-reopt@example.com"),
+	}).toEqual({
+		pending: "pending",
+		active: "active",
+		bounced: "bounced",
+		unsubscribed: "unsubscribed",
+		reoptIn: "pending",
+	});
+
+	const mailable = await getMailableSubscribersByJpa(office.id);
+	expect(mailable.map((subscriber) => subscriber.email)).toEqual([
+		"status-active@example.com",
+	]);
+	expect((await getSubscriptionCountsByJpa()).get(office.id)).toBe(
+		mailable.length,
+	);
+	expect(await countEmailSubscriptionsByJpa(office.id)).toBe(4);
 });
 
 test("a pending subscriber is never mailable", async () => {
