@@ -3,9 +3,9 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"dev": "bunx --bun vite dev --port 3000",
+		"dev": "TZ=Europe/Berlin bunx --bun vite dev --port 3000",
 		"build": "bunx --bun vite build",
-		"start": "bun .output/server/index.mjs",
+		"start": "TZ=Europe/Berlin bun .output/server/index.mjs",
 		"test": "bun test",
 		"lint": "bun run lint:types && bun run lint:fix",
 		"lint:types": "tsgo",

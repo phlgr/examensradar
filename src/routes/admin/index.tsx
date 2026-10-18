@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { fieldClass, labelClass } from "@/components/ui/input";
+import { noindex } from "@/lib/seo";
 import { trpc } from "@/lib/trpc";
 import { cn } from "@/lib/utils";
 import type { CheckOutcome } from "@/server/scraper";
@@ -38,6 +39,7 @@ function describeScrapeOutcome(outcome: CheckOutcome): string {
 }
 
 export const Route = createFileRoute("/admin/")({
+	head: () => ({ meta: [{ title: "Admin | Examensradar" }, noindex] }),
 	component: AdminPage,
 });
 

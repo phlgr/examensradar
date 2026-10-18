@@ -14,7 +14,7 @@ interface SignupFormProps {
 	jpaId: string;
 	onJpaChange: (jpaId: string) => void;
 	/** Page the signup came from, for the funnel in Plausible. */
-	source: "landing" | "subscriptions";
+	source: "landing" | "subscriptions" | "jpa";
 }
 
 // A notch larger than fields elsewhere: this is the page's main action.

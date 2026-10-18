@@ -1,6 +1,7 @@
 import { TanStackDevtools } from "@tanstack/react-devtools";
 import { createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
+import { jsonLd, SITE_NAME, SITE_URL } from "@/lib/seo";
 import { TRPCProvider } from "@/lib/trpc-provider";
 import Header from "../components/Header";
 
@@ -24,8 +25,16 @@ export const Route = createRootRoute({
 				content:
 					"Examensradar schickt dir eine E-Mail, sobald dein Justizprüfungsamt neue Ergebnisse im ersten Staatsexamen veröffentlicht. Kostenlos, ohne Konto.",
 			},
+			{ name: "theme-color", content: "#f4efe4" },
+			{ property: "og:type", content: "website" },
+			{ property: "og:site_name", content: SITE_NAME },
+			{ property: "og:locale", content: "de_DE" },
+			{ property: "og:image", content: `${SITE_URL}/logo512.png` },
+			{ name: "twitter:card", content: "summary" },
 		],
 		links: [
+			{ rel: "manifest", href: "/manifest.json" },
+			{ rel: "apple-touch-icon", href: "/logo192.png" },
 			{
 				rel: "stylesheet",
 				href: appCss,
@@ -41,6 +50,37 @@ export const Route = createRootRoute({
 				sizes: "32x32",
 				href: "/favicon-32x32.png",
 			},
+		],
+		scripts: [
+			jsonLd({
+				"@graph": [
+					{
+						"@type": "WebSite",
+						"@id": `${SITE_URL}/#website`,
+						url: SITE_URL,
+						name: SITE_NAME,
+						inLanguage: "de-DE",
+						description:
+							"Kostenlose E-Mail-Benachrichtigung, sobald ein Justizprüfungsamt neue Ergebnisse im ersten juristischen Staatsexamen veröffentlicht, mit Prognose des nächsten Termins.",
+					},
+					{
+						"@type": "WebApplication",
+						"@id": `${SITE_URL}/#app`,
+						url: SITE_URL,
+						name: SITE_NAME,
+						applicationCategory: "UtilitiesApplication",
+						operatingSystem: "Web",
+						inLanguage: "de-DE",
+						isAccessibleForFree: true,
+						offers: { "@type": "Offer", price: "0", priceCurrency: "EUR" },
+						audience: {
+							"@type": "Audience",
+							audienceType:
+								"Jurastudierende vor dem ersten Staatsexamen (staatliche Pflichtfachprüfung)",
+						},
+					},
+				],
+			}),
 		],
 	}),
 
