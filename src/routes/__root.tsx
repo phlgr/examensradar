@@ -29,8 +29,21 @@ export const Route = createRootRoute({
 			{ property: "og:type", content: "website" },
 			{ property: "og:site_name", content: SITE_NAME },
 			{ property: "og:locale", content: "de_DE" },
-			{ property: "og:image", content: `${SITE_URL}/logo512.png` },
-			{ name: "twitter:card", content: "summary" },
+			// Pages that must stay out of the index override this with `noindex`.
+			{
+				name: "robots",
+				content: "index, follow, max-image-preview:large, max-snippet:-1",
+			},
+			{ property: "og:image", content: `${SITE_URL}/og.png` },
+			{ property: "og:image:type", content: "image/png" },
+			{ property: "og:image:width", content: "1200" },
+			{ property: "og:image:height", content: "630" },
+			{
+				property: "og:image:alt",
+				content: "Examensradar – Examensergebnisse per E-Mail",
+			},
+			{ name: "twitter:card", content: "summary_large_image" },
+			{ name: "twitter:image", content: `${SITE_URL}/og.png` },
 		],
 		links: [
 			{ rel: "manifest", href: "/manifest.json" },

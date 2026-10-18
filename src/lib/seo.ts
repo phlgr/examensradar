@@ -47,7 +47,12 @@ export function seo({ title, description, path }: SeoOptions) {
 			{ name: "twitter:title", content: title },
 			{ name: "twitter:description", content: description },
 		],
-		links: [{ rel: "canonical", href: url }],
+		// German only, so de and x-default both point back at the page itself.
+		links: [
+			{ rel: "canonical", href: url },
+			{ rel: "alternate", hrefLang: "de", href: url },
+			{ rel: "alternate", hrefLang: "x-default", href: url },
+		],
 	};
 }
 
