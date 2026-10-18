@@ -59,6 +59,7 @@ export function landingFaqs(
 				"Wie werde ich benachrichtigt, wenn meine Examensergebnisse online sind?",
 			answer:
 				"Mit Examensradar: Du wählst dein Justizprüfungsamt aus und gibst deine E-Mail-Adresse ein. Wir prüfen die Ergebnisseite des Amts alle paar Minuten und schicken dir eine E-Mail, sobald dort neue Ergebnisse stehen. So musst du die Seite nicht ständig neu laden.",
+			signupCta: "Jetzt Benachrichtigung einrichten",
 		},
 		{
 			question: "Kostet Examensradar etwas? Brauche ich ein Konto?",
@@ -113,6 +114,7 @@ export function jpaFaqs(name: string, summary: JpaReleaseSummary | undefined) {
 	faqs.push({
 		question: `Wie erfahre ich sofort, wenn das ${name} Ergebnisse veröffentlicht?`,
 		answer: `Melde dich bei Examensradar für das ${name} an. Wir prüfen die Ergebnisseite alle paar Minuten und schicken dir eine E-Mail, sobald dort etwas Neues steht. Kostenlos, ohne Konto, jederzeit abbestellbar.`,
+		signupCta: `Für das ${name} anmelden`,
 	});
 
 	return faqs;

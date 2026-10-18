@@ -62,6 +62,8 @@ export const noindex = { name: "robots", content: "noindex, nofollow" };
 export interface Faq {
 	question: string;
 	answer: string;
+	/** Label for a link to the page's signup form, shown under the answer. */
+	signupCta?: string;
 }
 
 /**
