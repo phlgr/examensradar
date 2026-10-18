@@ -1,3 +1,5 @@
+import { normalizeEmail } from "./email";
+
 interface Window {
 	count: number;
 	resetAt: number;
@@ -33,7 +35,7 @@ export function allowMailTo(email: string, ip: string | null): boolean {
 	const now = Date.now();
 	cleanup(now);
 
-	if (!hit(`email:${email}`, MAX_PER_EMAIL, now)) return false;
+	if (!hit(`email:${normalizeEmail(email)}`, MAX_PER_EMAIL, now)) return false;
 	if (ip && !hit(`ip:${ip}`, MAX_PER_IP, now)) return false;
 
 	return true;

@@ -2,6 +2,7 @@ import { Database } from "bun:sqlite";
 import { and, desc, eq, isNotNull, isNull, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/bun-sqlite";
 import { nanoid } from "nanoid";
+import { normalizeEmail } from "@/lib/email";
 import * as schema from "./schema.ts";
 
 type JPA = typeof schema.jpa.$inferSelect;
@@ -182,13 +183,7 @@ export const getSubscriptionCountsByJpa = async (): Promise<
 			schema.subscriber,
 			eq(schema.emailSubscription.subscriberId, schema.subscriber.id),
 		)
-		.where(
-			and(
-				isNotNull(schema.subscriber.confirmedAt),
-				isNull(schema.subscriber.unsubscribedAt),
-				isNull(schema.subscriber.bouncedAt),
-			),
-		)
+		.where(activeSubscriber)
 		.groupBy(schema.emailSubscription.jpaId)
 		.all();
 	return new Map(rows.map((row) => [row.jpaId, row.count]));
@@ -202,17 +197,28 @@ const CONFIRM_TTL_MS = 60 * 60 * 1000;
 
 const newToken = () => nanoid(32);
 
-export const normalizeEmail = (email: string): string =>
-	email.trim().toLowerCase();
+export type SubscriberStatus =
+	| "pending"
+	| "active"
+	| "unsubscribed"
+	| "bounced";
 
-export const isActiveSubscriber = (
+/** A re-opt-in after unsubscribing is pending again until confirmed. */
+export const subscriberStatus = (
 	subscriber: Pick<Subscriber, "confirmedAt" | "unsubscribedAt" | "bouncedAt">,
-): boolean =>
-	Boolean(
-		subscriber.confirmedAt &&
-			!subscriber.unsubscribedAt &&
-			!subscriber.bouncedAt,
-	);
+): SubscriberStatus => {
+	if (!subscriber.confirmedAt) return "pending";
+	if (subscriber.bouncedAt) return "bounced";
+	if (subscriber.unsubscribedAt) return "unsubscribed";
+	return "active";
+};
+
+/** SQL form of `subscriberStatus(...) === "active"`; keep the two in sync. */
+const activeSubscriber = and(
+	isNotNull(schema.subscriber.confirmedAt),
+	isNull(schema.subscriber.unsubscribedAt),
+	isNull(schema.subscriber.bouncedAt),
+);
 
 export const getSubscriberByEmail = async (
 	email: string,
@@ -220,7 +226,7 @@ export const getSubscriberByEmail = async (
 	const result = await db
 		.select()
 		.from(schema.subscriber)
-		.where(eq(schema.subscriber.email, email))
+		.where(eq(schema.subscriber.email, normalizeEmail(email)))
 		.get();
 	return result || null;
 };
@@ -254,7 +260,7 @@ export const upsertPendingSubscriber = async (
 	const now = new Date();
 	const existing = await getSubscriberByEmail(email);
 
-	if (existing && isActiveSubscriber(existing)) {
+	if (existing && subscriberStatus(existing) === "active") {
 		throw new Error("refusing to reset an active subscriber to pending");
 	}
 
@@ -278,7 +284,7 @@ export const upsertPendingSubscriber = async (
 
 	const subscriber = {
 		id: nanoid(),
-		email,
+		email: normalizeEmail(email),
 		manageToken: newToken(),
 		unsubscribeToken: newToken(),
 		...pending,
@@ -312,18 +318,20 @@ export const classifyConfirmToken = async (
 	const subscriber = await getSubscriberByConfirmToken(token);
 	if (!subscriber) return { state: "invalid", subscriber: null };
 
-	if (!subscriber.confirmedAt) {
-		const expired =
-			subscriber.confirmExpiresAt &&
-			subscriber.confirmExpiresAt.getTime() < Date.now();
-		return expired
-			? { state: "invalid", subscriber: null }
-			: { state: "pending", subscriber };
+	switch (subscriberStatus(subscriber)) {
+		case "pending": {
+			const expired =
+				subscriber.confirmExpiresAt &&
+				subscriber.confirmExpiresAt.getTime() < Date.now();
+			return expired
+				? { state: "invalid", subscriber: null }
+				: { state: "pending", subscriber };
+		}
+		case "active":
+			return { state: "confirmed", subscriber };
+		default:
+			return { state: "invalid", subscriber: null };
 	}
-
-	return isActiveSubscriber(subscriber)
-		? { state: "confirmed", subscriber }
-		: { state: "invalid", subscriber: null };
 };
 
 export const confirmSubscriber = async (
@@ -411,14 +419,7 @@ export const getMailableSubscribersByJpa = async (
 			schema.subscriber,
 			eq(schema.emailSubscription.subscriberId, schema.subscriber.id),
 		)
-		.where(
-			and(
-				eq(schema.emailSubscription.jpaId, jpaId),
-				isNotNull(schema.subscriber.confirmedAt),
-				isNull(schema.subscriber.unsubscribedAt),
-				isNull(schema.subscriber.bouncedAt),
-			),
-		)
+		.where(and(eq(schema.emailSubscription.jpaId, jpaId), activeSubscriber))
 		.all();
 };
 
