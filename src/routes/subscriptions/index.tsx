@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ExternalLink, Loader2, LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
-import { z } from "zod";
 import {
 	JpaSearchEmpty,
 	JpaSearchInput,
@@ -22,16 +21,17 @@ import { trpc } from "@/lib/trpc";
 
 // The param must not make validateSearch throw: mail clients truncate links,
 // and a throw here replaces the whole page with the raw router error instead
-// of the invalid-link banner.
-const searchSchema = z.object({
-	manage: z.string().optional().catch(undefined),
-});
+// of the invalid-link banner. A plain function rather than a zod schema keeps
+// zod out of the client entry chunk, which every page loads.
+function validateSearch(search: Record<string, unknown>): { manage?: string } {
+	return typeof search.manage === "string" ? { manage: search.manage } : {};
+}
 
 export const Route = createFileRoute("/subscriptions/")({
 	head: () => ({
 		meta: [{ title: "Benachrichtigungen verwalten | Examensradar" }, noindex],
 	}),
-	validateSearch: searchSchema,
+	validateSearch,
 	component: SubscriptionsPage,
 });
 
