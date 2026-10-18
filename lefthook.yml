@@ -1,3 +1,9 @@
+commit-msg:
+  commands:
+    no-ai-attribution:
+      run: "! grep -qiE '^co-authored-by:.*(claude|anthropic)|generated with \\[?claude' {1}"
+      fail_text: "Remove the Claude co-author / generated-with line from the commit message."
+
 pre-commit:
   parallel: true
   commands:
