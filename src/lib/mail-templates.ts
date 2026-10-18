@@ -18,6 +18,20 @@ const MUTED = "#6b6862";
 const FONT = "-apple-system,'Segoe UI',Helvetica,Arial,sans-serif";
 const SERIF = "Georgia,'Times New Roman',serif";
 
+/**
+ * An hour rather than minutes because greylisting at German providers can
+ * defer first-contact delivery by up to ~30 minutes.
+ */
+export const CONFIRM_TTL_HOURS = 1;
+const CONFIRM_TTL_LABEL =
+	CONFIRM_TTL_HOURS === 1 ? "eine Stunde" : `${CONFIRM_TTL_HOURS} Stunden`;
+
+export const resultsSubject = (jpaName: string) =>
+	`Neue Ergebnisse: ${jpaName}`;
+
+export const resultsSentence = <T>(jpaName: T) =>
+	["Das ", jpaName, " hat neue Examensergebnisse veröffentlicht."] as const;
+
 const appUrl = () => process.env.APP_URL || "https://examensradar.de";
 
 export interface MailTokens {
@@ -103,8 +117,8 @@ beobachtest, siehst du nach der Bestätigung und kannst es jederzeit anpassen.
 
 E-Mail bestätigen: ${url}
 
-Der Link ist aus Sicherheitsgründen nur eine Stunde gültig — bestätige am
-besten gleich jetzt.
+Der Link ist aus Sicherheitsgründen nur ${CONFIRM_TTL_LABEL} gültig — bestätige
+am besten gleich jetzt.
 
 --
 Link abgelaufen? Melde dich einfach neu an, dann bekommst du sofort einen
@@ -118,7 +132,7 @@ ohne Bestätigung senden wir dir nichts.
 					"Bestätige, dass wir dir E-Mails senden dürfen, sobald eines deiner gewählten Prüfungsämter neue Examensergebnisse veröffentlicht. Welche Prüfungsämter du beobachtest, siehst du nach der Bestätigung und kannst es jederzeit anpassen.",
 				) +
 				paragraph(
-					"Der Link ist aus Sicherheitsgründen nur <strong>eine Stunde</strong> gültig — bestätige am besten gleich jetzt.",
+					`Der Link ist aus Sicherheitsgründen nur <strong>${CONFIRM_TTL_LABEL}</strong> gültig — bestätige am besten gleich jetzt.`,
 				),
 			cta: { url, label: "E-Mail bestätigen" },
 			footer:
@@ -162,10 +176,10 @@ export function renderResultsMail(
 	jpaWebsiteUrl: string | null,
 	tokens: MailTokens,
 ): MailContent {
-	const body = `Das ${jpaName} hat neue Examensergebnisse veröffentlicht.`;
+	const body = resultsSentence(jpaName).join("");
 
 	return {
-		subject: `Neue Ergebnisse: ${jpaName}`,
+		subject: resultsSubject(jpaName),
 		text: `Neue Ergebnisse verfügbar
 
 ${body}
@@ -182,7 +196,9 @@ Abo verwalten: ${manageUrl(tokens.manage)}
 			body: paragraph(
 				// The highlighter from the site, as a flat background: gradients
 				// don't survive most mail clients.
-				`Das <strong style="background:${MARK};color:${INK};padding:0 3px">${escapeHtml(jpaName)}</strong> hat neue Examensergebnisse veröffentlicht.`,
+				resultsSentence(
+					`<strong style="background:${MARK};color:${INK};padding:0 3px">${escapeHtml(jpaName)}</strong>`,
+				).join(""),
 			),
 			cta: jpaWebsiteUrl
 				? { url: jpaWebsiteUrl, label: "Ergebnisse ansehen" }
