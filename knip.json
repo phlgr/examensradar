@@ -4,7 +4,8 @@
     "src/client.tsx",
     "src/server/plugins/*.ts",
     "src/**/*.test.{ts,tsx}",
-    "src/test-setup.ts"
+    "src/test-setup.ts",
+    ".claude/skills/*/scripts/**/*.ts"
   ],
   "ignoreDependencies": [
     "@tanstack/router-plugin"
