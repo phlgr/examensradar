@@ -14,15 +14,10 @@ interface NotificationPreviewProps {
 	prediction: ReleasePrediction | null;
 	daysUntil: number | null;
 	lastRelease: Date | null;
-	/** History still loading — keep the line's space, show a placeholder. */
 	loading: boolean;
 	className?: string;
 }
 
-/**
- * A rubber stamp, the way an office marks a decision: ring text, a rough
- * ink edge, pressed on slightly askew.
- */
 function Stamp({ className }: { className?: string }) {
 	const id = useId();
 	return (
@@ -79,13 +74,6 @@ function Stamp({ className }: { className?: string }) {
 	);
 }
 
-/**
- * The email you will get, rendered as it lands in the inbox — subject and body
- * mirror `renderResultsMail`. When the visitor picks a different office in the
- * form, a fresh notification drops in and gets stamped; the initial load (and
- * the preselect once the office list arrives) is left to the hero's own
- * entrance animation so the card doesn't jump twice.
- */
 export function NotificationPreview({
 	jpa,
 	prediction,
@@ -94,11 +82,8 @@ export function NotificationPreview({
 	loading,
 	className,
 }: NotificationPreviewProps) {
-	// Generic but grammatical stand-in until the office list arrives:
-	// "Das Justizprüfungsamt hat …" reads fine, "Das dein …" does not.
 	const name = jpa?.name ?? "Justizprüfungsamt";
 
-	// Bumped only on a real office-to-office change; remounts the card.
 	const [swap, setSwap] = useState(0);
 	const previousId = useRef(jpa?.id);
 	useEffect(() => {
@@ -113,7 +98,6 @@ export function NotificationPreview({
 	return (
 		<div className={cn("relative", className)}>
 			<div className="relative">
-				{/* Earlier notifications, stacked like letters on a desk. */}
 				<div
 					className="absolute inset-0 rounded-lg bg-sheet ring-1 ring-ink/10 shadow-paper rotate-[3.5deg] translate-x-3 translate-y-2"
 					aria-hidden
@@ -154,8 +138,6 @@ export function NotificationPreview({
 							Das <strong className="font-semibold text-ink">{name}</strong> hat
 							neue Examensergebnisse veröffentlicht.
 						</p>
-						{/* Where the real mail links to the office, the preview keeps
-						    visitors on the site and answers "when?" instead. */}
 						<Link
 							to="/history"
 							className="group mt-5 inline-flex items-center gap-2 h-10 px-4 rounded-full ring-1 ring-ink/20 text-sm font-semibold transition-colors hover:bg-ink hover:text-sheet hover:ring-ink"
@@ -187,8 +169,6 @@ export function NotificationPreview({
 				</article>
 			</div>
 
-			{/* Always rendered with reserved height, so the hero doesn't shift
-			    when the history query resolves. */}
 			<p className="mt-7 min-h-[3rem] text-[15px] text-ink/70 leading-relaxed">
 				{prediction && daysUntil !== null ? (
 					<>

@@ -9,11 +9,7 @@ import {
 import { summarizeReleases } from "@/lib/release-summary";
 import { formatLongDate, jpaPath, SITE_URL } from "@/lib/seo";
 
-/**
- * llms.txt (https://llmstxt.org): a plain-markdown summary for AI assistants,
- * so "wann kommen die Examensergebnisse in Köln?" gets answered with our live
- * dates and a link here instead of a guess.
- */
+/** llms.txt (https://llmstxt.org) */
 export const Route = createFileRoute("/llms.txt")({
 	server: {
 		handlers: {

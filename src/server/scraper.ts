@@ -13,27 +13,15 @@ const DEFAULT_INTERVAL_MS = 5 * 60_000;
 type Jpa = Awaited<ReturnType<typeof getScrapableJpas>>[number];
 type Notify = typeof queueResultsNotifications;
 
-/**
- * What a single check concluded — the scheduler only logs it, while the
- * admin's "Jetzt prüfen" button shows it verbatim.
- */
 export type CheckOutcome =
 	| { result: "not-configured" }
 	| { result: "error"; message: string }
 	| { result: "unchanged" }
-	/** Someone else (an overlapping instance) claimed this change first. */
 	| { result: "already-claimed" }
 	| { result: "baseline" }
-	/** Content changed, but the JPA's notifications are paused. */
 	| { result: "paused" }
 	| { result: "notified"; mail: number };
 
-/**
- * One JPA, one check: fetch → narrow → hash → compare against the stored
- * baseline. Every downstream effect of "the content changed" sits behind the
- * compare-and-swap in claimScrapeChange, so overlapping instances (during a
- * zero-downtime deploy) cannot fan the same publication out twice.
- */
 export async function checkJpa(
 	jpa: Jpa,
 	notify: Notify = queueResultsNotifications,
@@ -46,8 +34,6 @@ export async function checkJpa(
 	let content: string | null;
 	try {
 		const html = await fetchPage(jpa.scrapeUrl);
-		// The selector is admin-entered and may be syntactically invalid — that
-		// must land in lastError, not kill the cycle.
 		content = extractContent(html, jpa.scrapeSelector);
 	} catch (error) {
 		const message = error instanceof Error ? error.message : String(error);
@@ -77,9 +63,6 @@ export async function checkJpa(
 	}
 
 	if (state.contentHash === null) {
-		// First observation ever — we cannot know whether this content is news,
-		// so it only becomes the baseline. Notifying here would mass-notify a false
-		// positive on every fresh deployment.
 		console.log(`[scraper] ${jpa.slug}: baseline stored`);
 		return { result: "baseline" };
 	}
@@ -102,7 +85,6 @@ async function runScrapeCycle(): Promise<void> {
 
 let started = false;
 
-/** Boots the polling loop (idempotent). */
 export function startScraper(): void {
 	if (started) return;
 	started = true;
@@ -110,18 +92,16 @@ export function startScraper(): void {
 	const intervalMs =
 		Number(process.env.SCRAPE_INTERVAL_MS) || DEFAULT_INTERVAL_MS;
 
-	let running = false;
+	let cycleInFlight = false;
 	const tick = async () => {
-		// A cycle that outlives the interval (slow JPA site)
-		// must not get another stacked on top of it.
-		if (running) return;
-		running = true;
+		if (cycleInFlight) return;
+		cycleInFlight = true;
 		try {
 			await runScrapeCycle();
 		} catch (error) {
 			console.error("[scraper] cycle crashed", error);
 		} finally {
-			running = false;
+			cycleInFlight = false;
 		}
 	};
 

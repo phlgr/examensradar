@@ -5,7 +5,7 @@ import {
 	summarizeReleases,
 } from "./release-summary";
 
-const NOW = new Date(2026, 8, 4, 12); // 4 Sept 2026, a Friday
+const NOW = new Date(2026, 8, 4, 12);
 
 function entry(
 	slug: string,
@@ -15,7 +15,6 @@ function entry(
 	return { sentAt, jpaName: name, jpaSlug: slug, jpaWebsiteUrl: null };
 }
 
-/** Last working day of the given month, mirroring the prediction model. */
 function lastWorkday(year: number, month: number, hour = 14): Date {
 	const date = new Date(year, month + 1, 0, hour);
 	while (date.getDay() === 0 || date.getDay() === 6) {
@@ -44,7 +43,7 @@ describe("relativeLabel", () => {
 describe("summarizeReleases", () => {
 	test("groups fires per office and collapses a cluster into one release", () => {
 		const first = new Date(2026, 6, 31, 14, 2);
-		const edit = new Date(2026, 7, 1, 9, 30); // same publication, edited next day
+		const edit = new Date(2026, 7, 1, 9, 30);
 		const summaries = summarizeReleases(
 			[entry("nrw", edit), entry("nrw", first)],
 			NOW,
@@ -74,18 +73,14 @@ describe("summarizeReleases", () => {
 	});
 
 	test("sorts by next expected release, offices without a prediction last", () => {
-		// Monthly publisher: predicted end of September → soon.
 		const monthly = [5, 6, 7].map((m) =>
 			entry("monthly", lastWorkday(2026, m)),
 		);
-		// Quarterly publisher: last in June → next end of September as well, but
-		// give it a later slip so it lands after the monthly office.
 		const quarterly = [
 			entry("quarterly", new Date(2025, 11, 22, 11)),
 			entry("quarterly", new Date(2026, 2, 23, 11)),
 			entry("quarterly", new Date(2026, 5, 22, 11)),
 		];
-		// Two offices with a single release each: no prediction, newest first.
 		const single = [
 			entry("older", new Date(2026, 3, 1, 10)),
 			entry("newer", new Date(2026, 7, 1, 10)),

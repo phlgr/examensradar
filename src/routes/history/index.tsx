@@ -56,12 +56,8 @@ const WEEKDAYS_FULL = [
 	"Samstag",
 ] as const;
 
-const WEEK_ORDER = [1, 2, 3, 4, 5, 6, 0]; // Mo–So
+const WEEK_ORDER = [1, 2, 3, 4, 5, 6, 0];
 
-/**
- * The weekdays sharing the top count, Mo–So. Empty when every weekday seen is
- * tied: then none of them is "most common".
- */
 function mostCommonWeekdays(counts: Map<number, number>): number[] {
 	const seen = WEEK_ORDER.filter((weekday) => (counts.get(weekday) ?? 0) > 0);
 	const max = Math.max(0, ...counts.values());
@@ -101,8 +97,6 @@ function WeekdayBar({ weekdayCounts }: { weekdayCounts: Map<number, number> }) {
 }
 
 function Overview({ summaries }: { summaries: JpaReleaseSummary[] }) {
-	// Publication events, not raw notifications — a page edited twice in one
-	// week is still one publication.
 	const total = summaries.reduce((sum, s) => sum + s.releaseCount, 0);
 	const weekdayCounts = new Map<number, number>();
 	for (const summary of summaries) {
@@ -146,11 +140,6 @@ function Overview({ summaries }: { summaries: JpaReleaseSummary[] }) {
 	);
 }
 
-/**
- * One office as a native <details>: the summary row carries what most people
- * came for (the next expected date), the body the pattern behind it. Native
- * disclosure keeps a long list scannable without any state of our own.
- */
 function JpaDetails({
 	summary,
 	defaultOpen,
@@ -160,12 +149,10 @@ function JpaDetails({
 }) {
 	const { prediction, daysUntil } = summary;
 	const overdue = daysUntil !== null && daysUntil < 0;
-	// Owned per office (keyed by slug), so re-sorting the list after a search
-	// never overrides what the reader opened or closed.
 	const [open, setOpen] = useState(defaultOpen);
 
 	return (
-		<Card variant="flat" className="overflow-hidden">
+		<Card className="overflow-hidden">
 			<details
 				open={open}
 				onToggle={(event) => setOpen(event.currentTarget.open)}

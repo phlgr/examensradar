@@ -13,7 +13,6 @@ test("extractContent returns the inner HTML of the first match", () => {
 });
 
 test("extractContent handles the Köln :has/:contains selector", () => {
-	// Mirrors the structure the OLG Köln selector was written against.
 	const html = `<html><body>
 		<section class="article-zwischentext">
 			<div class="titlebarTitle">Sonstige Hinweise</div>
@@ -35,8 +34,6 @@ test("extractContent handles the Köln :has/:contains selector", () => {
 });
 
 test("extractContent returns null when the selector matches nothing", () => {
-	// Null, not the full page: a vanished selector must read as a broken
-	// scraper, never as a content change.
 	expect(
 		extractContent("<html><body><p>relaunch</p></body></html>", "article#gone"),
 	).toBeNull();

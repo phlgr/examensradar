@@ -22,14 +22,8 @@ import { trpc } from "@/lib/trpc";
 
 // The param must not make validateSearch throw: mail clients truncate links,
 // and a throw here replaces the whole page with the raw router error instead
-// of the invalid-link banner. `.catch(undefined)` turns anything malformed
-// into "param absent".
+// of the invalid-link banner.
 const searchSchema = z.object({
-	/**
-	 * Manage token from mail links; exchanged for the httpOnly cookie. No shape
-	 * check: a mangled token must still reach signIn, whose rejection is what
-	 * shows the invalid-link banner.
-	 */
 	manage: z.string().optional().catch(undefined),
 });
 
@@ -47,21 +41,17 @@ function SubscriptionsPage() {
 	const { manage } = Route.useSearch();
 	const [showInvalidLink, setShowInvalidLink] = useState(false);
 
-	// Manage token from a mail link: trade it for the httpOnly cookie, then
-	// scrub it from the URL; location.replace does that atomically.
-	const signIn = trpc.email.signIn.useMutation();
-	// signIn.mutate is stable; the token is the only real trigger.
-	// biome-ignore lint/correctness/useExhaustiveDependencies: run once per token
+	const { mutate: signIn } = trpc.email.signIn.useMutation();
 	useEffect(() => {
 		if (!manage) return;
-		signIn.mutate(
+		signIn(
 			{ token: manage },
 			{
 				onError: () => sessionStorage.setItem(INVALID_LINK_FLAG, "true"),
 				onSettled: () => window.location.replace("/subscriptions"),
 			},
 		);
-	}, [manage]);
+	}, [manage, signIn]);
 
 	useEffect(() => {
 		if (sessionStorage.getItem(INVALID_LINK_FLAG)) {
@@ -70,10 +60,8 @@ function SubscriptionsPage() {
 		}
 	}, []);
 
-	// UNAUTHORIZED simply means "not signed in", so never retry it.
 	const meQuery = trpc.email.me.useQuery(undefined, { retry: false });
 
-	// Exchanging a token — hold the spinner until the reload.
 	if (meQuery.isLoading || manage) return <PageSpinner />;
 
 	const me = meQuery.data ?? null;
@@ -117,7 +105,6 @@ function SubscriptionsPage() {
 	);
 }
 
-/** The signed-in view: every office with a toggle. */
 function Managing({ email, jpaIds }: { email: string; jpaIds: string[] }) {
 	const utils = trpc.useUtils();
 	const jpasQuery = trpc.jpa.getAll.useQuery();
@@ -158,10 +145,7 @@ function Managing({ email, jpaIds }: { email: string; jpaIds: string[] }) {
 
 	return (
 		<>
-			<Card
-				variant="flat"
-				className="mb-10 px-5 py-4 flex flex-wrap items-center gap-3"
-			>
+			<Card className="mb-10 px-5 py-4 flex flex-wrap items-center gap-3">
 				<div className="flex-1 min-w-0">
 					<Eyebrow>Angemeldet als</Eyebrow>
 					<p className="font-semibold break-all">{email}</p>
@@ -189,7 +173,7 @@ function Managing({ email, jpaIds }: { email: string; jpaIds: string[] }) {
 				</div>
 
 				{jpas.length === 0 ? (
-					<Card variant="flat" className="p-8 text-center">
+					<Card className="p-8 text-center">
 						<p className="text-ink/70">
 							Derzeit sind keine Prüfungsämter hinterlegt.
 						</p>
@@ -206,7 +190,7 @@ function Managing({ email, jpaIds }: { email: string; jpaIds: string[] }) {
 							const summary = summaryBySlug.get(jpa.slug);
 
 							return (
-								<Card key={jpa.id} variant="flat" className="px-5 py-5 sm:px-6">
+								<Card key={jpa.id} className="px-5 py-5 sm:px-6">
 									<div className="flex flex-col sm:flex-row sm:items-center gap-4">
 										<div className="flex-1 min-w-0">
 											<div className="flex items-center gap-3 flex-wrap">
@@ -267,16 +251,10 @@ function Managing({ email, jpaIds }: { email: string; jpaIds: string[] }) {
 	);
 }
 
-/**
- * Not subscribed (signed out, or signed in with everything unsubscribed): the
- * same signup form as the landing page, and for signed-out visitors a quiet
- * way back in for a lost manage link.
- */
 function Signup({ signedOut }: { signedOut: boolean }) {
 	const jpasQuery = trpc.jpa.getAll.useQuery();
 	const [jpaId, setJpaId] = useState("");
 
-	// Preselect the first office, as on the landing page.
 	useEffect(() => {
 		if (!jpaId && jpasQuery.data?.[0]) setJpaId(jpasQuery.data[0].id);
 	}, [jpasQuery.data, jpaId]);
@@ -296,11 +274,6 @@ function Signup({ signedOut }: { signedOut: boolean }) {
 	);
 }
 
-/**
- * The way back in for a lost manage link. The reply is deliberately identical
- * whether the address is known or not, so the copy promises a mail only "if
- * you are subscribed".
- */
 function ResendManageLink() {
 	const [email, setEmail] = useState("");
 	const resend = trpc.email.resendManageLink.useMutation();

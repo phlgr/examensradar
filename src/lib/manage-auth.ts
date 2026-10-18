@@ -1,12 +1,3 @@
-/**
- * Subscriber "session": an httpOnly cookie carrying the manage token.
- *
- * The token itself is the credential (an opaque DB row, revocable). Mail links
- * carry it as `/subscriptions?manage=<token>`; the page trades it for this
- * httpOnly cookie via the `email.signIn` mutation and scrubs the URL, so it
- * stays out of browser history, server logs and referrers from then on.
- */
-
 import { getCookie } from "@/lib/cookies";
 
 const COOKIE_NAME = "examensradar_manage";
@@ -25,12 +16,6 @@ function serialize(parts: string[]): string {
 	return options.join("; ");
 }
 
-/**
- * Deliberately a session cookie (no Max-Age): closing the browser ends the
- * session — which is what actually happens on shared machines — and any mail
- * footer signs the next visit back in with one click. "Ausloggen" on the
- * manage page clears it explicitly for everyone who doesn't close browsers.
- */
 export function buildManageCookie(token: string): string {
 	return serialize([`${COOKIE_NAME}=${token}`]);
 }

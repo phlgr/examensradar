@@ -48,7 +48,6 @@ const STEPS = [
 	},
 ] as const;
 
-/** The F5 key as a real keycap. */
 function Keycap({ children }: { children: string }) {
 	return (
 		<kbd className="shadow-[0_5px_0_0_#d9d0bd,0_6px_0_0_rgb(23_23_26/0.3)] relative inline-grid place-items-center align-[0.14em] min-w-[1.45em] h-[1.18em] px-[0.18em] mx-[0.04em] rounded-[0.2em] bg-gradient-to-b from-sheet to-[#efe8d8] ring-1 ring-ink/15 font-sans font-semibold text-[0.62em] tracking-normal text-ink/80">
@@ -59,8 +58,6 @@ function Keycap({ children }: { children: string }) {
 
 function LandingPage() {
 	const { jpas, history } = Route.useLoaderData();
-	// Preselect the first office, so a single-office deployment needs no extra
-	// click and the preview has something to show.
 	const [jpaId, setJpaId] = useState(jpas[0]?.id ?? "");
 
 	const selectedJpa = jpas.find((jpa) => jpa.id === jpaId);
@@ -75,14 +72,11 @@ function LandingPage() {
 
 	return (
 		<div className="flex-1">
-			{/* Hero */}
 			<section className="relative overflow-hidden">
-				{/* Ruled lines fading out towards the bottom, like a Klausurbogen. */}
 				<div
 					className="absolute inset-0 bg-ruled [mask-image:linear-gradient(to_bottom,black,transparent_85%)]"
 					aria-hidden
 				/>
-				{/* The margin line every exam sheet has. */}
 				<div
 					className="absolute inset-y-0 left-[max(1rem,calc(50%-36rem))] w-px bg-seal/25 hidden sm:block"
 					aria-hidden
@@ -153,7 +147,6 @@ function LandingPage() {
 				</div>
 			</section>
 
-			{/* How it works */}
 			<section className="bg-sheet border-t border-ink/10 py-20 sm:py-28 px-4 sm:px-6">
 				<div className="max-w-6xl mx-auto">
 					<Reveal className="max-w-2xl mb-14 sm:mb-20">
@@ -188,10 +181,8 @@ function LandingPage() {
 				</div>
 			</section>
 
-			{/* When? */}
 			<UpcomingReleases summaries={summaries} loading={false} />
 
-			{/* FAQ */}
 			<section className="bg-sheet border-t border-ink/10 py-20 sm:py-28 px-4 sm:px-6">
 				<div className="max-w-6xl mx-auto">
 					<Reveal className="max-w-2xl mb-12 sm:mb-16">

@@ -45,8 +45,6 @@ export const jpaRouter = router({
 		.mutation(async ({ input }) => {
 			const jpa = await createJpa(input);
 			if (jpa.scrapeUrl && jpa.scrapeSelector) {
-				// Store the baseline right away — with no stored hash this can only
-				// record, never notify.
 				await checkJpa(jpa);
 			}
 			return jpa;
@@ -74,11 +72,6 @@ export const jpaRouter = router({
 			await updateJpa(id, data);
 			const updated = await getJpaById(id);
 
-			// A changed scrape config makes the stored baseline meaningless: it
-			// hashes what the OLD URL/selector saw, so the next check would read as
-			// a guaranteed "change" and mass-notify. Reset instead, and store the
-			// new config's baseline immediately so monitoring resumes without a
-			// notification and without waiting for the next tick.
 			const scrapeConfigChanged =
 				(data.scrapeUrl !== undefined &&
 					data.scrapeUrl !== existing.scrapeUrl) ||
@@ -112,11 +105,6 @@ export const jpaRouter = router({
 		return Object.fromEntries(states.map((state) => [state.jpaId, state]));
 	}),
 
-	/**
-	 * Runs the exact check the scheduler runs, immediately. Safe next to a
-	 * concurrently ticking loop — the compare-and-swap in checkJpa means a real
-	 * change still notifies at most once, whoever sees it first.
-	 */
 	scrapeNow: adminProcedure
 		.input(z.object({ id: z.string() }))
 		.mutation(async ({ input }) => {

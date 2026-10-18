@@ -15,25 +15,15 @@ export const Route = createFileRoute("/confirm/$token")({
 	component: ConfirmPage,
 });
 
-/**
- * Confirmation happens on a button press, not on page load: mail scanners
- * follow links, and a GET that completes double opt-in would let a scanner
- * "consent" on the subscriber's behalf. The page does query the token's state
- * on load, so a re-opened link shows "bestätigt" instead of a dead button.
- */
 function ConfirmPage() {
 	const { token } = Route.useParams();
 
 	const stateQuery = trpc.email.confirmState.useQuery({ token });
 	const confirm = trpc.email.confirm.useMutation({
-		// Nearly always one name — several only when JPAs were added while pending.
 		onSuccess: (data) =>
 			trackEvent("email_confirmed", { jpa: data.jpaNames.join(", ") }),
 	});
 
-	// Confirmed either just now (mutation, which alone carries the manage
-	// token) or on an earlier visit (query, which deliberately does not: a
-	// reopened link must not hand the credential to scanners or forwardees).
 	const done = confirm.isSuccess
 		? confirm.data
 		: stateQuery.data?.state === "confirmed"
@@ -51,7 +41,6 @@ function ConfirmPage() {
 					{done.jpaNames.length > 0 ? `: ${done.jpaNames.join(", ")}` : "."}
 				</p>
 				{"manageToken" in done ? (
-					// The manage entry: /subscriptions trades the param for the cookie.
 					<a
 						href={`/subscriptions?manage=${done.manageToken}`}
 						className="block"

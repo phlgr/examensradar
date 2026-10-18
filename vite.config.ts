@@ -19,7 +19,6 @@ const config = defineConfig({
 		tanstackStart(),
 		nitro({
 			preset: "bun",
-			// Boots the JPA scraper loop at server start.
 			plugins: ["./src/server/plugins/scraper.ts"],
 		}),
 		viteReact(),

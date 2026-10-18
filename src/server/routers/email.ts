@@ -26,11 +26,6 @@ import { allowMailTo } from "@/lib/mail-throttle";
 import { buildClearManageCookie, buildManageCookie } from "@/lib/manage-auth";
 import { manageProcedure, publicProcedure, router } from "../trpc";
 
-/**
- * Fire-and-forget: the form must not wait on SMTP, so a slow or failing send
- * cannot become a signal about whether the address was already known.
- * `sendMail` handles its own failures and never rejects.
- */
 const dispatch = (mail: Mail) => void sendMail(mail);
 
 const tokensFor = (subscriber: {
@@ -41,7 +36,6 @@ const tokensFor = (subscriber: {
 	unsubscribe: subscriber.unsubscribeToken,
 });
 
-/** What `subscribe` and `resendManageLink` both do for an active address. */
 const dispatchManageLink = (subscriber: {
 	email: string;
 	manageToken: string;
@@ -56,12 +50,6 @@ const emailInput = z.email().max(254);
 const tokenInput = z.string().min(16).max(64);
 
 export const emailRouter = router({
-	/**
-	 * Always answers the same way. Whether an address is already subscribed is
-	 * not ours to disclose — it would turn the form into a way of asking who is
-	 * sitting an exam — so "already subscribed", "newly pending" and "throttled"
-	 * are indistinguishable from outside. What differs is the mail, not the reply.
-	 */
 	subscribe: publicProcedure
 		.input(z.object({ email: emailInput, jpaId: z.string().min(1) }))
 		.mutation(async ({ ctx, input }) => {
@@ -82,10 +70,6 @@ export const emailRouter = router({
 			const existing = await getSubscriberByEmail(email);
 
 			if (existing && isActiveSubscriber(existing)) {
-				// The address is already proven, but the form is not: anyone can type
-				// a stranger's address here. So nothing changes from this path — the
-				// manage link goes into the inbox, and only its holder can alter what
-				// this address receives.
 				dispatchManageLink(existing);
 				return { ok: true };
 			}
@@ -101,17 +85,7 @@ export const emailRouter = router({
 			return { ok: true };
 		}),
 
-	/**
-	 * What /confirm/:token should show on load: `pending` renders the button,
-	 * `confirmed` renders the done state (a re-opened link is not an error),
-	 * `invalid` covers unknown, expired and superseded-by-unsubscribe links.
-	 *
-	 * Deliberately never returns the manage token: this query is replayable by
-	 * mail scanners and anyone a confirm mail was forwarded to, for as long as
-	 * the link lives. The manage credential leaves exactly once, through the
-	 * confirm mutation's pending → active transition — afterwards the durable
-	 * way in is the welcome mail in the owner's inbox.
-	 */
+	/** Never returns the manage token: mail scanners replay confirm links. */
 	confirmState: publicProcedure
 		.input(z.object({ token: tokenInput }))
 		.query(async ({ input }) => {
@@ -139,14 +113,11 @@ export const emailRouter = router({
 				});
 			}
 
-			// Delivers the manage link into the inbox, which is the only durable
-			// way back in once the confirmation page is closed.
 			dispatch({
 				...renderWelcomeMail(tokensFor(subscriber)),
 				to: subscriber.email,
 			});
 
-			// The consent just given was general; the names show what it activated.
 			return {
 				manageToken: subscriber.manageToken,
 				jpaNames: (await getSubscriberJpas(subscriber.id)).map(
@@ -155,7 +126,6 @@ export const emailRouter = router({
 			};
 		}),
 
-	/** Same discretion as `subscribe`: the reply never reveals what we know. */
 	resendManageLink: publicProcedure
 		.input(z.object({ email: emailInput }))
 		.mutation(async ({ ctx, input }) => {
@@ -172,10 +142,6 @@ export const emailRouter = router({
 			return { ok: true };
 		}),
 
-	/**
-	 * Trades a manage token (from a `/subscriptions?manage=<token>` mail link)
-	 * for the httpOnly cookie, so the credential leaves the URL after one use.
-	 */
 	signIn: publicProcedure
 		.input(z.object({ token: tokenInput }))
 		.mutation(async ({ ctx, input }) => {
@@ -192,16 +158,11 @@ export const emailRouter = router({
 			return { ok: true };
 		}),
 
-	/**
-	 * Clears the cookie — nothing else. The subscription survives; any mail
-	 * footer signs the device back in. Matters on shared machines.
-	 */
 	signOut: publicProcedure.mutation(({ ctx }) => {
 		ctx.resHeaders.append("Set-Cookie", buildClearManageCookie());
 		return { ok: true };
 	}),
 
-	/** The caller's identity is the manage cookie; nothing here takes a token. */
 	me: manageProcedure.query(async ({ ctx }) => {
 		return {
 			email: ctx.subscriber.email,

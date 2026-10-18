@@ -29,7 +29,6 @@ export const Route = createRootRoute({
 			{ property: "og:type", content: "website" },
 			{ property: "og:site_name", content: SITE_NAME },
 			{ property: "og:locale", content: "de_DE" },
-			// Pages that must stay out of the index override this with `noindex`.
 			{
 				name: "robots",
 				content: "index, follow, max-image-preview:large, max-snippet:-1",

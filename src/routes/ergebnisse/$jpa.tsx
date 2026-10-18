@@ -27,10 +27,6 @@ import {
 import { cn } from "@/lib/utils";
 import { getPublicData } from "@/server/public-data";
 
-/**
- * One office's landing page, for searches like "examen ergebnisse köln wann":
- * the answer first, then the signup, then the record it's based on.
- */
 export const Route = createFileRoute("/ergebnisse/$jpa")({
 	loader: async ({ params }) => {
 		const { jpas, history } = await getPublicData();
@@ -92,7 +88,6 @@ function JpaPage() {
 	const prediction = summary?.prediction ?? null;
 	const daysUntil = summary?.daysUntil ?? null;
 	const overdue = daysUntil !== null && daysUntil < 0;
-	// One entry per publication, not per detected page edit.
 	const releases = summary ? clusterReleases(summary.dates).reverse() : [];
 
 	return (

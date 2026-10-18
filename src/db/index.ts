@@ -15,7 +15,6 @@ sqlite.run("PRAGMA journal_mode = WAL");
 
 const db = drizzle(sqlite, { schema });
 
-// JPA functions
 export const getJpas = async (): Promise<JPA[]> => {
 	return db.select().from(schema.jpa).all();
 };
@@ -77,7 +76,6 @@ export const deleteJpa = async (id: string): Promise<void> => {
 	await db.delete(schema.jpa).where(eq(schema.jpa.id, id));
 };
 
-// Scrape state functions
 type ScrapeState = typeof schema.scrapeState.$inferSelect;
 
 export const getScrapableJpas = async (): Promise<JPA[]> => {
@@ -97,7 +95,6 @@ export const getScrapeStates = async (): Promise<ScrapeState[]> => {
 	return db.select().from(schema.scrapeState).all();
 };
 
-/** Fetches the JPA's scrape state, creating the empty baseline row on first contact. */
 export const ensureScrapeState = async (
 	jpaId: string,
 ): Promise<ScrapeState> => {
@@ -116,15 +113,6 @@ export const ensureScrapeState = async (
 	return state;
 };
 
-/**
- * Compare-and-swap on the content baseline: moves it from `oldHash` to
- * `newHash` and reports whether this caller won. Everything downstream of a
- * detected change (the notification fan-out above all) must be gated on the
- * returned boolean — two overlapping server instances both see the change, but
- * only one claim succeeds, so subscribers are only notified once.
- *
- * `oldHash === null` claims the initial baseline instead.
- */
 export const claimScrapeChange = async (
 	jpaId: string,
 	oldHash: string | null,
@@ -136,7 +124,6 @@ export const claimScrapeChange = async (
 		.set({
 			contentHash: newHash,
 			lastCheckedAt: now,
-			// The initial baseline is not a change — nothing was compared.
 			...(oldHash === null ? {} : { lastChangedAt: now }),
 			errorCount: 0,
 			lastError: null,
@@ -155,13 +142,6 @@ export const claimScrapeChange = async (
 	return claimed.length > 0;
 };
 
-/**
- * Drops the stored baseline. Called when the scrape config changes: the old
- * hash describes content selected by the old URL/selector, and diffing the
- * new config's content against it would produce a guaranteed false "change".
- * Deleting the row (rather than nulling the hash) also defuses any in-flight
- * claim against the old hash — its UPDATE matches no row and loses.
- */
 export const resetScrapeState = async (jpaId: string): Promise<void> => {
 	await db
 		.delete(schema.scrapeState)
@@ -189,10 +169,6 @@ export const recordScrapeError = async (
 		.where(eq(schema.scrapeState.jpaId, jpaId));
 };
 
-/**
- * Per-JPA count of the people a publication would actually reach: mailable
- * email subscribers only (same filter as getMailableSubscribersByJpa).
- */
 export const getSubscriptionCountsByJpa = async (): Promise<
 	Map<string, number>
 > => {
@@ -218,23 +194,17 @@ export const getSubscriptionCountsByJpa = async (): Promise<
 	return new Map(rows.map((row) => [row.jpaId, row.count]));
 };
 
-// Email subscriber functions
 /**
- * Deliberately short: a confirm link that leaks later — scanner logs, a
- * forwarded mail — should already be dead, and whoever misses the window just
- * signs up again for a fresh link. An hour rather than minutes because
- * greylisting at German providers can defer first-contact delivery by up to
- * ~30 minutes. The "eine Stunde" copy in `renderConfirmMail` must match.
+ * An hour rather than minutes because greylisting at German providers can
+ * defer first-contact delivery by up to ~30 minutes.
  */
 const CONFIRM_TTL_MS = 60 * 60 * 1000;
 
 const newToken = () => nanoid(32);
 
-/** Uniqueness has to be on the real address, not on how it was typed. */
 export const normalizeEmail = (email: string): string =>
 	email.trim().toLowerCase();
 
-/** Confirmed and not suppressed — the only state that may receive results mail. */
 export const isActiveSubscriber = (
 	subscriber: Pick<Subscriber, "confirmedAt" | "unsubscribedAt" | "bouncedAt">,
 ): boolean =>
@@ -266,11 +236,6 @@ export const getSubscriberByManageToken = async (
 	return result || null;
 };
 
-/**
- * Looks up by the credential published via List-Unsubscribe. Callers must only
- * ever unsubscribe with the result — this token deliberately grants nothing
- * else, because Gmail and mail scanners get to see it.
- */
 export const getSubscriberByUnsubscribeToken = async (
 	token: string,
 ): Promise<Subscriber | null> => {
@@ -282,18 +247,6 @@ export const getSubscriberByUnsubscribeToken = async (
 	return result || null;
 };
 
-/**
- * Creates a pending subscriber, or puts an existing one back into pending with
- * a fresh token. Re-running double opt-in is what makes it safe to reset a
- * subscriber who had unsubscribed or hard-bounced: only the address owner can
- * complete it.
- *
- * Clearing `confirmedAt` is what makes "pending" a real row state: /confirm
- * can tell an unused link from a used one without comparing timestamps. The
- * suppression flags stay untouched until the new confirmation lands, so an
- * abandoned re-signup never erases an opt-out. Refuses an active subscriber —
- * resetting one to pending would silently stop their mail.
- */
 export const upsertPendingSubscriber = async (
 	email: string,
 	ip: string | null,
@@ -349,24 +302,6 @@ const getSubscriberByConfirmToken = async (
 	return result || null;
 };
 
-/**
- * The one classifier for confirm links, shared by what /confirm renders and
- * what confirming checks, so the two can never disagree.
- *
- * `pending` — the link is live and awaiting its button press.
- * `confirmed` — the link was used and the subscriber is active. Reopening a
- *   used link is not an error, but it grants nothing: the manage credential
- *   only ever travels through the confirm mutation's pending → active
- *   transition, never to whoever replays a used link later.
- * `invalid` — unknown or rotated token, an unused link past its hour, or a
- *   used link whose subscriber has since opted out: an old mail must never
- *   undo that.
- *
- * The TTL only guards the unused link — it bounds how long the click grants
- * something. Once used, the link outliving its hour must still read
- * `confirmed`, or reopening the mail later would show "invalid" and nudge an
- * active subscriber into a pointless re-signup.
- */
 export type ConfirmTokenState =
 	| { state: "pending" | "confirmed"; subscriber: Subscriber }
 	| { state: "invalid"; subscriber: null };
@@ -391,16 +326,6 @@ export const classifyConfirmToken = async (
 		: { state: "invalid", subscriber: null };
 };
 
-/**
- * Completes double opt-in for a `pending` link. Clearing
- * `unsubscribedAt`/`bouncedAt` is the point: a fresh confirmed opt-in
- * supersedes an earlier suppression, and only the address owner can produce
- * one.
- *
- * The token is kept after use (it rotates on every signup and dies with
- * `confirmExpiresAt` anyway) so /confirm can recognize an already-used link —
- * but a used link is inert: anything except `pending` is refused here.
- */
 export const confirmSubscriber = async (
 	token: string,
 ): Promise<Subscriber | null> => {
@@ -421,10 +346,6 @@ export const confirmSubscriber = async (
 	return confirmed;
 };
 
-/**
- * Keeps the subscriber row as a suppression record and drops what it subscribed
- * to. Deleting the row would let the address be re-added by anyone typing it in.
- */
 export const unsubscribeSubscriber = async (id: string): Promise<void> => {
 	await db
 		.delete(schema.emailSubscription)
@@ -474,11 +395,6 @@ export const getSubscriberJpas = async (subscriberId: string) => {
 		.all();
 };
 
-/**
- * Addresses worth sending a results notification to: confirmed, still
- * subscribed, and not suppressed. Everything the fan-out needs, so it never has
- * to decide mailability itself.
- */
 export const getMailableSubscribersByJpa = async (
 	jpaId: string,
 ): Promise<
@@ -531,30 +447,22 @@ export const getNotificationHistory = async () => {
 		.all();
 };
 
-// Notification log functions
-/**
- * `sentAt` is passed in rather than taken as `now` because the fan-out runs in
- * the background and can spend minutes backing off. /history derives publication
- * day/hour patterns from this column, so it has to record when the office
- * published, not when we finished delivering.
- */
 export const logNotification = async (
 	jpaId: string,
 	subscriberCount: number,
-	sentAt: Date = new Date(),
+	publishedAt: Date = new Date(),
 ): Promise<void> => {
 	await db
 		.insert(schema.notificationLog)
 		.values({
 			id: nanoid(),
 			jpaId,
-			sentAt,
+			sentAt: publishedAt,
 			subscriberCount,
 		})
 		.run();
 };
 
-// Admin session functions
 export const createAdminSession = async (
 	token: string,
 	expiresAt: Date,

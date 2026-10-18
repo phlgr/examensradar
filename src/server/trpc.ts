@@ -28,11 +28,6 @@ const t = initTRPC.context<Context>().create({
 export const router = t.router;
 export const publicProcedure = t.procedure;
 
-/**
- * Requires the manage cookie set by `email.signIn`. The subscriber it
- * resolves to is the caller's identity — procedures behind this never take a
- * token or subscriber id as input.
- */
 export const manageProcedure = t.procedure.use(async ({ ctx, next }) => {
 	const token = getManageTokenFromRequest(ctx.request);
 	const subscriber = token ? await getSubscriberByManageToken(token) : null;
@@ -52,7 +47,6 @@ export const manageProcedure = t.procedure.use(async ({ ctx, next }) => {
 	});
 });
 
-// Admin procedure that requires a valid admin session
 export const adminProcedure = t.procedure.use(async ({ ctx, next }) => {
 	const token = getAdminTokenFromRequest(ctx.request);
 

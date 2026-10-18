@@ -5,7 +5,6 @@ interface FooterProps {
 	jpas: Array<{ slug: string; name: string }>;
 }
 
-/** Site footer, with a link to every office's page so each one is reachable. */
 export function Footer({ jpas }: FooterProps) {
 	return (
 		<footer className="px-4 sm:px-6 py-8 border-t border-ink/10">

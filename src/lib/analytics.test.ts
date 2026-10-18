@@ -26,7 +26,6 @@ test("leaves ordinary URLs untouched", () => {
 });
 
 test("does not redact the route index pages themselves", () => {
-	// No token segment to leak, so the path stays as-is.
 	expect(maskAnalyticsUrl(`${BASE}/confirm`)).toBe(`${BASE}/confirm`);
 });
 

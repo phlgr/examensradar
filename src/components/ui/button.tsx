@@ -7,15 +7,11 @@ const buttonVariants = cva(
 	{
 		variants: {
 			variant: {
-				/** The one main action: ink, turning Schönfelder red on hover. */
 				default: "bg-ink text-sheet hover:bg-seal",
-				/** A quieter action next to or instead of the main one. */
 				secondary:
 					"bg-sheet text-ink ring-1 ring-ink/20 hover:ring-ink/50 hover:bg-sheet",
-				/** Irreversible: unsubscribing, deleting. */
 				destructive: "bg-seal text-sheet hover:bg-seal-deep",
 				ghost: "bg-transparent text-ink/70 hover:text-ink hover:bg-ink/5",
-				/** Square icon button, e.g. close or edit. */
 				icon: "bg-transparent text-ink/60 hover:text-ink hover:bg-ink/5",
 			},
 			size: {

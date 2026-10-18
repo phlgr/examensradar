@@ -5,7 +5,6 @@ import {
 	type ReleasePrediction,
 } from "@/lib/prediction";
 
-/** One row of `jpa.getHistory`. */
 export interface HistoryEntry {
 	sentAt: Date | string | null;
 	jpaName: string | null;
@@ -17,15 +16,12 @@ export interface JpaReleaseSummary {
 	slug: string;
 	name: string;
 	websiteUrl: string | null;
-	/** Every recorded fire, newest first. */
 	dates: Date[];
 	lastRelease: Date;
-	/** Distinct publication events (adjacent fires collapsed). */
 	releaseCount: number;
 	typicalHour: number;
 	weekdayCounts: Map<number, number>;
 	prediction: ReleasePrediction | null;
-	/** Days until the predicted release; negative = overdue; null = no prediction. */
 	daysUntil: number | null;
 }
 
@@ -39,11 +35,6 @@ function median(values: number[]): number {
 		: sorted[mid];
 }
 
-/**
- * Groups the notification log into one summary per Justizprüfungsamt, sorted
- * so the office expected to publish next comes first (offices without a
- * prediction last).
- */
 export function summarizeReleases(
 	entries: HistoryEntry[],
 	now: Date,
@@ -91,7 +82,6 @@ export function summarizeReleases(
 	}
 
 	return summaries.sort((a, b) => {
-		// Offices without a prediction go last, newest publication first.
 		if (a.daysUntil === null && b.daysUntil === null) {
 			return b.lastRelease.getTime() - a.lastRelease.getTime();
 		}
@@ -101,7 +91,6 @@ export function summarizeReleases(
 	});
 }
 
-/** "in 3 Wochen", "morgen", "seit 2 Tagen überfällig" */
 export function relativeLabel(daysUntil: number): string {
 	if (daysUntil < 0) {
 		const overdue = Math.abs(daysUntil);
@@ -123,11 +112,6 @@ export const CONFIDENCE_LABEL: Record<PredictionConfidence, string> = {
 	low: "grobe Schätzung",
 };
 
-/**
- * Where in the month an office tends to publish, from the median offset to the
- * last working day (so an end-of-month office reads "am Monatsende" even when
- * it occasionally slips into the next month).
- */
 export function monthPositionLabel(offsetDays: number): string {
 	if (offsetDays >= -1) return "am letzten Werktag des Monats";
 	if (offsetDays >= -4) return "in den letzten Tagen des Monats";

@@ -1,7 +1,6 @@
 import type * as React from "react";
 import { cn } from "@/lib/utils";
 
-/** A small green status pill, e.g. "Aktiv" on a subscribed office. */
 function Badge({ className, ...props }: React.HTMLAttributes<HTMLSpanElement>) {
 	return (
 		<span

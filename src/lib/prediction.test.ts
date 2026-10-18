@@ -13,7 +13,7 @@ describe("clusterReleases", () => {
 	test("collapses fires within the cluster gap into one event", () => {
 		const clusters = clusterReleases([
 			d("2025-03-17T10:00:00"),
-			d("2025-03-18T14:00:00"), // same publication, next day
+			d("2025-03-18T14:00:00"),
 			d("2025-06-16T09:00:00"),
 		]);
 		expect(clusters).toHaveLength(2);
@@ -50,20 +50,17 @@ describe("predictNextRelease", () => {
 	});
 
 	test("predicts month-end and folds early-next-month slips (the Hamm case)", () => {
-		// Last working day each month, twice slipping into the next month.
 		const fires = [
-			d("2025-01-31T10:00:00"), // Fri, last working day of Jan
-			d("2025-02-28T10:00:00"), // Fri, last working day of Feb
-			d("2025-04-01T10:00:00"), // Tue, slip — belongs to March's cycle
-			d("2025-04-30T10:00:00"), // Wed, last working day of Apr
+			d("2025-01-31T10:00:00"),
+			d("2025-02-28T10:00:00"),
+			d("2025-04-01T10:00:00"),
+			d("2025-04-30T10:00:00"),
 		];
 		const p = predictNextRelease(fires, d("2025-05-05")) as ReleasePrediction;
 		expect(p.monthStep).toBe(1);
-		// Offset stays at "last working day", NOT dragged mid-month by the slip.
 		expect(p.medianOffsetDays).toBeGreaterThanOrEqual(0);
 		expect(p.medianOffsetDays).toBeLessThanOrEqual(1);
-		// Next prediction must land at the end of May, not mid-May.
-		expect(p.date.getMonth()).toBe(4); // May
+		expect(p.date.getMonth()).toBe(4);
 		expect(p.date.getDate()).toBeGreaterThanOrEqual(28);
 	});
 
@@ -76,9 +73,8 @@ describe("predictNextRelease", () => {
 		];
 		const p = predictNextRelease(fires, d("2025-04-20")) as ReleasePrediction;
 		expect(p.monthStep).toBe(1);
-		// Stable mid-month offset (~17 days before month-end).
 		expect(p.medianOffsetDays).toBeLessThan(-10);
-		expect(p.date.getMonth()).toBe(4); // May
+		expect(p.date.getMonth()).toBe(4);
 		expect(p.date.getDate()).toBeLessThan(20);
 	});
 
@@ -91,7 +87,6 @@ describe("predictNextRelease", () => {
 		];
 		const p = predictNextRelease(fires, d("2025-09-20")) as ReleasePrediction;
 		expect(p.monthStep).toBe(3);
-		// Next release ~a quarter after the last one.
 		expect(daysBetween(d("2025-09-16"), p.date)).toBeGreaterThan(80);
 	});
 

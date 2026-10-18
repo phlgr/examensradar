@@ -14,16 +14,10 @@ export interface Mail {
 }
 
 export interface BatchOptions {
-	/** Wall-clock ceiling for the whole batch, including backoff waits. */
 	budgetMs?: number;
 	maxAttempts?: number;
 }
 
-/**
- * Parallel sends in flight. Scaleway TEM accepts a handful of concurrent SMTP
- * connections; nodemailer pools them, so this only bounds how many messages are
- * queued against the pool at once.
- */
 const CONCURRENCY = 5;
 const DEFAULT_MAX_ATTEMPTS = 3;
 const DEFAULT_BUDGET_MS = 60_000;
@@ -66,15 +60,10 @@ function sender(): { name: string; address: string } {
 	};
 }
 
-/**
- * A 4xx SMTP reply means "try later" — the message is still deliverable. A 5xx
- * is a permanent refusal, so retrying only burns reputation.
- */
 function isRetryable(error: unknown): boolean {
 	const code = (error as { responseCode?: number }).responseCode;
 	if (typeof code === "number") return code >= 400 && code < 500;
 
-	// Connection-level failures carry no SMTP code but are worth another go.
 	const errno = (error as { code?: string }).code;
 	return (
 		errno === "ETIMEDOUT" || errno === "ECONNECTION" || errno === "ESOCKET"

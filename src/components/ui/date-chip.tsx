@@ -8,21 +8,12 @@ import { cn } from "@/lib/utils";
 
 interface PredictionNoteProps {
 	prediction: ReleasePrediction;
-	/** Days until the predicted date; negative means overdue. */
 	daysUntil: number;
-	/** Lead-in before the date. */
 	prefix?: string;
-	/** What follows the date: how sure we are, or how far away it is. */
 	detail?: "confidence" | "relative";
 	className?: string;
 }
 
-/**
- * "Voraussichtlich am [16. November] · grobe Schätzung" in one consistent
- * shape. An upcoming date gets the highlighter; once it has passed the
- * sentence changes tense, the date is underlined in red and the note says how
- * long it has been, so colour is never the only signal.
- */
 export function PredictionNote({
 	prediction,
 	daysUntil,

@@ -1,7 +1,6 @@
 import type * as React from "react";
 import { cn } from "@/lib/utils";
 
-/** Small label above a value, e.g. "Zuletzt" over a date. */
 export function Eyebrow({
 	className,
 	...props
@@ -19,11 +18,9 @@ interface SectionIntroProps {
 	title: React.ReactNode;
 	children: React.ReactNode;
 	className?: string;
-	/** Width cap for the intro paragraph; the title may run wider. */
 	textClassName?: string;
 }
 
-/** Serif title plus one intro paragraph — the opening of every page. */
 export function SectionIntro({
 	as: Tag = "h2",
 	title,

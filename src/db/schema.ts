@@ -12,14 +12,7 @@ export const jpa = sqliteTable("jpa", {
 	slug: text("slug").notNull().unique(),
 	name: text("name").notNull(),
 	websiteUrl: text("website_url"),
-	/**
-	 * Where the in-app scraper looks for new results. Separate from
-	 * `websiteUrl` because the page students should open is not always the page
-	 * whose change means "results are out". Scraping is on iff both `scrapeUrl`
-	 * and `scrapeSelector` are set.
-	 */
 	scrapeUrl: text("scrape_url"),
-	/** CSS selector narrowing the page to the section worth watching. */
 	scrapeSelector: text("scrape_selector"),
 	notificationsDisabled: integer("notifications_disabled", {
 		mode: "boolean",
@@ -29,16 +22,6 @@ export const jpa = sqliteTable("jpa", {
 	createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
 });
 
-/**
- * One row per scraped JPA: the content baseline plus check bookkeeping.
- *
- * `contentHash` doubles as the concurrency guard. Every observed change is
- * claimed with a compare-and-swap on it, and only the winner notifies — so two
- * server instances overlapping during a zero-downtime deploy can both scrape,
- * but nobody gets notified twice. Null means "no baseline yet": the first
- * successful scrape only stores the hash and never notifies, because we cannot
- * know whether the content is new.
- */
 export const scrapeState = sqliteTable("scrape_state", {
 	jpaId: text("jpa_id")
 		.primaryKey()
@@ -46,12 +29,10 @@ export const scrapeState = sqliteTable("scrape_state", {
 	contentHash: text("content_hash"),
 	lastCheckedAt: integer("last_checked_at", { mode: "timestamp_ms" }).notNull(),
 	lastChangedAt: integer("last_changed_at", { mode: "timestamp_ms" }),
-	/** Consecutive failures; reset by any successful check. */
 	errorCount: integer("error_count").notNull().default(0),
 	lastError: text("last_error"),
 });
 
-/** Legacy ntfy subscriptions. Kept as an archive only — nothing reads or writes it. */
 export const subscription = sqliteTable(
 	"subscription",
 	{
@@ -72,20 +53,8 @@ export const subscription = sqliteTable(
 	],
 );
 
-/**
- * A confirmed email address is the whole identity — no password, no session.
- * `manageToken` stands in for both: every mail footer links to it, and knowing
- * it is what authorises managing or ending a subscription.
- *
- * Rows are disposable, with two exceptions: once `unsubscribedAt` or
- * `bouncedAt` is set the row must survive cleanup, because it is the only
- * record that this address must not be mailed again. Anyone can type a
- * stranger's address into the signup form, so dropping that record would let an
- * opted-out address be re-subscribed and mailed.
- */
 export const subscriber = sqliteTable("subscriber", {
 	id: text("id").primaryKey(),
-	/** Lowercased and trimmed on write, so uniqueness is on the real address. */
 	email: text("email").notNull().unique(),
 	manageToken: text("manage_token").notNull().unique(),
 	/**
@@ -95,17 +64,9 @@ export const subscriber = sqliteTable("subscriber", {
 	 * subscriptions the way the manage token can.
 	 */
 	unsubscribeToken: text("unsubscribe_token").notNull().unique(),
-	/**
-	 * Kept after use (rotated on every signup, dead once expired) so /confirm
-	 * can recognize an already-used link. A used link is inert: confirming is
-	 * only possible while `confirmedAt` is null, and the manage credential is
-	 * never handed to whoever replays it — see `classifyConfirmToken`.
-	 */
 	confirmToken: text("confirm_token").unique(),
 	confirmExpiresAt: integer("confirm_expires_at", { mode: "timestamp_ms" }),
-	/** Null while pending. Nothing is ever sent to a pending subscriber. */
 	confirmedAt: integer("confirmed_at", { mode: "timestamp_ms" }),
-	/** Einwilligungsnachweis: who consented, from where, and when. */
 	consentIp: text("consent_ip"),
 	consentAt: integer("consent_at", { mode: "timestamp_ms" }),
 	bouncedAt: integer("bounced_at", { mode: "timestamp_ms" }),
@@ -113,10 +74,6 @@ export const subscriber = sqliteTable("subscriber", {
 	createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
 });
 
-/**
- * One row per (address, JPA). Subscribing to several offices is intended, so
- * the pair is unique rather than the subscriber.
- */
 export const emailSubscription = sqliteTable(
 	"email_subscription",
 	{
@@ -145,7 +102,6 @@ export const notificationLog = sqliteTable("notification_log", {
 	subscriberCount: integer("subscriber_count"),
 });
 
-// Admin session for simple password-based admin auth
 export const adminSession = sqliteTable("admin_session", {
 	id: text("id").primaryKey(),
 	token: text("token").notNull().unique(),

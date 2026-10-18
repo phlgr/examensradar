@@ -1,11 +1,6 @@
 export const SITE_URL = "https://examensradar.de";
 export const SITE_NAME = "Examensradar";
 
-/**
- * URL segment of an office's page. Slugs carry umlauts ("köln"), which work in
- * URLs but get percent-encoded everywhere they're shared; the page path spells
- * them out the way people type them ("koeln").
- */
 export function jpaParam(slug: string): string {
 	return slug
 		.toLowerCase()
@@ -19,7 +14,6 @@ export function jpaParam(slug: string): string {
 
 export const jpaPath = (slug: string) => `/ergebnisse/${jpaParam(slug)}`;
 
-/** Date with year, for text that may be quoted out of context. */
 export const formatLongDate = (date: Date) =>
 	date.toLocaleDateString("de-DE", {
 		day: "numeric",
@@ -30,11 +24,9 @@ export const formatLongDate = (date: Date) =>
 interface SeoOptions {
 	title: string;
 	description: string;
-	/** Path of the page, for canonical and og:url. */
 	path: string;
 }
 
-/** Title, description, canonical and the social-card tags for one page. */
 export function seo({ title, description, path }: SeoOptions) {
 	const url = `${SITE_URL}${path}`;
 	return {
@@ -47,7 +39,6 @@ export function seo({ title, description, path }: SeoOptions) {
 			{ name: "twitter:title", content: title },
 			{ name: "twitter:description", content: description },
 		],
-		// German only, so de and x-default both point back at the page itself.
 		links: [
 			{ rel: "canonical", href: url },
 			{ rel: "alternate", hrefLang: "de", href: url },
@@ -56,13 +47,11 @@ export function seo({ title, description, path }: SeoOptions) {
 	};
 }
 
-/** For pages behind a token or login: nothing there for a search index. */
 export const noindex = { name: "robots", content: "noindex, nofollow" };
 
 export interface Faq {
 	question: string;
 	answer: string;
-	/** Label for a link to the page's signup form, shown under the answer. */
 	signupCta?: string;
 }
 

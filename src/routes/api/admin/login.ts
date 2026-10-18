@@ -33,14 +33,13 @@ export const Route = createFileRoute("/api/admin/login")({
 					const token = await createAdminToken();
 					const cookieName = getAdminCookieName();
 
-					// Set httpOnly cookie with the token
 					const isProduction = process.env.NODE_ENV === "production";
 					const cookieOptions = [
 						`${cookieName}=${token}`,
 						"Path=/",
 						"HttpOnly",
 						"SameSite=Lax",
-						`Max-Age=${7 * 24 * 60 * 60}`, // 7 days
+						`Max-Age=${7 * 24 * 60 * 60}`,
 					];
 
 					if (isProduction) {

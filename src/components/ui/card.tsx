@@ -5,11 +5,7 @@ import { cn } from "@/lib/utils";
 const cardVariants = cva("rounded-lg ring-1", {
 	variants: {
 		variant: {
-			/** A sheet lying on the desk. */
 			default: "bg-sheet ring-ink/10",
-			/** Same sheet, flat — for lists of many. */
-			flat: "bg-sheet ring-ink/10",
-			/** Recessed, for notes and side information. */
 			muted: "bg-ink/[0.03] ring-ink/10",
 			success: "bg-ok-soft ring-ok/20",
 			destructive: "bg-seal-soft ring-seal/20",
