@@ -39,54 +39,69 @@ export function nextReleaseSentence(summary: JpaReleaseSummary): string {
 	return `Die nächsten Ergebnisse beim ${summary.name} erwarten wir ${next}, zuletzt veröffentlicht am ${formatLongDate(summary.lastRelease)}.`;
 }
 
+/** The home page's questions; kept to the four people ask before signing up. */
 export function landingFaqs(
 	jpaNames: string[],
 	summaries: JpaReleaseSummary[],
 ): Faq[] {
-	const offices = listNames(jpaNames);
-	const upcoming = summaries.filter((s) => s.prediction !== null);
+	// Offices expected on the same day share one date: "OLG Hamm und OLG Köln
+	// am 30. Oktober 2026". Summaries come sorted soonest first.
+	const byDate = new Map<string, string[]>();
+	for (const s of summaries) {
+		if (!s.prediction) continue;
+		const date = formatLongDate(s.prediction.date);
+		byDate.set(date, [...(byDate.get(date) ?? []), s.name]);
+	}
+	const upcoming = [...byDate].map(
+		([date, names]) => `${listNames(names)} am ${date}`,
+	);
 
 	return [
 		{
 			question: "Wann kommen die Ergebnisse im ersten Staatsexamen?",
-			answer: [
-				"Das hängt vom Justizprüfungsamt ab: Jedes Amt veröffentlicht die Ergebnisse der Klausuren in seinem eigenen Rhythmus auf seiner Website, meist gesammelt zu einem festen Zeitpunkt im Monat. Die Prüfungsämter in NRW veröffentlichen fast immer am letzten Werktag eines Monats.",
-				...upcoming.map(nextReleaseSentence),
-			].join(" "),
+			answer: `Das hängt vom Justizprüfungsamt ab. Die Prüfungsämter in NRW veröffentlichen die Ergebnisse fast immer am letzten Werktag eines Monats.${upcoming.length > 0 ? ` Als Nächstes erwarten wir ${listNames(upcoming)}.` : ""}`,
 		},
 		{
 			question:
 				"Wie werde ich benachrichtigt, wenn meine Examensergebnisse online sind?",
 			answer:
-				"Mit Examensradar: Du wählst dein Justizprüfungsamt aus und gibst deine E-Mail-Adresse ein. Wir prüfen die Ergebnisseite des Amts alle paar Minuten und schicken dir eine E-Mail, sobald dort neue Ergebnisse stehen. So musst du die Seite nicht ständig neu laden.",
+				"Mit Examensradar: Justizprüfungsamt auswählen, E-Mail-Adresse eingeben, fertig. Wir prüfen die Ergebnisseite alle paar Minuten und schicken dir eine E-Mail, sobald dort neue Ergebnisse stehen. Kostenlos, ohne Konto, jederzeit abbestellbar.",
 			signupCta: "Jetzt Benachrichtigung einrichten",
 		},
 		{
-			question: "Kostet Examensradar etwas? Brauche ich ein Konto?",
-			answer:
-				"Nein. Examensradar ist kostenlos, ohne App und ohne Konto. Du bestätigst nur einmal deine E-Mail-Adresse und kannst die Benachrichtigung über den Link in jeder E-Mail jederzeit abbestellen.",
-		},
-		{
 			question: "Für welche Justizprüfungsämter gibt es Benachrichtigungen?",
-			answer: `Aktuell für die Justizprüfungsämter ${offices}. Weitere Prüfungsämter kommen nach und nach dazu.`,
+			answer: `Aktuell für die Justizprüfungsämter ${listNames(jpaNames)}. Weitere Prüfungsämter kommen nach und nach dazu.`,
 		},
 		{
 			question: "Gilt das auch für das zweite Staatsexamen?",
 			answer:
 				"Nein. Examensradar deckt nur das erste Examen (die staatliche Pflichtfachprüfung) ab. Im zweiten Staatsexamen bekommst du deine Ergebnisse direkt vom Prüfungsamt.",
 		},
-		{
-			question: "Wie genau ist die Prognose für den nächsten Termin?",
-			answer:
-				"Wir rechnen aus allen bisher erfassten Veröffentlichungen eines Amts hoch, in welchem Abstand und an welcher Stelle im Monat es veröffentlicht. Je mehr Termine vorliegen, desto sicherer die Prognose. Verbindlich ist nur, was das Prüfungsamt selbst veröffentlicht; genau dafür gibt es die E-Mail.",
-		},
-		{
-			question: "Ist Examensradar ein Angebot der Justiz?",
-			answer:
-				"Nein. Examensradar ist ein unabhängiges Projekt und nicht mit den Justizprüfungsämtern verbunden. Wir lesen nur die öffentlichen Ergebnisseiten der Ämter mit und verlinken immer auf die offizielle Quelle.",
-		},
 	];
 }
+
+/** Questions about the forecasts and where they come from, for /history. */
+export const historyFaqs: Faq[] = [
+	{
+		question: "Wie genau ist die Prognose für den nächsten Termin?",
+		answer:
+			"Wir rechnen aus allen bisher erfassten Veröffentlichungen eines Amts hoch, in welchem Abstand und an welcher Stelle im Monat es veröffentlicht. Je mehr Termine vorliegen, desto sicherer die Prognose. Verbindlich ist nur, was das Prüfungsamt selbst veröffentlicht; genau dafür gibt es die E-Mail.",
+	},
+	{
+		question: "Ist Examensradar ein Angebot der Justiz?",
+		answer:
+			"Nein. Examensradar ist ein unabhängiges Projekt und nicht mit den Justizprüfungsämtern verbunden. Wir lesen nur die öffentlichen Ergebnisseiten der Ämter mit und verlinken immer auf die offizielle Quelle.",
+	},
+];
+
+/** Answered on the pages in passing; spelled out only in llms.txt. */
+export const extraFaqs: Faq[] = [
+	{
+		question: "Kostet Examensradar etwas? Brauche ich ein Konto?",
+		answer:
+			"Nein. Examensradar ist kostenlos, ohne App und ohne Konto. Du bestätigst nur einmal deine E-Mail-Adresse und kannst die Benachrichtigung über den Link in jeder E-Mail jederzeit abbestellen.",
+	},
+];
 
 export function jpaFaqs(name: string, summary: JpaReleaseSummary | undefined) {
 	const faqs: Faq[] = [];

@@ -6,6 +6,7 @@ import {
 	ExternalLink,
 } from "lucide-react";
 import { Fragment, useState } from "react";
+import { FaqList } from "@/components/FaqList";
 import { Footer } from "@/components/Footer";
 import {
 	JpaSearchEmpty,
@@ -15,6 +16,7 @@ import {
 import { Card } from "@/components/ui/card";
 import { PredictionNote } from "@/components/ui/date-chip";
 import { Eyebrow, SectionIntro } from "@/components/ui/heading";
+import { historyFaqs } from "@/lib/faq";
 import {
 	CONFIDENCE_LABEL,
 	formatDayMonth,
@@ -24,20 +26,22 @@ import {
 	relativeLabel,
 	summarizeReleases,
 } from "@/lib/release-summary";
-import { jpaParam, seo } from "@/lib/seo";
+import { faqJsonLd, jpaParam, seo } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 import { getPublicData } from "@/server/public-data";
 
 export const Route = createFileRoute("/history/")({
 	loader: () => getPublicData(),
-	head: () =>
-		seo({
+	head: () => ({
+		...seo({
 			title:
 				"Wann kommen die Examensergebnisse? Termine & Prognose | Examensradar",
 			description:
 				"Alle bisherigen Veröffentlichungstermine der Justizprüfungsämter im ersten Staatsexamen mit Wochentag und Uhrzeit – und wann die nächsten Examensergebnisse voraussichtlich kommen.",
 			path: "/history",
 		}),
+		scripts: [faqJsonLd(historyFaqs)],
+	}),
 	component: HistoryPage,
 });
 
@@ -381,6 +385,13 @@ function HistoryPage() {
 							)}
 						</>
 					)}
+
+					<section className="mt-16">
+						<h2 className="text-2xl font-semibold leading-tight mb-5">
+							Zu den Prognosen
+						</h2>
+						<FaqList faqs={historyFaqs} />
+					</section>
 				</div>
 			</div>
 			<Footer jpas={jpas} />

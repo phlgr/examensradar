@@ -1,6 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getJpas, getNotificationHistory } from "@/db";
-import { landingFaqs, nextReleaseSentence } from "@/lib/faq";
+import {
+	extraFaqs,
+	historyFaqs,
+	landingFaqs,
+	nextReleaseSentence,
+} from "@/lib/faq";
 import { summarizeReleases } from "@/lib/release-summary";
 import { formatLongDate, jpaPath, SITE_URL } from "@/lib/seo";
 
@@ -28,10 +33,14 @@ export const Route = createFileRoute("/llms.txt")({
 					return `- [Examensergebnisse ${jpa.name}](${SITE_URL}${jpaPath(jpa.slug)}): ${status}`;
 				});
 
-				const faqs = landingFaqs(
-					jpas.map((jpa) => jpa.name),
-					summaries,
-				);
+				const faqs = [
+					...landingFaqs(
+						jpas.map((jpa) => jpa.name),
+						summaries,
+					),
+					...extraFaqs,
+					...historyFaqs,
+				];
 
 				const body = `# Examensradar
 
