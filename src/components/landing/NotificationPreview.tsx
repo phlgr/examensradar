@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, Radar } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
+import { resultsSentence, resultsSubject } from "@/lib/mail-templates";
 import type { ReleasePrediction } from "@/lib/prediction";
 import {
 	CONFIDENCE_LABEL,
@@ -132,11 +133,14 @@ export function NotificationPreview({
 
 					<div className="px-5 sm:px-6 pt-5 pb-6">
 						<p className="headline text-[1.6rem] sm:text-[1.85rem] leading-[1.1] mb-3 pr-16 sm:pr-20">
-							Neue Ergebnisse: {name}
+							{resultsSubject(name)}
 						</p>
 						<p className="text-[15px] text-ink/75 leading-relaxed">
-							Das <strong className="font-semibold text-ink">{name}</strong> hat
-							neue Examensergebnisse veröffentlicht.
+							{resultsSentence(
+								<strong key="name" className="font-semibold text-ink">
+									{name}
+								</strong>,
+							)}
 						</p>
 						<Link
 							to="/history"

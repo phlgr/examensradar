@@ -3,13 +3,13 @@ import { z } from "zod";
 import {
 	createJpa,
 	deleteJpa,
+	dropScrapeBaseline,
 	getJpaById,
 	getJpaBySlug,
 	getJpas,
 	getNotificationHistory,
 	getScrapeStates,
 	getSubscriptionCountsByJpa,
-	resetScrapeState,
 	updateJpa,
 } from "@/db";
 import { checkJpa } from "../scraper";
@@ -44,9 +44,7 @@ export const jpaRouter = router({
 		)
 		.mutation(async ({ input }) => {
 			const jpa = await createJpa(input);
-			if (jpa.scrapeUrl && jpa.scrapeSelector) {
-				await checkJpa(jpa);
-			}
+			await checkJpa(jpa);
 			return jpa;
 		}),
 
@@ -79,10 +77,8 @@ export const jpaRouter = router({
 					data.scrapeSelector !== existing.scrapeSelector);
 
 			if (updated && scrapeConfigChanged) {
-				await resetScrapeState(id);
-				if (updated.scrapeUrl && updated.scrapeSelector) {
-					await checkJpa(updated);
-				}
+				await dropScrapeBaseline(id);
+				await checkJpa(updated);
 			}
 
 			return updated;
