@@ -1,3 +1,10 @@
-# https://www.robotstxt.org/robotstxt.html
+# Search engines and AI assistants are welcome on the public pages.
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /admin
+Disallow: /api/
+Disallow: /confirm/
+Disallow: /unsubscribe/
+Disallow: /subscriptions
+
+Sitemap: https://examensradar.de/sitemap.xml

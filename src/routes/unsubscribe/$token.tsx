@@ -5,8 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { StatusPage, statusLinkClass } from "@/components/ui/status-page";
 import { trackEvent } from "@/lib/analytics";
+import { noindex } from "@/lib/seo";
 
 export const Route = createFileRoute("/unsubscribe/$token")({
+	head: () => ({ meta: [{ title: "Abmelden | Examensradar" }, noindex] }),
 	component: UnsubscribePage,
 });
 

@@ -1,6 +1,13 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { CalendarClock, ChevronDown, ExternalLink } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import {
+	ArrowRight,
+	CalendarClock,
+	ChevronDown,
+	ExternalLink,
+} from "lucide-react";
 import { Fragment, useState } from "react";
+import { FaqList } from "@/components/FaqList";
+import { Footer } from "@/components/Footer";
 import {
 	JpaSearchEmpty,
 	JpaSearchInput,
@@ -9,7 +16,7 @@ import {
 import { Card } from "@/components/ui/card";
 import { PredictionNote } from "@/components/ui/date-chip";
 import { Eyebrow, SectionIntro } from "@/components/ui/heading";
-import { PageSpinner } from "@/components/ui/spinner";
+import { historyFaqs } from "@/lib/faq";
 import {
 	CONFIDENCE_LABEL,
 	formatDayMonth,
@@ -19,10 +26,22 @@ import {
 	relativeLabel,
 	summarizeReleases,
 } from "@/lib/release-summary";
-import { trpc } from "@/lib/trpc";
+import { faqJsonLd, jpaParam, seo } from "@/lib/seo";
 import { cn } from "@/lib/utils";
+import { getPublicData } from "@/server/public-data";
 
 export const Route = createFileRoute("/history/")({
+	loader: () => getPublicData(),
+	head: () => ({
+		...seo({
+			title:
+				"Wann kommen die Examensergebnisse? Termine & Prognose | Examensradar",
+			description:
+				"Alle bisherigen Veröffentlichungstermine der Justizprüfungsämter im ersten Staatsexamen mit Wochentag und Uhrzeit – und wann die nächsten Examensergebnisse voraussichtlich kommen.",
+			path: "/history",
+		}),
+		scripts: [faqJsonLd(historyFaqs)],
+	}),
 	component: HistoryPage,
 });
 
@@ -274,17 +293,27 @@ function JpaDetails({
 								))}
 							</ul>
 						</div>
-						{summary.websiteUrl && (
-							<a
-								href={summary.websiteUrl}
-								target="_blank"
-								rel="noopener noreferrer"
-								className="text-sm font-medium text-seal inline-flex items-center gap-1 underline decoration-1 underline-offset-4 hover:decoration-2"
+						<div className="flex flex-wrap gap-x-6 gap-y-2">
+							<Link
+								to="/ergebnisse/$jpa"
+								params={{ jpa: jpaParam(summary.slug) }}
+								className="text-sm font-medium inline-flex items-center gap-1 underline decoration-1 underline-offset-4 hover:decoration-2"
 							>
-								Website des Prüfungsamts
-								<ExternalLink className="w-3.5 h-3.5 shrink-0" />
-							</a>
-						)}
+								Examensergebnisse {summary.name}
+								<ArrowRight className="w-3.5 h-3.5 shrink-0" />
+							</Link>
+							{summary.websiteUrl && (
+								<a
+									href={summary.websiteUrl}
+									target="_blank"
+									rel="noopener noreferrer"
+									className="text-sm font-medium text-seal inline-flex items-center gap-1 underline decoration-1 underline-offset-4 hover:decoration-2"
+								>
+									Website des Prüfungsamts
+									<ExternalLink className="w-3.5 h-3.5 shrink-0" />
+								</a>
+							)}
+						</div>
 					</div>
 				</div>
 			</details>
@@ -293,70 +322,79 @@ function JpaDetails({
 }
 
 function HistoryPage() {
-	const historyQuery = trpc.jpa.getHistory.useQuery();
-	const summaries = summarizeReleases(historyQuery.data ?? [], new Date());
+	const { jpas, history } = Route.useLoaderData();
+	const summaries = summarizeReleases(history, new Date());
 	const search = useJpaSearch(summaries);
 
-	if (historyQuery.isLoading) return <PageSpinner />;
-
 	return (
-		<div className="flex-1 py-12 sm:py-20 px-4 sm:px-6">
-			<div className="max-w-4xl mx-auto">
-				<SectionIntro
-					as="h1"
-					title="Wann kommen die Ergebnisse?"
-					className="mb-10 sm:mb-14"
-				>
-					Hier siehst du, wann die Justizprüfungsämter bisher Examensergebnisse
-					veröffentlicht haben – und wann die nächsten voraussichtlich kommen.
-				</SectionIntro>
+		<>
+			<div className="flex-1 py-12 sm:py-20 px-4 sm:px-6">
+				<div className="max-w-4xl mx-auto">
+					<SectionIntro
+						as="h1"
+						title="Wann kommen die Ergebnisse?"
+						className="mb-10 sm:mb-14"
+					>
+						Hier siehst du, wann die Justizprüfungsämter bisher
+						Examensergebnisse veröffentlicht haben – und wann die nächsten
+						voraussichtlich kommen.
+					</SectionIntro>
 
-				{summaries.length === 0 ? (
-					<Card className="p-10 text-center">
-						<CalendarClock className="w-8 h-8 mx-auto mb-4 text-seal" />
-						<p className="text-lg text-ink/70">
-							Noch keine Veröffentlichungen erfasst. Sobald ein Prüfungsamt
-							Ergebnisse veröffentlicht, erscheint es hier.
-						</p>
-					</Card>
-				) : (
-					<>
-						<Overview summaries={summaries} />
+					{summaries.length === 0 ? (
+						<Card className="p-10 text-center">
+							<CalendarClock className="w-8 h-8 mx-auto mb-4 text-seal" />
+							<p className="text-lg text-ink/70">
+								Noch keine Veröffentlichungen erfasst. Sobald ein Prüfungsamt
+								Ergebnisse veröffentlicht, erscheint es hier.
+							</p>
+						</Card>
+					) : (
+						<>
+							<Overview summaries={summaries} />
 
-						<div className="flex flex-wrap items-end justify-between gap-4 mb-5">
-							<div>
-								<h2 className="text-2xl font-semibold leading-tight">
-									Nach Prüfungsamt
-								</h2>
-								<p className="text-[15px] text-ink/55 mt-1">
-									Sortiert nach der nächsten erwarteten Veröffentlichung. Wähle
-									ein Amt aus, um Details zu sehen.
-								</p>
-							</div>
-							{search.searchable && (
-								<JpaSearchInput
-									value={search.search}
-									onChange={search.setSearch}
-								/>
-							)}
-						</div>
-
-						{search.empty ? (
-							<JpaSearchEmpty query={search.search} />
-						) : (
-							<div className="space-y-3">
-								{search.visible.map((summary, index) => (
-									<JpaDetails
-										key={summary.slug}
-										summary={summary}
-										defaultOpen={index === 0}
+							<div className="flex flex-wrap items-end justify-between gap-4 mb-5">
+								<div>
+									<h2 className="text-2xl font-semibold leading-tight">
+										Nach Prüfungsamt
+									</h2>
+									<p className="text-[15px] text-ink/55 mt-1">
+										Sortiert nach der nächsten erwarteten Veröffentlichung.
+										Wähle ein Amt aus, um Details zu sehen.
+									</p>
+								</div>
+								{search.searchable && (
+									<JpaSearchInput
+										value={search.search}
+										onChange={search.setSearch}
 									/>
-								))}
+								)}
 							</div>
-						)}
-					</>
-				)}
+
+							{search.empty ? (
+								<JpaSearchEmpty query={search.search} />
+							) : (
+								<div className="space-y-3">
+									{search.visible.map((summary, index) => (
+										<JpaDetails
+											key={summary.slug}
+											summary={summary}
+											defaultOpen={index === 0}
+										/>
+									))}
+								</div>
+							)}
+						</>
+					)}
+
+					<section className="mt-16">
+						<h2 className="text-2xl font-semibold leading-tight mb-5">
+							Zu den Prognosen
+						</h2>
+						<FaqList faqs={historyFaqs} />
+					</section>
+				</div>
 			</div>
-		</div>
+			<Footer jpas={jpas} />
+		</>
 	);
 }

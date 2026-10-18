@@ -10,9 +10,12 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as LlmsDottxtRouteImport } from './routes/llms[.]txt'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as ConfirmTokenRouteImport } from './routes/confirm/$token'
+import { Route as ErgebnisseJpaRouteImport } from './routes/ergebnisse/$jpa'
 import { Route as HistoryIndexRouteImport } from './routes/history/index'
 import { Route as SubscriptionsIndexRouteImport } from './routes/subscriptions/index'
 import { Route as UnsubscribeTokenRouteImport } from './routes/unsubscribe/$token'
@@ -25,6 +28,16 @@ import { Route as ApiEmailUnsubscribeTokenRouteImport } from './routes/api/email
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LlmsDottxtRoute = LlmsDottxtRouteImport.update({
+  id: '/llms.txt',
+  path: '/llms.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
@@ -40,6 +53,11 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
 const ConfirmTokenRoute = ConfirmTokenRouteImport.update({
   id: '/confirm/$token',
   path: '/confirm/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ErgebnisseJpaRoute = ErgebnisseJpaRouteImport.update({
+  id: '/ergebnisse/$jpa',
+  path: '/ergebnisse/$jpa',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HistoryIndexRoute = HistoryIndexRouteImport.update({
@@ -86,8 +104,11 @@ const ApiEmailUnsubscribeTokenRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/llms.txt': typeof LlmsDottxtRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/login': typeof AdminLoginRoute
   '/confirm/$token': typeof ConfirmTokenRoute
+  '/ergebnisse/$jpa': typeof ErgebnisseJpaRoute
   '/unsubscribe/$token': typeof UnsubscribeTokenRoute
   '/admin/': typeof AdminIndexRoute
   '/history/': typeof HistoryIndexRoute
@@ -100,8 +121,11 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/llms.txt': typeof LlmsDottxtRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/login': typeof AdminLoginRoute
   '/confirm/$token': typeof ConfirmTokenRoute
+  '/ergebnisse/$jpa': typeof ErgebnisseJpaRoute
   '/unsubscribe/$token': typeof UnsubscribeTokenRoute
   '/admin': typeof AdminIndexRoute
   '/history': typeof HistoryIndexRoute
@@ -115,8 +139,11 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/llms.txt': typeof LlmsDottxtRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/login': typeof AdminLoginRoute
   '/confirm/$token': typeof ConfirmTokenRoute
+  '/ergebnisse/$jpa': typeof ErgebnisseJpaRoute
   '/unsubscribe/$token': typeof UnsubscribeTokenRoute
   '/admin/': typeof AdminIndexRoute
   '/history/': typeof HistoryIndexRoute
@@ -131,8 +158,11 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/llms.txt'
+    | '/sitemap.xml'
     | '/admin/login'
     | '/confirm/$token'
+    | '/ergebnisse/$jpa'
     | '/unsubscribe/$token'
     | '/admin/'
     | '/history/'
@@ -145,8 +175,11 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/llms.txt'
+    | '/sitemap.xml'
     | '/admin/login'
     | '/confirm/$token'
+    | '/ergebnisse/$jpa'
     | '/unsubscribe/$token'
     | '/admin'
     | '/history'
@@ -159,8 +192,11 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/llms.txt'
+    | '/sitemap.xml'
     | '/admin/login'
     | '/confirm/$token'
+    | '/ergebnisse/$jpa'
     | '/unsubscribe/$token'
     | '/admin/'
     | '/history/'
@@ -174,8 +210,11 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  LlmsDottxtRoute: typeof LlmsDottxtRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   AdminLoginRoute: typeof AdminLoginRoute
   ConfirmTokenRoute: typeof ConfirmTokenRoute
+  ErgebnisseJpaRoute: typeof ErgebnisseJpaRoute
   UnsubscribeTokenRoute: typeof UnsubscribeTokenRoute
   AdminIndexRoute: typeof AdminIndexRoute
   HistoryIndexRoute: typeof HistoryIndexRoute
@@ -194,6 +233,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/llms.txt': {
+      id: '/llms.txt'
+      path: '/llms.txt'
+      fullPath: '/llms.txt'
+      preLoaderRoute: typeof LlmsDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/': {
@@ -215,6 +268,13 @@ declare module '@tanstack/react-router' {
       path: '/confirm/$token'
       fullPath: '/confirm/$token'
       preLoaderRoute: typeof ConfirmTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ergebnisse/$jpa': {
+      id: '/ergebnisse/$jpa'
+      path: '/ergebnisse/$jpa'
+      fullPath: '/ergebnisse/$jpa'
+      preLoaderRoute: typeof ErgebnisseJpaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/history/': {
@@ -278,8 +338,11 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  LlmsDottxtRoute: LlmsDottxtRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   AdminLoginRoute: AdminLoginRoute,
   ConfirmTokenRoute: ConfirmTokenRoute,
+  ErgebnisseJpaRoute: ErgebnisseJpaRoute,
   UnsubscribeTokenRoute: UnsubscribeTokenRoute,
   AdminIndexRoute: AdminIndexRoute,
   HistoryIndexRoute: HistoryIndexRoute,

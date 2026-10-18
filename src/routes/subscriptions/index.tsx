@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { PageSpinner } from "@/components/ui/spinner";
 import { trackEvent } from "@/lib/analytics";
 import { summarizeReleases } from "@/lib/release-summary";
+import { noindex } from "@/lib/seo";
 import { trpc } from "@/lib/trpc";
 
 // The param must not make validateSearch throw: mail clients truncate links,
@@ -33,6 +34,9 @@ const searchSchema = z.object({
 });
 
 export const Route = createFileRoute("/subscriptions/")({
+	head: () => ({
+		meta: [{ title: "Benachrichtigungen verwalten | Examensradar" }, noindex],
+	}),
 	validateSearch: searchSchema,
 	component: SubscriptionsPage,
 });

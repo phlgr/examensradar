@@ -4,8 +4,10 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { fieldClass, labelClass } from "@/components/ui/input";
+import { noindex } from "@/lib/seo";
 
 export const Route = createFileRoute("/admin/login")({
+	head: () => ({ meta: [{ title: "Admin Login | Examensradar" }, noindex] }),
 	component: AdminLoginPage,
 });
 

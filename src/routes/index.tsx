@@ -1,13 +1,34 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+import { FaqList } from "@/components/FaqList";
+import { Footer } from "@/components/Footer";
 import { NotificationPreview } from "@/components/landing/NotificationPreview";
 import { Reveal } from "@/components/landing/Reveal";
 import { UpcomingReleases } from "@/components/landing/UpcomingReleases";
 import { SignupForm } from "@/components/SignupForm";
+import { landingFaqs } from "@/lib/faq";
 import { summarizeReleases } from "@/lib/release-summary";
-import { trpc } from "@/lib/trpc";
+import { faqJsonLd, seo } from "@/lib/seo";
+import { getPublicData } from "@/server/public-data";
 
-export const Route = createFileRoute("/")({ component: LandingPage });
+export const Route = createFileRoute("/")({
+	loader: () => getPublicData(),
+	head: ({ loaderData }) => {
+		const page = seo({
+			title: "Examensradar – E-Mail, sobald die Examensergebnisse da sind",
+			description:
+				"Wann kommen die Examensergebnisse? Examensradar schickt dir eine E-Mail, sobald dein Justizprüfungsamt neue Ergebnisse im ersten Staatsexamen veröffentlicht – mit Prognose für den nächsten Termin. Kostenlos, ohne Konto.",
+			path: "/",
+		});
+		if (!loaderData) return page;
+		const faqs = landingFaqs(
+			loaderData.jpas.map((jpa) => jpa.name),
+			summarizeReleases(loaderData.history, new Date()),
+		);
+		return { ...page, scripts: [faqJsonLd(faqs)] };
+	},
+	component: LandingPage,
+});
 
 const STEPS = [
 	{
@@ -37,18 +58,17 @@ function Keycap({ children }: { children: string }) {
 }
 
 function LandingPage() {
-	const jpasQuery = trpc.jpa.getAll.useQuery();
-	const historyQuery = trpc.jpa.getHistory.useQuery();
-	const [jpaId, setJpaId] = useState("");
+	const { jpas, history } = Route.useLoaderData();
+	// Preselect the first office, so a single-office deployment needs no extra
+	// click and the preview has something to show.
+	const [jpaId, setJpaId] = useState(jpas[0]?.id ?? "");
 
-	// Preselect the first office once the list is in, so a single-office
-	// deployment needs no extra click and the preview has something to show.
-	useEffect(() => {
-		if (!jpaId && jpasQuery.data?.[0]) setJpaId(jpasQuery.data[0].id);
-	}, [jpasQuery.data, jpaId]);
-
-	const selectedJpa = jpasQuery.data?.find((jpa) => jpa.id === jpaId);
-	const summaries = summarizeReleases(historyQuery.data ?? [], new Date());
+	const selectedJpa = jpas.find((jpa) => jpa.id === jpaId);
+	const summaries = summarizeReleases(history, new Date());
+	const faqs = landingFaqs(
+		jpas.map((jpa) => jpa.name),
+		summaries,
+	);
 	const summary = selectedJpa
 		? summaries.find((s) => s.slug === selectedJpa.slug)
 		: undefined;
@@ -70,6 +90,12 @@ function LandingPage() {
 
 				<div className="relative max-w-6xl mx-auto px-4 sm:px-6 sm:pl-12 pt-12 pb-20 sm:pt-20 sm:pb-28 grid gap-16 lg:gap-16 lg:grid-cols-[1.1fr_0.9fr] items-center">
 					<div>
+						<p
+							className="animate-rise text-sm font-semibold uppercase tracking-wide text-seal mb-5"
+							style={{ animationDelay: "20ms" }}
+						>
+							Examensergebnisse per E-Mail · Erstes Staatsexamen
+						</p>
 						<h1
 							className="animate-rise headline text-[clamp(3rem,11vw,5.6rem)] leading-[0.98] mb-7"
 							style={{ animationDelay: "60ms" }}
@@ -102,9 +128,9 @@ function LandingPage() {
 							style={{ animationDelay: "220ms" }}
 						>
 							<SignupForm
-								jpas={jpasQuery.data}
-								loading={jpasQuery.isLoading}
-								error={jpasQuery.isError}
+								jpas={jpas}
+								loading={false}
+								error={false}
 								jpaId={jpaId}
 								onJpaChange={setJpaId}
 								source="landing"
@@ -121,7 +147,7 @@ function LandingPage() {
 							prediction={summary?.prediction ?? null}
 							daysUntil={summary?.daysUntil ?? null}
 							lastRelease={summary?.lastRelease ?? null}
-							loading={historyQuery.isLoading}
+							loading={false}
 						/>
 					</div>
 				</div>
@@ -163,30 +189,21 @@ function LandingPage() {
 			</section>
 
 			{/* When? */}
-			<UpcomingReleases
-				summaries={summaries}
-				loading={historyQuery.isLoading}
-			/>
+			<UpcomingReleases summaries={summaries} loading={false} />
 
-			<footer className="px-4 sm:px-6 py-8 border-t border-ink/10">
-				<div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-ink/50">
-					<p>
-						&copy; {new Date().getFullYear()}{" "}
-						<span className="headline text-base text-ink/80">Examensradar</span>
-					</p>
-					<nav className="flex items-center gap-6">
-						<Link to="/history" className="hover:text-ink transition-colors">
-							Historie
-						</Link>
-						<Link
-							to="/subscriptions"
-							className="hover:text-ink transition-colors"
-						>
-							Benachrichtigungen
-						</Link>
-					</nav>
+			{/* FAQ */}
+			<section className="bg-sheet border-t border-ink/10 py-20 sm:py-28 px-4 sm:px-6">
+				<div className="max-w-6xl mx-auto">
+					<Reveal className="max-w-2xl mb-12 sm:mb-16">
+						<h2 className="headline text-[2.6rem] sm:text-6xl leading-[1.02]">
+							Häufige Fragen
+						</h2>
+					</Reveal>
+					<FaqList faqs={faqs} />
 				</div>
-			</footer>
+			</section>
+
+			<Footer jpas={jpas} />
 		</div>
 	);
 }

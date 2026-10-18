@@ -5,9 +5,13 @@ import { Card } from "@/components/ui/card";
 import { PageSpinner } from "@/components/ui/spinner";
 import { StatusPage, statusLinkClass } from "@/components/ui/status-page";
 import { trackEvent } from "@/lib/analytics";
+import { noindex } from "@/lib/seo";
 import { trpc } from "@/lib/trpc";
 
 export const Route = createFileRoute("/confirm/$token")({
+	head: () => ({
+		meta: [{ title: "Anmeldung bestätigen | Examensradar" }, noindex],
+	}),
 	component: ConfirmPage,
 });
 
