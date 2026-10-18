@@ -2,14 +2,15 @@ import { Database } from "bun:sqlite";
 import { afterAll, mock } from "bun:test";
 import { drizzle } from "drizzle-orm/bun-sqlite";
 import { migrate } from "drizzle-orm/bun-sqlite/migrator";
+import { openDatabase } from "./db/index.ts";
 
-const DB_PATH = `${process.env.TMPDIR ?? "/tmp"}/examensradar-test-${crypto.randomUUID()}.db`;
-process.env.DATABASE_PATH = DB_PATH;
+export const TEST_DB_PATH = `${process.env.TMPDIR ?? "/tmp"}/examensradar-test-${crypto.randomUUID()}.db`;
 
-const setup = new Database(DB_PATH);
+const setup = new Database(TEST_DB_PATH);
 setup.run("PRAGMA journal_mode = WAL");
 migrate(drizzle(setup), { migrationsFolder: "./drizzle/migrations" });
 setup.close();
+openDatabase(TEST_DB_PATH);
 
 export type SentMail = {
 	to: string;
@@ -33,7 +34,7 @@ process.env.SMTP_PASS = "test";
 
 afterAll(() => {
 	for (const suffix of ["", "-wal", "-shm"]) {
-		Bun.file(`${DB_PATH}${suffix}`)
+		Bun.file(`${TEST_DB_PATH}${suffix}`)
 			.delete()
 			.catch(() => {});
 	}
