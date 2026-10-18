@@ -84,12 +84,6 @@ function LandingPage() {
 
 				<div className="relative max-w-6xl mx-auto px-4 sm:px-6 sm:pl-12 pt-12 pb-20 sm:pt-20 sm:pb-28 grid gap-16 lg:gap-16 lg:grid-cols-[1.1fr_0.9fr] items-center">
 					<div>
-						<p
-							className="animate-rise text-sm font-semibold uppercase tracking-wide text-seal mb-5"
-							style={{ animationDelay: "20ms" }}
-						>
-							Examensergebnisse per E-Mail · Erstes Staatsexamen
-						</p>
 						<h1
 							className="animate-rise headline text-[clamp(3rem,11vw,5.6rem)] leading-[0.98] mb-7"
 							style={{ animationDelay: "60ms" }}
