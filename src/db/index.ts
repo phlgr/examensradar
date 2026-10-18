@@ -1,19 +1,33 @@
 import { Database } from "bun:sqlite";
 import { and, desc, eq, isNotNull, isNull, sql } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/bun-sqlite";
+import { type BunSQLiteDatabase, drizzle } from "drizzle-orm/bun-sqlite";
 import { nanoid } from "nanoid";
+import { CONFIRM_TTL_HOURS } from "@/lib/mail-templates";
 import * as schema from "./schema.ts";
 
 type JPA = typeof schema.jpa.$inferSelect;
 type AdminSession = typeof schema.adminSession.$inferSelect;
 type Subscriber = typeof schema.subscriber.$inferSelect;
 
-const DATABASE_PATH = process.env.DATABASE_PATH || "./data/examensradar.db";
+let connection: BunSQLiteDatabase<typeof schema> | undefined;
 
-const sqlite = new Database(DATABASE_PATH);
-sqlite.run("PRAGMA journal_mode = WAL");
+export const openDatabase = (path: string) => {
+	const sqlite = new Database(path);
+	sqlite.run("PRAGMA journal_mode = WAL");
+	connection = drizzle(sqlite, { schema });
+};
 
-const db = drizzle(sqlite, { schema });
+// Opens the default database on first query unless openDatabase ran first,
+// so importing this module has no side effects.
+const db = new Proxy({} as BunSQLiteDatabase<typeof schema>, {
+	get: (_, key) => {
+		if (!connection) {
+			openDatabase(process.env.DATABASE_PATH || "./data/examensradar.db");
+		}
+		const value = Reflect.get(connection as object, key);
+		return typeof value === "function" ? value.bind(connection) : value;
+	},
+});
 
 export const getJpas = async (): Promise<JPA[]> => {
 	return db.select().from(schema.jpa).all();
@@ -216,12 +230,6 @@ export const getSubscriptionCountsByJpa = async (): Promise<
 	return new Map(rows.map((row) => [row.jpaId, row.count]));
 };
 
-/**
- * An hour rather than minutes because greylisting at German providers can
- * defer first-contact delivery by up to ~30 minutes.
- */
-const CONFIRM_TTL_MS = 60 * 60 * 1000;
-
 const newToken = () => nanoid(32);
 
 export const normalizeEmail = (email: string): string =>
@@ -282,7 +290,9 @@ export const upsertPendingSubscriber = async (
 
 	const pending = {
 		confirmToken: newToken(),
-		confirmExpiresAt: new Date(now.getTime() + CONFIRM_TTL_MS),
+		confirmExpiresAt: new Date(
+			now.getTime() + CONFIRM_TTL_HOURS * 60 * 60 * 1000,
+		),
 		confirmedAt: null,
 		consentIp: ip,
 		consentAt: now,
