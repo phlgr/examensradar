@@ -33,7 +33,7 @@ export const scrapeState = sqliteTable("scrape_state", {
 	lastError: text("last_error"),
 });
 
-export const subscription = sqliteTable(
+export const legacyNtfySubscription = sqliteTable(
 	"subscription",
 	{
 		id: text("id").primaryKey(),
@@ -144,7 +144,7 @@ export const notificationLogRelations = relations(
 
 export const schema = {
 	jpa,
-	subscription,
+	legacyNtfySubscription,
 	subscriber,
 	emailSubscription,
 	notificationLog,

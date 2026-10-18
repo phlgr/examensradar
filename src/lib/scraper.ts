@@ -6,7 +6,8 @@ const RETRIES = 3;
 const INITIAL_RETRY_DELAY_MS = 1_000;
 const MAX_RETRY_DELAY_MS = 10_000;
 
-const USER_AGENT = "Mozilla/5.0 (compatible; WebsiteChangeDetection/1.0)";
+const LEGACY_CHANGEBOT_USER_AGENT =
+	"Mozilla/5.0 (compatible; WebsiteChangeDetection/1.0)";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -17,7 +18,7 @@ export async function fetchPage(url: string): Promise<string> {
 		try {
 			const response = await fetch(url, {
 				signal: AbortSignal.timeout(TIMEOUT_MS),
-				headers: { "User-Agent": USER_AGENT },
+				headers: { "User-Agent": LEGACY_CHANGEBOT_USER_AGENT },
 			});
 
 			if (!response.ok) {
