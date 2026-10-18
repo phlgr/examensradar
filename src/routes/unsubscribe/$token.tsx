@@ -14,11 +14,6 @@ export const Route = createFileRoute("/unsubscribe/$token")({
 
 type State = "idle" | "pending" | "done" | "invalid" | "error";
 
-/**
- * The human-facing footer link. Unsubscribing happens on a button press via
- * the POST-only API route — the same one Gmail's one-click uses — so a scanner
- * following this GET link changes nothing.
- */
 function UnsubscribePage() {
 	const { token } = Route.useParams();
 	const [state, setState] = useState<State>("idle");

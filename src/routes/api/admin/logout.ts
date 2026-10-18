@@ -17,7 +17,6 @@ export const Route = createFileRoute("/api/admin/logout")({
 
 					const cookieName = getAdminCookieName();
 
-					// Clear the cookie
 					return new Response(JSON.stringify({ success: true }), {
 						status: 200,
 						headers: {

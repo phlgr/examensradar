@@ -1,6 +1,3 @@
--- Seed data for Examensradar
-
--- Insert NRW JPA
 INSERT INTO jpa (id, slug, name, website_url, created_at)
 VALUES (
   'jpa-nrw-001',
@@ -13,8 +10,6 @@ ON CONFLICT (slug) DO UPDATE SET
   name = excluded.name,
   website_url = excluded.website_url;
 
--- The three OLG JPAs as they exist in production, including the scrape config
--- the in-app scraper runs on (formerly examensradar-changebot/.changebotrc.yml).
 INSERT INTO jpa (id, slug, name, website_url, scrape_url, scrape_selector, created_at)
 VALUES
   (
@@ -48,7 +43,6 @@ ON CONFLICT (slug) DO UPDATE SET
   scrape_url = excluded.scrape_url,
   scrape_selector = excluded.scrape_selector;
 
--- Mock notification history: 5 entries ~3 months apart for NRW
 INSERT INTO notification_log (id, jpa_id, sent_at, subscriber_count)
 VALUES
   ('mock-nrw-1', 'jpa-nrw-001', unixepoch('2024-12-13 10:17:00') * 1000, 12),

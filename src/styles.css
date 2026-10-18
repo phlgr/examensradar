@@ -2,9 +2,6 @@
 
 @import 'tw-animate-css';
 
-/* Self-hosted type (German audience — no Google Fonts requests). Fraunces, a
-   soft old-style serif, for headlines; Geist for reading; Geist Mono for dates
-   and counts. */
 @import '@fontsource-variable/fraunces/opsz.css';
 @import '@fontsource-variable/fraunces/opsz-italic.css';
 @import '@fontsource-variable/geist/wght.css';
@@ -12,9 +9,6 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* "Schönfelder & Textmarker": the law student's desk. Warm paper, ink, the red
-   of the Schönfelder binder as the one brand colour, a yellow highlighter for
-   what matters (dates, mostly). */
 :root {
   --ink: #17171a;
   --paper: #f4efe4;
@@ -52,7 +46,6 @@
   --animate-notify: notify 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.1) both;
   --animate-stamp: stamp 0.45s 0.9s cubic-bezier(0.3, 0, 0.3, 1.4) both;
 
-  /* The rubber stamp coming down on the mail. */
   @keyframes stamp {
     from {
       opacity: 0;
@@ -62,7 +55,6 @@
       transform: scale(1);
     }
   }
-  /* A fresh notification dropping onto the stack. */
   @keyframes notify {
     from {
       opacity: 0;
@@ -90,11 +82,8 @@
     @apply border-ink/10;
   }
 
-  /* Keep the scrollbar's space reserved so the header doesn't jump between
-     pages that scroll and pages that don't. */
   html {
     scrollbar-gutter: stable;
-    /* Anchor jumps (#anmelden) must clear the sticky 4rem header. */
     scroll-padding-top: 5rem;
   }
 
@@ -114,7 +103,6 @@
 }
 
 @layer utilities {
-  /* Headline serif at its display optical size. */
   .headline {
     font-family: var(--font-serif);
     font-optical-sizing: auto;
@@ -122,14 +110,12 @@
     letter-spacing: -0.03em;
   }
 
-  /* Figures that line up: dates, times, counts. */
   .figures {
     font-family: var(--font-figures);
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.01em;
   }
 
-  /* A highlighter stroke behind inline text, ragged at the ends like by hand. */
   .marker {
     background-image: linear-gradient(
       100deg,
@@ -147,7 +133,6 @@
     -webkit-box-decoration-break: clone;
     box-decoration-break: clone;
   }
-  /* The stroke drawn left to right as the hero enters. */
   .marker-draw {
     animation: marker-draw 0.9s 0.6s cubic-bezier(0.6, 0, 0.2, 1) both;
   }
@@ -160,7 +145,6 @@
     }
   }
 
-  /* Faint ruled lines, like a Klausurbogen. */
   .bg-ruled {
     background-image: linear-gradient(
       to bottom,
@@ -170,7 +154,6 @@
     background-size: 100% 2rem;
   }
 
-  /* Scroll-triggered reveal; `.reveal-hidden` is toggled by IntersectionObserver. */
   .reveal {
     transition:
       opacity 0.7s ease-out,

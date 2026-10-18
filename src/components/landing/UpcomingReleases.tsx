@@ -10,7 +10,6 @@ import {
 } from "@/lib/release-summary";
 import { cn } from "@/lib/utils";
 
-/** Offices listed under the calendar page before "und N weitere". */
 const MAX_ROWS = 3;
 
 interface UpcomingReleasesProps {
@@ -18,7 +17,6 @@ interface UpcomingReleasesProps {
 	loading: boolean;
 }
 
-/** One calendar page for the office expected to publish next. */
 function CalendarLeaf({ summary }: { summary: JpaReleaseSummary }) {
 	const { prediction, daysUntil } = summary;
 	if (!prediction || daysUntil === null) return null;
@@ -75,10 +73,6 @@ function CalendarLeaf({ summary }: { summary: JpaReleaseSummary }) {
 	);
 }
 
-/**
- * The "when?" section: the next expected publications from the real log, as
- * a teaser for the history page. Charts and patterns stay over there.
- */
 export function UpcomingReleases({
 	summaries,
 	loading,
@@ -88,7 +82,6 @@ export function UpcomingReleases({
 	const rows = others.slice(0, MAX_ROWS - 1);
 	const hidden = summaries.length - 1 - rows.length;
 
-	// Nothing to tease yet — don't show an empty promise.
 	if (!loading && !next) return null;
 
 	return (

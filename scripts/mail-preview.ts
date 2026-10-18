@@ -22,8 +22,6 @@ import {
 const JPA_NAME = "Justizprüfungsamt Hamm";
 const JPA_URL = "https://www.olg-hamm.nrw.de/";
 const CONFIRM_TOKEN = "VORSCHAU-CONFIRM-TOKEN-123";
-// Distinct on purpose, so a preview shows that the published unsubscribe link
-// never carries the manage credential.
 const TOKENS = {
 	manage: "VORSCHAU-MANAGE-TOKEN-123",
 	unsubscribe: "VORSCHAU-UNSUBSCRIBE-TOKEN-123",

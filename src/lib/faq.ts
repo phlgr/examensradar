@@ -5,20 +5,11 @@ import {
 } from "@/lib/release-summary";
 import { type Faq, formatLongDate } from "@/lib/seo";
 
-/**
- * The questions people actually type ("examen ergebnisse wann", "examen
- * ergebnisse köln wann", "examensergebnisse benachrichtigung"), answered in
- * plain sentences. Rendered on the page and mirrored as FAQPage JSON-LD, so
- * search snippets and AI assistants can quote the answer directly. Answers are
- * built from the live data, never hard-coded dates.
- */
-
 function listNames(names: string[]): string {
 	if (names.length <= 1) return names.join("");
 	return `${names.slice(0, -1).join(", ")} und ${names.at(-1)}`;
 }
 
-/** "am 30. Oktober 2026 (wahrscheinlich zwischen dem 29. Oktober und dem 2. November 2026)" */
 function predictionPhrase(summary: JpaReleaseSummary): string | null {
 	const { prediction } = summary;
 	if (!prediction) return null;
@@ -30,7 +21,6 @@ function predictionPhrase(summary: JpaReleaseSummary): string | null {
 	return `am ${formatLongDate(prediction.date)}${window}`;
 }
 
-/** One sentence per office: when it publishes next. */
 export function nextReleaseSentence(summary: JpaReleaseSummary): string {
 	const next = predictionPhrase(summary);
 	if (!next) {
@@ -39,13 +29,10 @@ export function nextReleaseSentence(summary: JpaReleaseSummary): string {
 	return `Die nächsten Ergebnisse beim ${summary.name} erwarten wir ${next}, zuletzt veröffentlicht am ${formatLongDate(summary.lastRelease)}.`;
 }
 
-/** The home page's questions; kept to the four people ask before signing up. */
 export function landingFaqs(
 	jpaNames: string[],
 	summaries: JpaReleaseSummary[],
 ): Faq[] {
-	// Offices expected on the same day share one date: "OLG Hamm und OLG Köln
-	// am 30. Oktober 2026". Summaries come sorted soonest first.
 	const byDate = new Map<string, string[]>();
 	for (const s of summaries) {
 		if (!s.prediction) continue;
@@ -80,7 +67,6 @@ export function landingFaqs(
 	];
 }
 
-/** Questions about the forecasts and where they come from, for /history. */
 export const historyFaqs: Faq[] = [
 	{
 		question: "Wie genau ist die Prognose für den nächsten Termin?",
@@ -94,7 +80,6 @@ export const historyFaqs: Faq[] = [
 	},
 ];
 
-/** Answered on the pages in passing; spelled out only in llms.txt. */
 export const extraFaqs: Faq[] = [
 	{
 		question: "Kostet Examensradar etwas? Brauche ich ein Konto?",

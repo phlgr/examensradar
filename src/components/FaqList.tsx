@@ -1,7 +1,6 @@
 import { ArrowUp } from "lucide-react";
 import type { Faq } from "@/lib/seo";
 
-/** Bring the page's signup form into view and put the cursor in the address field. */
 function jumpToSignup() {
 	document
 		.getElementById("anmelden")
@@ -9,11 +8,6 @@ function jumpToSignup() {
 	document.getElementById("signup-email")?.focus({ preventScroll: true });
 }
 
-/**
- * Questions and answers, always expanded: the answers are what people (and
- * the search engines quoting them) came for, so none of it hides behind a
- * click. Pair with `faqJsonLd` in the route's head.
- */
 export function FaqList({ faqs }: { faqs: Faq[] }) {
 	return (
 		<dl className="divide-y divide-ink/10 border-y border-ink/10">

@@ -1,8 +1,6 @@
 import { Database } from "bun:sqlite";
 import { afterAll, expect, test } from "bun:test";
 
-// The shared, already-migrated test DB that src/test-setup.ts (preloaded via
-// bunfig.toml) points src/db/index.ts at — a raw handle for direct inspection.
 const setup = new Database(process.env.DATABASE_PATH as string);
 
 const {
@@ -29,7 +27,6 @@ afterAll(() => {
 const jpa = async (slug: string) =>
 	createJpa({ name: `Justizprüfungsamt ${slug}`, slug });
 
-/** Pushes a subscriber's confirmation deadline into the past. */
 const expireConfirmToken = (email: string) =>
 	setup.run("UPDATE subscriber SET confirm_expires_at = ? WHERE email = ?", [
 		Date.now() - 1000,
@@ -39,8 +36,6 @@ const expireConfirmToken = (email: string) =>
 test("manage and unsubscribe tokens are distinct credentials", async () => {
 	const subscriber = await upsertPendingSubscriber("tokens@example.com", null);
 
-	// The unsubscribe token is published via List-Unsubscribe, so it must not be
-	// usable to read or alter the subscription.
 	expect(subscriber.unsubscribeToken).toBeTruthy();
 	expect(subscriber.unsubscribeToken).not.toBe(subscriber.manageToken);
 	expect(
@@ -59,7 +54,6 @@ test("a pending subscriber is never mailable", async () => {
 
 	expect(subscriber.confirmedAt).toBeNull();
 	expect(subscriber.confirmToken).toBeTruthy();
-	// The subscription exists — it just earns no mail until confirmed.
 	expect(await countEmailSubscriptionsByJpa(office.id)).toBe(1);
 	expect(await getMailableSubscribersByJpa(office.id)).toEqual([]);
 });
@@ -92,7 +86,6 @@ test("confirming makes the address mailable and consumes the link", async () => 
 	if (!confirmed) throw new Error("expected the confirmation to succeed");
 
 	expect(confirmed.confirmedAt).toBeInstanceOf(Date);
-	// Kept, so /confirm can recognize an already-used link.
 	expect(confirmed.confirmToken).toBe(token);
 	expect(confirmed.consentIp).toBe("1.2.3.4");
 
@@ -101,8 +94,6 @@ test("confirming makes the address mailable and consumes the link", async () => 
 	expect(mailable[0]?.email).toBe("confirm@example.com");
 	expect(mailable[0]?.manageToken).toBe(confirmed.manageToken);
 
-	// A used link still classifies (so /confirm can say "bestätigt") but is
-	// inert: replaying it confirms nothing and hands nothing out.
 	expect(await classifyConfirmToken(token)).toMatchObject({
 		state: "confirmed",
 	});
@@ -113,8 +104,6 @@ test("an active subscriber cannot be reset to pending", async () => {
 	const pending = await upsertPendingSubscriber("guard@example.com", null);
 	await confirmSubscriber(pending.confirmToken);
 
-	// The router resends the manage link for active addresses instead of
-	// upserting; a direct call must not silently stop their mail.
 	await expect(
 		upsertPendingSubscriber("guard@example.com", null),
 	).rejects.toThrow();
@@ -131,7 +120,6 @@ test("a used confirm link cannot undo a later unsubscribe", async () => {
 
 	await unsubscribeSubscriber(confirmed.id);
 
-	// The link was used before the opt-out, so replaying it is refused outright.
 	expect(await classifyConfirmToken(token)).toMatchObject({
 		state: "invalid",
 	});
@@ -159,8 +147,6 @@ test("a used confirm link still reads confirmed after the TTL", async () => {
 	await confirmSubscriber(pending.confirmToken);
 	expireConfirmToken("late@example.com");
 
-	// Reopening the mail hours later shows the done state, not "invalid" —
-	// the TTL only bounds the unused link. Replaying still grants nothing.
 	expect(await classifyConfirmToken(pending.confirmToken)).toMatchObject({
 		state: "confirmed",
 	});
@@ -174,7 +160,6 @@ test("one address may subscribe to several JPAs", async () => {
 	const pending = await upsertPendingSubscriber("multi@example.com", null);
 	await addEmailSubscription(pending.id, first.id);
 	await addEmailSubscription(pending.id, second.id);
-	// Adding the same pair again is a no-op rather than an error.
 	await addEmailSubscription(pending.id, first.id);
 	await confirmSubscriber(pending.confirmToken);
 
@@ -195,15 +180,12 @@ test("unsubscribing keeps the row as a suppression record", async () => {
 
 	await unsubscribeSubscriber(pending.id);
 
-	// Subscriptions are gone, but the address is remembered so it cannot be
-	// silently re-added by anyone typing it into the form.
 	const suppressed = await getSubscriberByEmail("unsub@example.com");
 	expect(suppressed).not.toBeNull();
 	expect(suppressed?.unsubscribedAt).toBeInstanceOf(Date);
 	expect(await getSubscriberJpas(pending.id)).toEqual([]);
 	expect(await getMailableSubscribersByJpa(office.id)).toEqual([]);
 
-	// The manage link still resolves, so the page can say "du bist abgemeldet".
 	expect(await getSubscriberByManageToken(pending.manageToken)).not.toBeNull();
 });
 
@@ -214,11 +196,9 @@ test("a fresh confirmed opt-in supersedes an earlier unsubscribe", async () => {
 	await confirmSubscriber(first.confirmToken);
 	await unsubscribeSubscriber(first.id);
 
-	// Signing up again re-runs double opt-in; only the address owner can finish.
 	const again = await upsertPendingSubscriber("resub@example.com", "5.6.7.8");
 	await addEmailSubscription(again.id, office.id);
 	expect(again.id).toBe(first.id);
-	// Genuinely pending again: the fresh link works, the used one is dead.
 	expect(again.confirmedAt).toBeNull();
 	expect(await classifyConfirmToken(again.confirmToken)).toMatchObject({
 		state: "pending",
@@ -231,6 +211,5 @@ test("a fresh confirmed opt-in supersedes an earlier unsubscribe", async () => {
 	const confirmed = await confirmSubscriber(again.confirmToken);
 	expect(confirmed?.unsubscribedAt).toBeNull();
 	expect(await getMailableSubscribersByJpa(office.id)).toHaveLength(1);
-	// The manage token survives, so links in older mail keep working.
 	expect(confirmed?.manageToken).toBe(first.manageToken);
 });

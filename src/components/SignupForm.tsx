@@ -8,23 +8,14 @@ import { cn } from "@/lib/utils";
 interface SignupFormProps {
 	jpas: Array<{ id: string; name: string }> | undefined;
 	loading: boolean;
-	/** The office list failed to load — say so instead of a dead form. */
 	error: boolean;
-	/** Selected office; owned by the page so the preview can follow it. */
 	jpaId: string;
 	onJpaChange: (jpaId: string) => void;
-	/** Page the signup came from, for the funnel in Plausible. */
 	source: "landing" | "subscriptions" | "jpa";
 }
 
-// A notch larger than fields elsewhere: this is the page's main action.
 const heroFieldClass = cn(fieldClass, "h-12");
 
-/**
- * The signup: pick an office, type an address, done. On the landing page and
- * on a signed-out /subscriptions. The reply is the same whether the address is
- * new or already subscribed — what actually happens is decided in the inbox.
- */
 export function SignupForm({
 	jpas,
 	loading,
@@ -42,8 +33,6 @@ export function SignupForm({
 		onSuccess: () => trackEvent("email_subscribe", { jpa: jpaName, source }),
 	});
 
-	// The form (and the focused submit button) is replaced on success; move
-	// focus onto the confirmation so keyboard and screen-reader users land on it.
 	useEffect(() => {
 		if (subscribe.isSuccess) successRef.current?.focus();
 	}, [subscribe.isSuccess]);

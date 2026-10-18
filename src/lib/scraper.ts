@@ -6,16 +6,10 @@ const RETRIES = 3;
 const INITIAL_RETRY_DELAY_MS = 1_000;
 const MAX_RETRY_DELAY_MS = 10_000;
 
-/**
- * Kept verbatim from the retired changebot so the JPA sites see the exact
- * client that has been polling them for months — a new UA is a new variable
- * with a WAF on the other side.
- */
 const USER_AGENT = "Mozilla/5.0 (compatible; WebsiteChangeDetection/1.0)";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-/** Fetches the raw HTML of a page, retrying with backoff. Throws when all attempts fail. */
 export async function fetchPage(url: string): Promise<string> {
 	let lastError: unknown;
 
@@ -47,15 +41,6 @@ export async function fetchPage(url: string): Promise<string> {
 	throw lastError instanceof Error ? lastError : new Error(String(lastError));
 }
 
-/**
- * Narrows a page to the watched section, returning its inner HTML.
- *
- * Null when the selector matches nothing. That is deliberately NOT a fallback
- * to the whole page (which is what changebot did): a vanished selector means
- * the site was restructured, and diffing the full page instead would turn the
- * relaunch — or any cookie-banner tweak — into a false "new results" mail to
- * every subscriber. A broken selector must surface as an error, not a change.
- */
 export function extractContent(html: string, selector: string): string | null {
 	const $ = cheerio.load(html);
 	const element = $(selector).first();

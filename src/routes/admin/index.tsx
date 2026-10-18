@@ -92,7 +92,6 @@ function AdminPage() {
 	const updateJpa = trpc.jpa.update.useMutation({
 		onSuccess: () => {
 			jpasQuery.refetch();
-			// Saving a changed scrape config resets and re-baselines on the server.
 			scrapeStatesQuery.refetch();
 			setEditingJpa(null);
 		},

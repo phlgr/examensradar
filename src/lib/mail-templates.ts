@@ -1,6 +1,5 @@
 import type { Mail } from "./mail";
 
-/** A rendered mail, less the recipient. */
 export type MailContent = Omit<Mail, "to">;
 
 /**
@@ -21,30 +20,15 @@ const SERIF = "Georgia,'Times New Roman',serif";
 
 const appUrl = () => process.env.APP_URL || "https://examensradar.de";
 
-/**
- * The two credentials a subscriber mail can carry. They are separate because
- * the unsubscribe URL is handed to Gmail via List-Unsubscribe and therefore
- * published, while the manage token must not be.
- */
 export interface MailTokens {
 	manage: string;
 	unsubscribe: string;
 }
 
-// Route paths stay English like the rest of the app; only the copy is German.
-/**
- * The manage entry point. The page exchanges the query param for an httpOnly
- * cookie and scrubs it from the URL.
- */
 const manageUrl = (token: string) =>
 	`${appUrl()}/subscriptions?manage=${token}`;
 const confirmUrl = (token: string) => `${appUrl()}/confirm/${token}`;
-/** The page a human lands on from the footer link. */
 const unsubscribeUrl = (token: string) => `${appUrl()}/unsubscribe/${token}`;
-/**
- * POST-only, machine-facing. This is what Gmail one-clicks, so it renders
- * nothing and can do nothing but unsubscribe.
- */
 const unsubscribePostUrl = (token: string) =>
 	`${appUrl()}/api/email/unsubscribe/${token}`;
 
@@ -65,10 +49,8 @@ function button(url: string, label: string): string {
 
 interface LayoutOptions {
 	heading: string;
-	/** Already-escaped HTML for the body paragraphs. */
 	body: string;
 	cta?: { url: string; label: string };
-	/** Already-escaped HTML for the small print under the card. */
 	footer: string;
 }
 
@@ -103,22 +85,11 @@ const paragraph = (html: string) =>
 const footerLink = (url: string, label: string) =>
 	`<a href="${escapeHtml(url)}" style="color:${MUTED}">${escapeHtml(label)}</a>`;
 
-/** Small print carried by every mail sent to a confirmed subscriber. */
 function subscriberFooter(tokens: MailTokens): string {
 	return `Du erhältst diese E-Mail, weil du dich auf examensradar.de für Benachrichtigungen dieses Prüfungsamts angemeldet hast.<br>
 ${footerLink(unsubscribeUrl(tokens.unsubscribe), "Abmelden")} &middot; ${footerLink(manageUrl(tokens.manage), "Abo verwalten")}`;
 }
 
-/**
- * Double opt-in. Nothing is sent to an address until this link is clicked.
- * The "eine Stunde" urgency copy must match CONFIRM_TTL_MS in src/db/index.ts.
- *
- * The consent asked here is deliberately general — permission to mail this
- * address about results, not about one named office. Confirming activates
- * every office pending for the address, so naming just the office that
- * triggered this mail would claim a narrower consent than the click grants;
- * which offices those are is shown after confirmation and managed there.
- */
 export function renderConfirmMail(token: string): MailContent {
 	const url = confirmUrl(token);
 
@@ -156,7 +127,6 @@ ohne Bestätigung senden wir dir nichts.
 	};
 }
 
-/** Sent once double opt-in completes. Its real job is delivering the manage link. */
 export function renderWelcomeMail(tokens: MailTokens): MailContent {
 	return {
 		subject: "Alles bereit — wir halten dich auf dem Laufenden",
@@ -187,7 +157,6 @@ ${footerLink(unsubscribeUrl(tokens.unsubscribe), "Abmelden")}`,
 	};
 }
 
-/** The one that matters: a JPA just published. */
 export function renderResultsMail(
 	jpaName: string,
 	jpaWebsiteUrl: string | null,
@@ -224,7 +193,6 @@ Abo verwalten: ${manageUrl(tokens.manage)}
 	};
 }
 
-/** Re-sends the manage link to an address that already confirmed. */
 export function renderManageLinkMail(tokens: MailTokens): MailContent {
 	return {
 		subject: "Dein Link zur Abo-Verwaltung",

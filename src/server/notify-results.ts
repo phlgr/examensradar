@@ -18,10 +18,6 @@ export type NotifyOutcome =
 	| { status: "disabled" }
 	| { status: "queued"; mail: number; total: number };
 
-/**
- * Freed from any caller's timeout, the background fan-out can afford to sit
- * out SMTP throttling properly instead of dropping mail.
- */
 const DISPATCH_BUDGET_MS = 5 * 60_000;
 
 async function dispatch(
@@ -32,7 +28,6 @@ async function dispatch(
 	try {
 		const mail = await sendBatchMails(mails, { budgetMs: DISPATCH_BUDGET_MS });
 
-		// /history reads this as "how many people were told".
 		await logNotification(jpa.id, mail.sent, publishedAt);
 
 		console.log(`[notify] ${jpa.slug}: mail ${mail.sent}/${mails.length}`);
@@ -43,20 +38,10 @@ async function dispatch(
 			);
 		}
 	} catch (error) {
-		// Nothing upstream is listening any more — the caller already moved on.
 		console.error(`[notify] ${jpa.slug}: dispatch crashed`, error);
 	}
 }
 
-/**
- * Fans a "new results" publication out to every mail subscriber of the JPA.
- * Only ever reached through checkJpa's compare-and-swap (scheduler tick or the
- * admin's "Jetzt prüfen"), which is what guarantees a publication is delivered
- * at most once.
- *
- * Returns as soon as the fan-out is queued — no caller benefits from blocking
- * on delivery.
- */
 export async function queueResultsNotifications(
 	jpa: ResultsJpa,
 	publishedAt: Date = new Date(),
@@ -65,7 +50,6 @@ export async function queueResultsNotifications(
 		return { status: "disabled" };
 	}
 
-	// Confirmed, still subscribed, not suppressed
 	const subscribers = await getMailableSubscribersByJpa(jpa.id);
 
 	const mails = subscribers.map((subscriber) => ({

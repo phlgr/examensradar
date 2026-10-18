@@ -1,6 +1,4 @@
 /**
- * The client IP, as far as it can be trusted.
- *
  * Dokploy fronts the app with Traefik, which sets `X-Real-Ip` to a single
  * value — the peer it actually accepted the connection from — and *appends* to
  * `X-Forwarded-For`. That ordering matters: a client can send its own
@@ -10,9 +8,6 @@
  *
  * There is no CDN in front (DNS is at Hetzner), so the peer Traefik sees is the
  * visitor. If a CDN is ever added, its own header has to be preferred here.
- *
- * Used for the Einwilligungsnachweis behind double opt-in, so a wrong value is
- * worse than none: it would look like proof while recording the proxy.
  */
 export function getClientIp(request: Request): string | null {
 	const realIp = request.headers.get("X-Real-IP")?.trim();

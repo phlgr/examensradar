@@ -1,5 +1,4 @@
 import { afterAll, expect, mock, test } from "bun:test";
-// Shared test DB and the captured-mail transport — see src/test-setup.ts.
 import { sentMails } from "../test-setup.ts";
 
 const {
@@ -94,7 +93,6 @@ test("a vanished selector records an error instead of notifying", async () => {
 	serveHtml(page("Basislinie"));
 	await checkJpa(jpa, notify);
 
-	// Site relaunch: the watched section is gone, the page is full of new HTML.
 	serveHtml("<html><body><main>alles neu</main></body></html>");
 	await checkJpa(jpa, notify);
 	await checkJpa(jpa, notify);
@@ -112,8 +110,6 @@ test("a reset baseline turns the next differing content into a new baseline, not
 	serveHtml(page("Inhalt unter altem Selektor"));
 	await checkJpa(jpa, notify);
 
-	// What the admin update mutation does when scrape config changes: the old
-	// hash describes nothing anymore, so the state is dropped.
 	await resetScrapeState(jpa.id);
 
 	serveHtml(page("völlig anderer Inhalt unter neuem Selektor"));
@@ -160,7 +156,6 @@ test("a published change mails confirmed subscribers once, through the real fan-
 	await addEmailSubscription(confirmed.id, jpa.id);
 	await confirmSubscriber(confirmed.confirmToken);
 
-	// Never clicked the confirm link — must not be mailed.
 	const pending = await upsertPendingSubscriber("pending@example.org", null);
 	await addEmailSubscription(pending.id, jpa.id);
 
@@ -177,7 +172,6 @@ test("a published change mails confirmed subscribers once, through the real fan-
 	});
 	expect((await checkJpa(jpa)).result).toBe("unchanged");
 
-	// The fan-out runs detached from checkJpa; give it a moment to drain.
 	for (let i = 0; i < 50 && mailsTo().length === 0; i++) await Bun.sleep(10);
 	await Bun.sleep(50);
 
