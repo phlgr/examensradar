@@ -58,11 +58,13 @@ const WEEKDAYS_FULL = [
 
 const WEEK_ORDER = [1, 2, 3, 4, 5, 6, 0];
 
-function mostCommonWeekdays(counts: Map<number, number>): number[] {
+function mostCommonWeekdays(
+	counts: Map<number, number>,
+): number[] | "no-winner" {
 	const seen = WEEK_ORDER.filter((weekday) => (counts.get(weekday) ?? 0) > 0);
 	const max = Math.max(0, ...counts.values());
 	const top = seen.filter((weekday) => counts.get(weekday) === max);
-	return top.length < seen.length ? top : [];
+	return top.length < seen.length ? top : "no-winner";
 }
 
 function WeekdayBar({ weekdayCounts }: { weekdayCounts: Map<number, number> }) {
@@ -117,7 +119,7 @@ function Overview({ summaries }: { summaries: JpaReleaseSummary[] }) {
 						: "Justizprüfungsämtern"}{" "}
 					erfasst
 				</p>
-				{topWeekdays.length > 0 && (
+				{topWeekdays !== "no-winner" && (
 					<p className="text-[15px] text-ink/60 mt-1">
 						Am häufigsten an einem{" "}
 						{topWeekdays.map((weekday, index) => (

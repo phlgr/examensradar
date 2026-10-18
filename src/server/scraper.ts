@@ -1,11 +1,17 @@
 import {
+	claimScrapeBaseline,
 	claimScrapeChange,
 	ensureScrapeState,
 	getScrapableJpas,
 	recordScrapeError,
 	recordScrapeSuccess,
 } from "@/db";
-import { extractContent, fetchPage, hashContent } from "@/lib/scraper";
+import {
+	type Extraction,
+	extractContent,
+	fetchPage,
+	hashContent,
+} from "@/lib/scraper";
 import { queueResultsNotifications } from "./notify-results";
 
 const DEFAULT_INTERVAL_MS = 5 * 60_000;
@@ -31,10 +37,10 @@ export async function checkJpa(
 
 	const state = await ensureScrapeState(jpa.id);
 
-	let content: string | null;
+	let extraction: Extraction;
 	try {
 		const html = await fetchPage(jpa.scrapeUrl);
-		content = extractContent(html, jpa.scrapeSelector);
+		extraction = extractContent(html, jpa.scrapeSelector);
 	} catch (error) {
 		const message = error instanceof Error ? error.message : String(error);
 		await recordScrapeError(jpa.id, message);
@@ -42,21 +48,24 @@ export async function checkJpa(
 		return { result: "error", message };
 	}
 
-	if (content === null) {
+	if (!extraction.matched) {
 		const message = `selector matched nothing: ${jpa.scrapeSelector}`;
 		await recordScrapeError(jpa.id, message);
 		console.error(`[scraper] ${jpa.slug}: ${message}`);
 		return { result: "error", message };
 	}
 
-	const hash = hashContent(content);
+	const hash = hashContent(extraction.content);
 
 	if (hash === state.contentHash) {
 		await recordScrapeSuccess(jpa.id);
 		return { result: "unchanged" };
 	}
 
-	const claimed = await claimScrapeChange(jpa.id, state.contentHash, hash);
+	const claimed =
+		state.contentHash === null
+			? await claimScrapeBaseline(jpa.id, hash)
+			: await claimScrapeChange(jpa.id, state.contentHash, hash);
 	if (!claimed) {
 		console.log(`[scraper] ${jpa.slug}: change already claimed elsewhere`);
 		return { result: "already-claimed" };

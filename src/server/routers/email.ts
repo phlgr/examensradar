@@ -22,10 +22,13 @@ import {
 	renderWelcomeMail,
 } from "@/lib/mail-templates";
 import { allowMailTo } from "@/lib/mail-throttle";
-import { buildClearManageCookie, buildManageCookie } from "@/lib/manage-auth";
+import {
+	buildClearManageCookie,
+	buildManageSessionCookie,
+} from "@/lib/manage-auth";
 import { manageProcedure, publicProcedure, router } from "../trpc";
 
-const dispatch = (mail: Mail) => void sendMail(mail);
+const sendMailUnawaited = (mail: Mail) => void sendMail(mail);
 
 const tokensFor = (subscriber: {
 	manageToken: string;
@@ -35,12 +38,12 @@ const tokensFor = (subscriber: {
 	unsubscribe: subscriber.unsubscribeToken,
 });
 
-const dispatchManageLink = (subscriber: {
+const sendManageLinkUnawaited = (subscriber: {
 	email: string;
 	manageToken: string;
 	unsubscribeToken: string;
 }) =>
-	dispatch({
+	sendMailUnawaited({
 		...renderManageLinkMail(tokensFor(subscriber)),
 		to: subscriber.email,
 	});
@@ -68,14 +71,14 @@ export const emailRouter = router({
 			const existing = await getSubscriberByEmail(input.email);
 
 			if (existing && subscriberStatus(existing) === "active") {
-				dispatchManageLink(existing);
+				sendManageLinkUnawaited(existing);
 				return { ok: true };
 			}
 
 			const subscriber = await upsertPendingSubscriber(input.email, ip);
 			await addEmailSubscription(subscriber.id, jpa.id);
 
-			dispatch({
+			sendMailUnawaited({
 				...renderConfirmMail(subscriber.confirmToken),
 				to: subscriber.email,
 			});
@@ -111,7 +114,7 @@ export const emailRouter = router({
 				});
 			}
 
-			dispatch({
+			sendMailUnawaited({
 				...renderWelcomeMail(tokensFor(subscriber)),
 				to: subscriber.email,
 			});
@@ -133,7 +136,7 @@ export const emailRouter = router({
 			const subscriber = await getSubscriberByEmail(input.email);
 
 			if (subscriber && subscriberStatus(subscriber) === "active") {
-				dispatchManageLink(subscriber);
+				sendManageLinkUnawaited(subscriber);
 			}
 
 			return { ok: true };
@@ -151,7 +154,10 @@ export const emailRouter = router({
 				});
 			}
 
-			ctx.resHeaders.append("Set-Cookie", buildManageCookie(input.token));
+			ctx.resHeaders.append(
+				"Set-Cookie",
+				buildManageSessionCookie(input.token),
+			);
 			return { ok: true };
 		}),
 
