@@ -19,6 +19,7 @@ const config = defineConfig({
 		tanstackStart(),
 		nitro({
 			preset: "bun",
+			compressPublicAssets: { gzip: true, brotli: true },
 			plugins: ["./src/server/plugins/scraper.ts"],
 		}),
 		viteReact(),
