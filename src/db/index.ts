@@ -1,6 +1,6 @@
 import { Database } from "bun:sqlite";
 import { and, desc, eq, isNotNull, isNull, sql } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/bun-sqlite";
+import { type BunSQLiteDatabase, drizzle } from "drizzle-orm/bun-sqlite";
 import { nanoid } from "nanoid";
 import { normalizeEmail } from "@/lib/email";
 import * as schema from "./schema.ts";
@@ -9,12 +9,25 @@ type JPA = typeof schema.jpa.$inferSelect;
 type AdminSession = typeof schema.adminSession.$inferSelect;
 type Subscriber = typeof schema.subscriber.$inferSelect;
 
-const DATABASE_PATH = process.env.DATABASE_PATH || "./data/examensradar.db";
+let connection: BunSQLiteDatabase<typeof schema> | undefined;
 
-const sqlite = new Database(DATABASE_PATH);
-sqlite.run("PRAGMA journal_mode = WAL");
+export const openDatabase = (path: string) => {
+	const sqlite = new Database(path);
+	sqlite.run("PRAGMA journal_mode = WAL");
+	connection = drizzle(sqlite, { schema });
+};
 
-const db = drizzle(sqlite, { schema });
+// Opens the default database on first query unless openDatabase ran first,
+// so importing this module has no side effects.
+const db = new Proxy({} as BunSQLiteDatabase<typeof schema>, {
+	get: (_, key) => {
+		if (!connection) {
+			openDatabase(process.env.DATABASE_PATH || "./data/examensradar.db");
+		}
+		const value = Reflect.get(connection as object, key);
+		return typeof value === "function" ? value.bind(connection) : value;
+	},
+});
 
 export const getJpas = async (): Promise<JPA[]> => {
 	return db.select().from(schema.jpa).all();

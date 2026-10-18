@@ -1,9 +1,7 @@
 import { Database } from "bun:sqlite";
 import { afterAll, expect, test } from "bun:test";
-
-const setup = new Database(process.env.DATABASE_PATH as string);
-
-const {
+import { TEST_DB_PATH } from "../test-setup.ts";
+import {
 	addEmailSubscription,
 	classifyConfirmToken,
 	confirmSubscriber,
@@ -18,7 +16,9 @@ const {
 	subscriberStatus,
 	unsubscribeSubscriber,
 	upsertPendingSubscriber,
-} = await import("./index.ts");
+} from "./index.ts";
+
+const setup = new Database(TEST_DB_PATH);
 
 afterAll(() => {
 	setup.close();

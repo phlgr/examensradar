@@ -1,19 +1,18 @@
 import { afterAll, expect, mock, test } from "bun:test";
-import { sentMails } from "../test-setup.ts";
-
-const {
+import {
 	addEmailSubscription,
 	claimScrapeChange,
 	confirmSubscriber,
 	createJpa,
 	ensureScrapeState,
-	upsertPendingSubscriber,
 	recordScrapeError,
 	recordScrapeSuccess,
 	resetScrapeState,
-} = await import("../db/index.ts");
-const { checkJpa } = await import("./scraper.ts");
-const { queueResultsNotifications } = await import("./notify-results.ts");
+	upsertPendingSubscriber,
+} from "../db/index.ts";
+import { sentMails } from "../test-setup.ts";
+import { queueResultsNotifications } from "./notify-results.ts";
+import { checkJpa } from "./scraper.ts";
 
 const realFetch = globalThis.fetch;
 
