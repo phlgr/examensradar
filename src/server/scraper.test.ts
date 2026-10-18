@@ -3,14 +3,15 @@ import { sentMails } from "../test-setup.ts";
 
 const {
 	addEmailSubscription,
+	claimScrapeBaseline,
 	claimScrapeChange,
 	confirmSubscriber,
 	createJpa,
+	dropScrapeBaseline,
 	ensureScrapeState,
 	upsertPendingSubscriber,
 	recordScrapeError,
 	recordScrapeSuccess,
-	resetScrapeState,
 } = await import("../db/index.ts");
 const { checkJpa } = await import("./scraper.ts");
 const { queueResultsNotifications } = await import("./notify-results.ts");
@@ -110,19 +111,19 @@ test("a reset baseline turns the next differing content into a new baseline, not
 	serveHtml(page("Inhalt unter altem Selektor"));
 	await checkJpa(jpa, notify);
 
-	await resetScrapeState(jpa.id);
+	await dropScrapeBaseline(jpa.id);
 
 	serveHtml(page("völlig anderer Inhalt unter neuem Selektor"));
 	expect((await checkJpa(jpa, notify)).result).toBe("baseline");
 	expect(notify).not.toHaveBeenCalled();
 });
 
-test("claimScrapeChange lets exactly one concurrent claim win", async () => {
+test("baseline and change claims each let exactly one concurrent claim win", async () => {
 	const jpa = await scrapableJpa();
 	await ensureScrapeState(jpa.id);
 
-	expect(await claimScrapeChange(jpa.id, null, "baseline")).toBe(true);
-	expect(await claimScrapeChange(jpa.id, null, "other")).toBe(false);
+	expect(await claimScrapeBaseline(jpa.id, "baseline")).toBe(true);
+	expect(await claimScrapeBaseline(jpa.id, "other")).toBe(false);
 
 	const claims = await Promise.all([
 		claimScrapeChange(jpa.id, "baseline", "next-a"),

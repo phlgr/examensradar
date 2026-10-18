@@ -113,27 +113,22 @@ export const ensureScrapeState = async (
 	return state;
 };
 
-export const claimScrapeChange = async (
+export const claimScrapeBaseline = async (
 	jpaId: string,
-	oldHash: string | null,
-	newHash: string,
+	hash: string,
 ): Promise<boolean> => {
-	const now = new Date();
 	const claimed = await db
 		.update(schema.scrapeState)
 		.set({
-			contentHash: newHash,
-			lastCheckedAt: now,
-			...(oldHash === null ? {} : { lastChangedAt: now }),
+			contentHash: hash,
+			lastCheckedAt: new Date(),
 			errorCount: 0,
 			lastError: null,
 		})
 		.where(
 			and(
 				eq(schema.scrapeState.jpaId, jpaId),
-				oldHash === null
-					? isNull(schema.scrapeState.contentHash)
-					: eq(schema.scrapeState.contentHash, oldHash),
+				isNull(schema.scrapeState.contentHash),
 			),
 		)
 		.returning()
@@ -142,7 +137,34 @@ export const claimScrapeChange = async (
 	return claimed.length > 0;
 };
 
-export const resetScrapeState = async (jpaId: string): Promise<void> => {
+export const claimScrapeChange = async (
+	jpaId: string,
+	oldHash: string,
+	newHash: string,
+): Promise<boolean> => {
+	const now = new Date();
+	const claimed = await db
+		.update(schema.scrapeState)
+		.set({
+			contentHash: newHash,
+			lastCheckedAt: now,
+			lastChangedAt: now,
+			errorCount: 0,
+			lastError: null,
+		})
+		.where(
+			and(
+				eq(schema.scrapeState.jpaId, jpaId),
+				eq(schema.scrapeState.contentHash, oldHash),
+			),
+		)
+		.returning()
+		.all();
+
+	return claimed.length > 0;
+};
+
+export const dropScrapeBaseline = async (jpaId: string): Promise<void> => {
 	await db
 		.delete(schema.scrapeState)
 		.where(eq(schema.scrapeState.jpaId, jpaId));

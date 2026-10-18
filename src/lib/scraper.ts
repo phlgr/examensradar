@@ -41,13 +41,17 @@ export async function fetchPage(url: string): Promise<string> {
 	throw lastError instanceof Error ? lastError : new Error(String(lastError));
 }
 
-export function extractContent(html: string, selector: string): string | null {
+export type Extraction =
+	| { matched: true; content: string }
+	| { matched: false };
+
+export function extractContent(html: string, selector: string): Extraction {
 	const $ = cheerio.load(html);
 	const element = $(selector).first();
 
-	if (element.length === 0) return null;
+	if (element.length === 0) return { matched: false };
 
-	return (element.html() ?? element.text()).trim();
+	return { matched: true, content: (element.html() ?? element.text()).trim() };
 }
 
 export function hashContent(content: string): string {
