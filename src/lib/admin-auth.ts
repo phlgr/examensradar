@@ -1,3 +1,4 @@
+import { createHash, timingSafeEqual } from "node:crypto";
 import {
 	createAdminSession,
 	deleteAdminSession,
@@ -13,8 +14,12 @@ export function verifyAdminPassword(password: string): boolean {
 		console.error("ADMIN_PASSWORD environment variable is not set");
 		return false;
 	}
-	return password === adminPassword;
+	// Hashing first gives timingSafeEqual equal-length inputs, so the
+	// comparison leaks neither content nor length.
+	return timingSafeEqual(sha256(password), sha256(adminPassword));
 }
+
+const sha256 = (value: string) => createHash("sha256").update(value).digest();
 
 export async function createAdminToken(): Promise<string> {
 	const token = crypto.randomUUID();
