@@ -42,15 +42,22 @@ Journeys are short bun scripts on top of `scripts/pw.ts`, which wraps Playwright
 
 ```bash
 bun $V/journeys/subscribe-confirm.ts myrun     # exits 0 and prints PASS subscribe-confirm
+bun $V/journeys/manage-subscriptions.ts myrun
+bun $V/journeys/admin-scraper.ts myrun
+bun $V/journeys/unsubscribe.ts myrun           # last: it ends the subscriber's mail
 ```
 
+The last three continue with the subscriber that `subscribe-confirm` created (`verify+<run-id>@example.test`), so run them in this order on one instance. `admin-scraper` changes the fixture, so a second run of it needs a fresh instance.
+
 `pw.ts` provides the following:
-- `open(name)` gives `{ page, base, env, runId, out, visit, proof, note, close }`.
+- `open(name)` gives `{ page, context, base, env, runId, out, visit, proof, card, cookie, note, close }`.
+- `card(heading)` is the JPA card around that heading, on `/admin` and `/subscriptions`. Scope button and badge lookups to it. `cookie(name)` reads a browser cookie, HttpOnly included.
+- `check(ok, msg)` throws `msg` or logs it as `ok`.
 - `visit(url)` means goto plus waiting for React hydration. **Always use it instead of `page.goto`.** SSR renders the forms first, so text typed before hydration is wiped and the submit button stays disabled.
 - `proof(label)` writes a numbered screenshot plus an ARIA snapshot. `note(name, data)` writes JSON.
 - `mails(runId)` and `waitForMail(runId, to, /subject/)` read what the sink captured. Each entry is `{ n, to, subject, links }`, with links already decoded, so take the confirm, manage and unsubscribe URLs from there.
 
-To write a new journey, copy `journeys/subscribe-confirm.ts`. Use the locators from the matching `features/*.md`: labels, roles and button text, which are all German and literal. Use `example.test` addresses, with a different address for each journey in the same run (the mail throttle in `src/lib/mail-throttle.ts` keys on address and IP).
+To write a new journey, copy `journeys/subscribe-confirm.ts`. Use the locators from the matching `features/*.md`: labels, roles and button text, which are all German and literal. Use `example.test` addresses, with a different address for each new signup in the same run (the mail throttle in `src/lib/mail-throttle.ts` keys on address and IP).
 
 Other helpers:
 

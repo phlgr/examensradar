@@ -20,16 +20,18 @@ The admin logs in at `/admin/login` and sees every JPA with its subscriber count
 
 Preconditions: at least one confirmed `example.test` subscriber on `JPA Verifikation (Test)` (run [subscribe-confirm](./subscribe-confirm.md) first). `verify.sh doctor` passes, which guarantees that only the test JPA can scrape.
 
+- **Wrong password.** Fill `Passwort` with anything else and click `Anmelden`. `Falsches Passwort` appears and no `admin_session` cookie is set.
 - **Log in.** `visit(base + "/admin/login")`, then `page.getByLabel("Passwort").fill("verify-admin")`, then click the `Anmelden` button. The URL becomes `/admin` and the heading `JPA Verifikation (Test)` is visible.
-- **Unchanged check.** On the test JPA card (`page.locator("div", { has: page.getByRole("heading", { name: "JPA Verifikation (Test)" }) })`), click `Jetzt prüfen`. `Keine Änderung.` appears next to the button.
+- **Unchanged check.** On the test JPA card (`v.card("JPA Verifikation (Test)")`), click `Jetzt prüfen`. `Keine Änderung.` appears next to the button.
 - **Publish results.** In a shell, run `$V/verify.sh fixture <run> '<p>Ergebnisse Termin 2026/II online</p>'`.
 - **Notify.** Click `Jetzt prüfen` again. `Änderung erkannt — 1 Mails in Zustellung.` appears, with N equal to the number of confirmed subscribers.
 - **Side effects.** `waitForMail(run, email, /Neue Ergebnisse: JPA Verifikation/)` arrives for each subscriber and for nobody else. `verify.sh sql <run> "select * from notification_log where jpa_id='jpa-verify-test'"` has one new row with `subscriber_count` = N.
 - **Exactly once.** Click `Jetzt prüfen` a third time. It shows `Keine Änderung.` and `verify.sh mail` has no new line.
-- **Proof.** Take a `proof()` after each click, plus the mail index and the notification_log row in `note()`.
+- **Log out.** Click `Abmelden`. The URL becomes `/admin/login`, the cookie is cleared, and visiting `/admin` redirects back to login.
+- **Proof.** Run `bun $V/journeys/admin-scraper.ts <run>` after `subscribe-confirm`. It covers everything above. Its output is `evidence/admin-scraper/01..06*.png` + `result.json`.
 
 ## Gotchas
 
-- The tRPC path (`POST /api/trpc/jpa.scrapeNow` with the admin cookie) was confirmed on 2026-10-18 and returned `{"result":"notified","mail":1}` with the mail captured. The admin UI path above has not been driven yet, so treat its locators as unverified until a run passes.
+- `scrape-paused` and `scrape-error` are not in the journey. Their locators are still unverified.
 - Never point a seeded (real) JPA at the fixture or re-enable its scrape URL. `doctor` fails if any JPA other than the test JPA has a scrape URL.
 - A fixture change is reported only once per content hash. To notify again, set different content.

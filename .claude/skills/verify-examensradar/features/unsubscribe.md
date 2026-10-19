@@ -23,7 +23,7 @@ Preconditions: a confirmed subscriber and its welcome mail.
 - **Second view.** `verify.sh sql <run> "select unsubscribed_at from subscriber where email='<email>'"` is non-null.
 - **One-click.** With a second confirmed address, read the `List-Unsubscribe:` header from its `.eml` and `fetch(url, { method: "POST" })` it. It returns 200 and `unsubscribed_at` is set. This API-only entry point is the one place a direct request is the real user path.
 - **GET inert.** `fetch(url)` returns 405 and `unsubscribed_at` stays null (check with an address that is still subscribed).
-- **Proof.** Screenshots of both page states, the sql row, and the HTTP status codes in `note()`.
+- **Proof.** Run `bun $V/journeys/unsubscribe.ts <run>` last, after the other journeys. It covers `unsub-get-inert` (using the welcome mail's `List-Unsubscribe` header) and `unsub-page`. Its output is `evidence/unsubscribe/01..02*.png` + `result.json`. `unsub-oneclick` and `unsub-sticky` need a second confirmed address and are not in the journey.
 
 ## Gotchas
 

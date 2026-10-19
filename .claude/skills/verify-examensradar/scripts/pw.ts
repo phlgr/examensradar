@@ -33,6 +33,12 @@ export function mails(runId: string): Array<{ n: string; to: string[]; subject: 
 	}
 }
 
+/** Throws with `msg` unless `ok`; logs it as passed otherwise. */
+export function check(ok: unknown, msg: string): void {
+	if (!ok) throw new Error(msg);
+	console.log(`ok   ${msg}`);
+}
+
 /** Polls the sink until a mail to `to` whose subject matches arrives. */
 export async function waitForMail(runId: string, to: string, subject: RegExp, timeoutMs = 15_000) {
 	const deadline = Date.now() + timeoutMs;
@@ -84,6 +90,15 @@ export async function open(journey: string) {
 			await Bun.write(`${out}/${name}.aria.yml`, await page.locator("body").ariaSnapshot());
 			console.log(`proof ${out}/${name}.png`);
 		},
+		/**
+		 * The card around a JPA heading: its nearest ancestor holding a button.
+		 * Filtering `div` by `has:` also matches the shared list container, so a
+		 * text lookup inside it can hit another JPA's card mid-request.
+		 */
+		card: (heading: string) =>
+			page.getByRole("heading", { name: heading }).locator("xpath=ancestor::div[.//button][1]"),
+		cookie: async (name: string) =>
+			(await context.cookies()).find((c: { name: string }) => c.name === name),
 		async note(name: string, data: unknown) {
 			await Bun.write(`${out}/${name}.json`, JSON.stringify(data, null, 2));
 		},
