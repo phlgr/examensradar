@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import {
+	buildAdminCookie,
 	createAdminToken,
-	getAdminCookieName,
 	verifyAdminPassword,
 } from "@/lib/admin-auth";
 
@@ -10,57 +10,33 @@ export const Route = createFileRoute("/api/admin/login")({
 		handlers: {
 			POST: async ({ request }) => {
 				try {
-					const body = await request.json();
-					const { password } = body;
+					const { password } = await request.json();
 
 					if (!password || typeof password !== "string") {
-						return new Response(
-							JSON.stringify({ error: "Password required" }),
-							{
-								status: 400,
-								headers: { "Content-Type": "application/json" },
-							},
+						return Response.json(
+							{ error: "Password required" },
+							{ status: 400 },
 						);
 					}
 
 					if (!verifyAdminPassword(password)) {
-						return new Response(JSON.stringify({ error: "Invalid password" }), {
-							status: 401,
-							headers: { "Content-Type": "application/json" },
-						});
+						return Response.json(
+							{ error: "Invalid password" },
+							{ status: 401 },
+						);
 					}
 
 					const token = await createAdminToken();
-					const cookieName = getAdminCookieName();
 
-					const isProduction = process.env.NODE_ENV === "production";
-					const cookieOptions = [
-						`${cookieName}=${token}`,
-						"Path=/",
-						"HttpOnly",
-						"SameSite=Lax",
-						`Max-Age=${7 * 24 * 60 * 60}`,
-					];
-
-					if (isProduction) {
-						cookieOptions.push("Secure");
-					}
-
-					return new Response(JSON.stringify({ success: true }), {
-						status: 200,
-						headers: {
-							"Content-Type": "application/json",
-							"Set-Cookie": cookieOptions.join("; "),
-						},
-					});
+					return Response.json(
+						{ success: true },
+						{ headers: { "Set-Cookie": buildAdminCookie(token) } },
+					);
 				} catch (error) {
 					console.error("Admin login error:", error);
-					return new Response(
-						JSON.stringify({ error: "Internal server error" }),
-						{
-							status: 500,
-							headers: { "Content-Type": "application/json" },
-						},
+					return Response.json(
+						{ error: "Internal server error" },
+						{ status: 500 },
 					);
 				}
 			},

@@ -11,18 +11,13 @@ interface Context {
 	resHeaders: Headers;
 }
 
-export async function createContext(
-	opts: FetchCreateContextFnOptions & { context?: unknown },
-): Promise<Context> {
-	const { req, resHeaders } = opts;
-	return { request: req, resHeaders };
-}
+export const createContext = ({
+	req,
+	resHeaders,
+}: FetchCreateContextFnOptions): Context => ({ request: req, resHeaders });
 
 const t = initTRPC.context<Context>().create({
 	transformer: superjson,
-	errorFormatter({ shape }) {
-		return shape;
-	},
 });
 
 export const router = t.router;

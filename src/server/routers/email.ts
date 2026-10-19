@@ -14,7 +14,7 @@ import {
 	upsertPendingSubscriber,
 } from "@/db";
 import { getClientIp } from "@/lib/client-ip";
-import { type Mail, sendMail } from "@/lib/mail";
+import { sendMail } from "@/lib/mail";
 import {
 	type MailTokens,
 	renderConfirmMail,
@@ -27,8 +27,6 @@ import {
 	buildManageSessionCookie,
 } from "@/lib/manage-auth";
 import { manageProcedure, publicProcedure, router } from "../trpc";
-
-const sendMailUnawaited = (mail: Mail) => void sendMail(mail);
 
 const tokensFor = (subscriber: {
 	manageToken: string;
@@ -43,7 +41,7 @@ const sendManageLinkUnawaited = (subscriber: {
 	manageToken: string;
 	unsubscribeToken: string;
 }) =>
-	sendMailUnawaited({
+	void sendMail({
 		...renderManageLinkMail(tokensFor(subscriber)),
 		to: subscriber.email,
 	});
@@ -78,7 +76,7 @@ export const emailRouter = router({
 			const subscriber = await upsertPendingSubscriber(input.email, ip);
 			await addEmailSubscription(subscriber.id, jpa.id);
 
-			sendMailUnawaited({
+			void sendMail({
 				...renderConfirmMail(subscriber.confirmToken),
 				to: subscriber.email,
 			});
@@ -114,7 +112,7 @@ export const emailRouter = router({
 				});
 			}
 
-			sendMailUnawaited({
+			void sendMail({
 				...renderWelcomeMail(tokensFor(subscriber)),
 				to: subscriber.email,
 			});

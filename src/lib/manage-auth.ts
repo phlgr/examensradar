@@ -1,25 +1,20 @@
-import { getCookie } from "@/lib/cookies";
-
 const COOKIE_NAME = "examensradar_manage";
 
 export function getManageTokenFromRequest(request: Request): string | null {
-	return getCookie(request, COOKIE_NAME);
+	return new Bun.CookieMap(request.headers.get("cookie") ?? "").get(
+		COOKIE_NAME,
+	);
 }
 
-function serialize(parts: string[]): string {
-	const options = [...parts, "Path=/", "HttpOnly", "SameSite=Lax"];
+const cookie = (value: string, maxAge?: number) =>
+	new Bun.Cookie(COOKIE_NAME, value, {
+		path: "/",
+		httpOnly: true,
+		sameSite: "lax",
+		secure: process.env.NODE_ENV === "production",
+		maxAge,
+	}).serialize();
 
-	if (process.env.NODE_ENV === "production") {
-		options.push("Secure");
-	}
+export const buildManageSessionCookie = (token: string) => cookie(token);
 
-	return options.join("; ");
-}
-
-export function buildManageSessionCookie(token: string): string {
-	return serialize([`${COOKIE_NAME}=${token}`]);
-}
-
-export function buildClearManageCookie(): string {
-	return serialize([`${COOKIE_NAME}=`, "Max-Age=0"]);
-}
+export const buildClearManageCookie = () => cookie("", 0);

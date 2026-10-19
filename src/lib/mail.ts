@@ -23,8 +23,6 @@ const DEFAULT_MAX_ATTEMPTS = 3;
 const DEFAULT_BUDGET_MS = 60_000;
 const MAX_BACKOFF_MS = 30_000;
 
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
 let cached: Transporter | null = null;
 
 function transport(): Transporter {
@@ -133,7 +131,7 @@ async function sendWithRetry(
 				return false;
 			}
 
-			await sleep(backoff);
+			await Bun.sleep(backoff);
 		}
 	}
 
