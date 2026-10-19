@@ -91,12 +91,15 @@ export async function open(journey: string) {
 			console.log(`proof ${out}/${name}.png`);
 		},
 		/**
-		 * The card around a JPA heading: its nearest ancestor holding a button.
-		 * Filtering `div` by `has:` also matches the shared list container, so a
-		 * text lookup inside it can hit another JPA's card mid-request.
+		 * The card around a JPA heading: its outermost ancestor holding no other
+		 * heading. Filtering `div` by `has:` also matches the shared list
+		 * container, so a lookup inside it can hit another JPA's card; the nearest
+		 * ancestor with a button misses the admin card's icon buttons.
 		 */
 		card: (heading: string) =>
-			page.getByRole("heading", { name: heading }).locator("xpath=ancestor::div[.//button][1]"),
+			page
+				.getByRole("heading", { name: heading })
+				.locator("xpath=ancestor::div[count(.//h1|.//h2|.//h3|.//h4|.//h5|.//h6)=1][last()]"),
 		cookie: async (name: string) =>
 			(await context.cookies()).find((c: { name: string }) => c.name === name),
 		async note(name: string, data: unknown) {

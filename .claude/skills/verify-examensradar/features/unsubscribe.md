@@ -1,6 +1,6 @@
 # Unsubscribe
 
-Every list mail carries an unsubscribe link and RFC 8058 `List-Unsubscribe` headers. The `/unsubscribe/:token` page asks once ("Abmelden"), and "Jetzt abmelden" ends all mail to that address. Mail clients can do the same with a one-click POST. A GET to the API URL does nothing (405), so link scanners can't unsubscribe anyone.
+The welcome, manage-link and results mails carry an unsubscribe link and RFC 8058 `List-Unsubscribe` headers. The confirm mail carries neither. The `/unsubscribe/:token` page asks once ("Abmelden"), and "Jetzt abmelden" ends all mail to that address. Mail clients can do the same with a one-click POST. A GET to the API URL does nothing (405), so link scanners can't unsubscribe anyone.
 
 ## Sub-features
 
@@ -23,7 +23,8 @@ Preconditions: a confirmed subscriber and its welcome mail.
 - **Second view.** `verify.sh sql <run> "select unsubscribed_at from subscriber where email='<email>'"` is non-null.
 - **One-click.** With a second confirmed address, read the `List-Unsubscribe:` header from its `.eml` and `fetch(url, { method: "POST" })` it. It returns 200 and `unsubscribed_at` is set. This API-only entry point is the one place a direct request is the real user path.
 - **GET inert.** `fetch(url)` returns 405 and `unsubscribed_at` stays null (check with an address that is still subscribed).
-- **Proof.** Run `bun $V/journeys/unsubscribe.ts <run>` last, after the other journeys. It covers `unsub-get-inert` (using the welcome mail's `List-Unsubscribe` header) and `unsub-page`. Its output is `evidence/unsubscribe/01..02*.png` + `result.json`. `unsub-oneclick` and `unsub-sticky` need a second confirmed address and are not in the journey.
+- **Sticky.** After the one-click POST, sign the second address up again from the landing form. It gets a new confirm mail, and its row has `confirmed_at` null with `unsubscribed_at` still set until it confirms.
+- **Proof.** Run `bun $V/journeys/unsubscribe.ts <run>` last, after the other journeys. It covers `unsub-get-inert` (using the welcome mail's `List-Unsubscribe` header) and `unsub-page`. Its output is `evidence/unsubscribe/01..02*.png` + `result.json`. `unsub-oneclick` and `unsub-sticky` need a second confirmed address and are not in the journey. They were driven on 2026-10-19: one-click POST returns 200, and 404 for an unknown token.
 
 ## Gotchas
 

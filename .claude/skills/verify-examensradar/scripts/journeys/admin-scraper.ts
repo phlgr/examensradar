@@ -1,6 +1,6 @@
 // Journey: admin login → "Jetzt prüfen" unchanged → fixture change → notify
 // once → logout. See features/admin-scraper.md. Needs subscribe-confirm first,
-// so exactly one confirmed subscriber sits on the test JPA.
+// so at least one confirmed subscriber sits on the test JPA.
 // Usage: bun admin-scraper.ts <run-id>
 import { Database } from "bun:sqlite";
 import { check, mails, open, waitForMail } from "../pw.ts";
@@ -13,6 +13,16 @@ const notificationLog = () =>
 	db
 		.query("select subscriber_count from notification_log where jpa_id = 'jpa-verify-test'")
 		.all() as { subscriber_count: number }[];
+const activeOnTestJpa = () =>
+	(
+		db
+			.query(
+				`select count(*) n from email_subscription es join subscriber s on s.id = es.subscriber_id
+				 where es.jpa_id = 'jpa-verify-test' and s.confirmed_at is not null
+				 and s.unsubscribed_at is null and s.bounced_at is null`,
+			)
+			.get() as { n: number }
+	).n;
 const testJpa = () => v.card("JPA Verifikation (Test)");
 const checkNow = () => testJpa().getByRole("button", { name: "Jetzt prüfen" }).click();
 
@@ -41,24 +51,25 @@ try {
 
 	const mailCount = mails(v.runId).length;
 	const logBefore = notificationLog().length;
-	await Bun.$`${import.meta.dir}/../verify.sh fixture ${v.runId} ${"<p>Ergebnisse Termin 2026/II online</p>"}`.quiet();
+	const recipients = activeOnTestJpa();
+	await Bun.$`${import.meta.dir}/../verify.sh fixture ${v.runId} ${`<p>Ergebnisse ${Date.now()}</p>`}`.quiet();
 	await checkNow();
-	await testJpa().getByText("Änderung erkannt — 1 Mails in Zustellung.").waitFor();
+	await testJpa().getByText(`Änderung erkannt — ${recipients} Mails in Zustellung.`).waitFor();
 	await v.proof("changed");
 	const resultsMail = await waitForMail(v.runId, email, /Neue Ergebnisse: JPA Verifikation/);
 	await Bun.sleep(1_000);
 	const log = notificationLog();
 	check(
-		log.length === logBefore + 1 && log.at(-1)?.subscriber_count === 1,
-		"change logged once in notification_log with subscriber_count 1",
+		log.length === logBefore + 1 && log.at(-1)?.subscriber_count === recipients,
+		`change logged once in notification_log with subscriber_count ${recipients}`,
 	);
-	check(mails(v.runId).length === mailCount + 1, "exactly one results mail went out");
+	check(mails(v.runId).length === mailCount + recipients, `exactly ${recipients} results mail(s) went out`);
 
 	await checkNow();
 	await testJpa().getByText("Keine Änderung.").waitFor();
 	await v.proof("checked-again");
 	await Bun.sleep(1_000);
-	check(mails(v.runId).length === mailCount + 1, "second check on the same content sent no mail");
+	check(mails(v.runId).length === mailCount + recipients, "second check on the same content sent no mail");
 
 	await page.getByRole("button", { name: "Abmelden" }).click();
 	await page.waitForURL(/\/admin\/login$/);

@@ -47,11 +47,11 @@ bun $V/journeys/admin-scraper.ts myrun
 bun $V/journeys/unsubscribe.ts myrun           # last: it ends the subscriber's mail
 ```
 
-The last three continue with the subscriber that `subscribe-confirm` created (`verify+<run-id>@example.test`), so run them in this order on one instance. `admin-scraper` changes the fixture, so a second run of it needs a fresh instance.
+The last three continue with the subscriber that `subscribe-confirm` created (`verify+<run-id>@example.test`), so run them in this order on one instance. To rerun the set, launch a fresh instance: the second `manage-subscriptions` run on the same instance hits that address's mail throttle at the resend step.
 
 `pw.ts` provides the following:
 - `open(name)` gives `{ page, context, base, env, runId, out, visit, proof, card, cookie, note, close }`.
-- `card(heading)` is the JPA card around that heading, on `/admin` and `/subscriptions`. Scope button and badge lookups to it. `cookie(name)` reads a browser cookie, HttpOnly included.
+- `card(heading)` is the JPA card around that heading (its outermost ancestor with no other heading), on `/admin` and `/subscriptions`. Scope button and badge lookups to it, including the admin card's icon buttons. `cookie(name)` reads a browser cookie, HttpOnly included.
 - `check(ok, msg)` throws `msg` or logs it as `ok`.
 - `visit(url)` means goto plus waiting for React hydration. **Always use it instead of `page.goto`.** SSR renders the forms first, so text typed before hydration is wiped and the submit button stays disabled.
 - `proof(label)` writes a numbered screenshot plus an ARIA snapshot. `note(name, data)` writes JSON.

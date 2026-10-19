@@ -32,8 +32,8 @@ Each feature file has an H1, one paragraph of user-visible behavior, then exactl
 
 Recipes not marked as driven were written from the code. Their locators are unverified until a run passes, so fix the file when a step doesn't match the app.
 
-- [Subscribe and confirm](./subscribe-confirm.md): landing-page, office-page and signed-out `/subscriptions` signup; confirm mail; confirm page; welcome mail. **Driven end to end on 2026-10-18 via the landing page** (`journeys/subscribe-confirm.ts`).
+- [Subscribe and confirm](./subscribe-confirm.md): landing-page, office-page and signed-out `/subscriptions` signup; confirm mail; confirm page; welcome mail. **Landing entry driven by `journeys/subscribe-confirm.ts`; all entries driven on 2026-10-19.**
 - [Manage subscriptions](./manage-subscriptions.md): manage-link sign-in, add/remove offices, sign out, resend the manage link. **Driven end to end on 2026-10-19** (`journeys/manage-subscriptions.ts`).
-- [Unsubscribe](./unsubscribe.md): the `/unsubscribe/:token` page and the RFC 8058 one-click POST. **Page and GET-inert driven on 2026-10-19** (`journeys/unsubscribe.ts`). The one-click POST is not covered by a journey.
-- [Admin scraper and results mail](./admin-scraper.md): admin login, "Jetzt prüfen", and the "Neue Ergebnisse" fan-out. **Login, unchanged, notify, exactly-once and logout driven through the admin UI on 2026-10-19** (`journeys/admin-scraper.ts`). Paused and selector-error are not covered by a journey.
-- [Public pages](./public-pages.md): office pages `/ergebnisse/:slug`, `/history`, `sitemap.xml`, `llms.txt`.
+- [Unsubscribe](./unsubscribe.md): the `/unsubscribe/:token` page and the RFC 8058 one-click POST. **Page and GET-inert in `journeys/unsubscribe.ts`; one-click POST and sticky re-signup driven on 2026-10-19 without a journey.**
+- [Admin scraper and results mail](./admin-scraper.md): admin login, "Jetzt prüfen", and the "Neue Ergebnisse" fan-out. **Login, unchanged, notify, exactly-once and logout in `journeys/admin-scraper.ts`; pause and selector error driven on 2026-10-19 without a journey.**
+- [Public pages](./public-pages.md): office pages `/ergebnisse/:slug`, `/history`, `sitemap.xml`, `llms.txt`. **Driven on 2026-10-19 without a journey.**
