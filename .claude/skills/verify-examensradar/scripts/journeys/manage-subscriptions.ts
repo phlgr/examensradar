@@ -1,12 +1,9 @@
-// Journey: welcome-mail manage link → add/remove an office → sign out → resend.
-// See features/manage-subscriptions.md. Needs subscribe-confirm first.
-// Usage: bun manage-subscriptions.ts <run-id>
 import { Database } from "bun:sqlite";
-import { check, mails, open, waitForMail } from "../pw.ts";
+import { check, confirmedSubscriber, mails, open, waitForMail } from "../pw.ts";
 
 const v = await open("manage-subscriptions");
 const { page } = v;
-const email = `verify+${v.runId}@example.test`;
+const { email, welcome } = confirmedSubscriber(v.runId);
 const db = new Database(v.env.DB, { readonly: true });
 const jpaIds = () =>
 	(
@@ -20,7 +17,6 @@ const jpaIds = () =>
 const koeln = () => v.card("JPA bei dem OLG Köln");
 
 try {
-	const welcome = await waitForMail(v.runId, email, /Alles bereit/, 1_000);
 	const manageLink = welcome.links.find((link) => link.includes("manage="));
 	check(manageLink?.startsWith(v.base), "welcome mail carries a local manage link");
 

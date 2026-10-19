@@ -1,13 +1,9 @@
-// Journey: admin login → "Jetzt prüfen" unchanged → fixture change → notify
-// once → logout. See features/admin-scraper.md. Needs subscribe-confirm first,
-// so at least one confirmed subscriber sits on the test JPA.
-// Usage: bun admin-scraper.ts <run-id>
 import { Database } from "bun:sqlite";
-import { check, mails, open, waitForMail } from "../pw.ts";
+import { check, confirmedSubscriber, mails, open, waitForMail } from "../pw.ts";
 
 const v = await open("admin-scraper");
 const { page } = v;
-const email = `verify+${v.runId}@example.test`;
+const { email } = confirmedSubscriber(v.runId);
 const db = new Database(v.env.DB, { readonly: true });
 const notificationLog = () =>
 	db

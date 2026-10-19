@@ -33,10 +33,16 @@ export function mails(runId: string): Array<{ n: string; to: string[]; subject: 
 	}
 }
 
-/** Throws with `msg` unless `ok`; logs it as passed otherwise. */
 export function check(ok: unknown, msg: string): void {
 	if (!ok) throw new Error(msg);
 	console.log(`ok   ${msg}`);
+}
+
+export function confirmedSubscriber(runId: string) {
+	const email = `verify+${runId}@example.test`;
+	const welcome = mails(runId).find((m) => m.to.includes(email) && /Alles bereit/.test(m.subject));
+	if (!welcome) throw new Error(`no welcome mail to ${email}: run subscribe-confirm first`);
+	return { email, welcome };
 }
 
 /** Polls the sink until a mail to `to` whose subject matches arrives. */
@@ -90,12 +96,6 @@ export async function open(journey: string) {
 			await Bun.write(`${out}/${name}.aria.yml`, await page.locator("body").ariaSnapshot());
 			console.log(`proof ${out}/${name}.png`);
 		},
-		/**
-		 * The card around a JPA heading: its outermost ancestor holding no other
-		 * heading. Filtering `div` by `has:` also matches the shared list
-		 * container, so a lookup inside it can hit another JPA's card; the nearest
-		 * ancestor with a button misses the admin card's icon buttons.
-		 */
 		card: (heading: string) =>
 			page
 				.getByRole("heading", { name: heading })
