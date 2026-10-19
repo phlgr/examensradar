@@ -33,6 +33,18 @@ export function mails(runId: string): Array<{ n: string; to: string[]; subject: 
 	}
 }
 
+export function check(ok: unknown, msg: string): void {
+	if (!ok) throw new Error(msg);
+	console.log(`ok   ${msg}`);
+}
+
+export function confirmedSubscriber(runId: string) {
+	const email = `verify+${runId}@example.test`;
+	const welcome = mails(runId).find((m) => m.to.includes(email) && /Alles bereit/.test(m.subject));
+	if (!welcome) throw new Error(`no welcome mail to ${email}: run subscribe-confirm first`);
+	return { email, welcome };
+}
+
 /** Polls the sink until a mail to `to` whose subject matches arrives. */
 export async function waitForMail(runId: string, to: string, subject: RegExp, timeoutMs = 15_000) {
 	const deadline = Date.now() + timeoutMs;
@@ -84,6 +96,12 @@ export async function open(journey: string) {
 			await Bun.write(`${out}/${name}.aria.yml`, await page.locator("body").ariaSnapshot());
 			console.log(`proof ${out}/${name}.png`);
 		},
+		card: (heading: string) =>
+			page
+				.getByRole("heading", { name: heading })
+				.locator("xpath=ancestor::div[count(.//h1|.//h2|.//h3|.//h4|.//h5|.//h6)=1][last()]"),
+		cookie: async (name: string) =>
+			(await context.cookies()).find((c: { name: string }) => c.name === name),
 		async note(name: string, data: unknown) {
 			await Bun.write(`${out}/${name}.json`, JSON.stringify(data, null, 2));
 		},
