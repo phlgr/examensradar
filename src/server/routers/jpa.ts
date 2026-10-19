@@ -16,21 +16,15 @@ import { checkJpa } from "../scraper";
 import { adminProcedure, publicProcedure, router } from "../trpc";
 
 export const jpaRouter = router({
-	getAll: publicProcedure.query(async () => {
-		return getJpas();
-	}),
+	getAll: publicProcedure.query(() => getJpas()),
 
 	getBySlug: publicProcedure
 		.input(z.object({ slug: z.string() }))
-		.query(async ({ input }) => {
-			return getJpaBySlug(input.slug);
-		}),
+		.query(({ input }) => getJpaBySlug(input.slug)),
 
 	getById: adminProcedure
 		.input(z.object({ id: z.string() }))
-		.query(async ({ input }) => {
-			return getJpaById(input.id);
-		}),
+		.query(({ input }) => getJpaById(input.id)),
 
 	create: adminProcedure
 		.input(
@@ -111,7 +105,5 @@ export const jpaRouter = router({
 			return checkJpa(jpa);
 		}),
 
-	getHistory: publicProcedure.query(async () => {
-		return getNotificationHistory();
-	}),
+	getHistory: publicProcedure.query(() => getNotificationHistory()),
 });
