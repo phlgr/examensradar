@@ -1,7 +1,6 @@
 import { Database } from "bun:sqlite";
 import { and, desc, eq, isNotNull, isNull, sql } from "drizzle-orm";
 import { type BunSQLiteDatabase, drizzle } from "drizzle-orm/bun-sqlite";
-import { nanoid } from "nanoid";
 import { normalizeEmail } from "@/lib/email";
 import { CONFIRM_TTL_HOURS } from "@/lib/mail-templates";
 import * as schema from "./schema.ts";
@@ -60,7 +59,7 @@ export const createJpa = async (data: {
 	scrapeSelector?: string | null;
 }): Promise<JPA> => {
 	const jpa = {
-		id: nanoid(),
+		id: crypto.randomUUID(),
 		name: data.name,
 		slug: data.slug,
 		websiteUrl: data.websiteUrl ?? null,
@@ -225,7 +224,7 @@ export const getSubscriptionCountsByJpa = async (): Promise<
 	return new Map(rows.map((row) => [row.jpaId, row.count]));
 };
 
-const newToken = () => nanoid(32);
+const newToken = () => crypto.randomUUID();
 
 export type SubscriberStatus =
 	| "pending"
@@ -315,7 +314,7 @@ export const upsertPendingSubscriber = async (
 	}
 
 	const subscriber = {
-		id: nanoid(),
+		id: crypto.randomUUID(),
 		email: normalizeEmail(email),
 		manageToken: newToken(),
 		unsubscribeToken: newToken(),
@@ -403,7 +402,12 @@ export const addEmailSubscription = async (
 ): Promise<void> => {
 	await db
 		.insert(schema.emailSubscription)
-		.values({ id: nanoid(), subscriberId, jpaId, createdAt: new Date() })
+		.values({
+			id: crypto.randomUUID(),
+			subscriberId,
+			jpaId,
+			createdAt: new Date(),
+		})
 		.onConflictDoNothing();
 };
 
@@ -488,7 +492,7 @@ export const logNotification = async (
 	await db
 		.insert(schema.notificationLog)
 		.values({
-			id: nanoid(),
+			id: crypto.randomUUID(),
 			jpaId,
 			sentAt: publishedAt,
 			subscriberCount,
@@ -501,7 +505,7 @@ export const createAdminSession = async (
 	expiresAt: Date,
 ): Promise<AdminSession> => {
 	const session = {
-		id: nanoid(),
+		id: crypto.randomUUID(),
 		token,
 		expiresAt,
 		createdAt: new Date(),

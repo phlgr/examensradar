@@ -3,10 +3,9 @@ import {
 	deleteAdminSession,
 	getAdminSessionByToken,
 } from "@/db";
-import { getCookie } from "@/lib/cookies";
 
 const COOKIE_NAME = "admin_session";
-const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
+const SESSION_DURATION_S = 7 * 24 * 60 * 60;
 
 export function verifyAdminPassword(password: string): boolean {
 	const adminPassword = process.env.ADMIN_PASSWORD;
@@ -19,7 +18,7 @@ export function verifyAdminPassword(password: string): boolean {
 
 export async function createAdminToken(): Promise<string> {
 	const token = crypto.randomUUID();
-	const expiresAt = new Date(Date.now() + SESSION_DURATION_MS);
+	const expiresAt = new Date(Date.now() + SESSION_DURATION_S * 1000);
 	await createAdminSession(token, expiresAt);
 	return token;
 }
@@ -36,14 +35,17 @@ export async function verifyAdminToken(token: string): Promise<boolean> {
 	return true;
 }
 
-export async function invalidateAdminToken(token: string): Promise<void> {
-	await deleteAdminSession(token);
-}
-
-export function getAdminCookieName(): string {
-	return COOKIE_NAME;
-}
-
 export function getAdminTokenFromRequest(request: Request): string | null {
-	return getCookie(request, COOKIE_NAME);
+	return new Bun.CookieMap(request.headers.get("cookie") ?? "").get(
+		COOKIE_NAME,
+	);
 }
+
+export const buildAdminCookie = (token: string, maxAge = SESSION_DURATION_S) =>
+	new Bun.Cookie(COOKIE_NAME, token, {
+		path: "/",
+		httpOnly: true,
+		sameSite: "lax",
+		secure: process.env.NODE_ENV === "production",
+		maxAge,
+	}).serialize();

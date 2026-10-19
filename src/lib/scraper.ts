@@ -9,8 +9,6 @@ const MAX_RETRY_DELAY_MS = 10_000;
 const LEGACY_CHANGEBOT_USER_AGENT =
 	"Mozilla/5.0 (compatible; WebsiteChangeDetection/1.0)";
 
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
 export async function fetchPage(url: string): Promise<string> {
 	let lastError: unknown;
 
@@ -29,7 +27,7 @@ export async function fetchPage(url: string): Promise<string> {
 		} catch (error) {
 			lastError = error;
 			if (attempt < RETRIES) {
-				await sleep(
+				await Bun.sleep(
 					Math.min(
 						INITIAL_RETRY_DELAY_MS * 2 ** (attempt - 1),
 						MAX_RETRY_DELAY_MS,
