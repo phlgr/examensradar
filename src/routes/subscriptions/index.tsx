@@ -61,6 +61,10 @@ function SubscriptionsPage() {
 	}, []);
 
 	const meQuery = trpc.email.me.useQuery(undefined, { retry: false });
+	// Started here rather than only in Managing/Signup so they share the batched
+	// request with `me` instead of waiting for it to resolve first.
+	trpc.jpa.getAll.useQuery();
+	trpc.jpa.getHistory.useQuery();
 
 	if (meQuery.isLoading || manage) return <PageSpinner />;
 

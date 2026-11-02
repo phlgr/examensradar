@@ -50,7 +50,10 @@ export async function queueResultsNotifications(
 		return { status: "disabled" };
 	}
 
-	const subscribers = await getMailableSubscribersByJpa(jpa.id);
+	const [subscribers, total] = await Promise.all([
+		getMailableSubscribersByJpa(jpa.id),
+		countEmailSubscriptionsByJpa(jpa.id),
+	]);
 
 	const mails = subscribers.map((subscriber) => ({
 		...renderResultsMail(jpa.name, jpa.websiteUrl, {
@@ -59,8 +62,6 @@ export async function queueResultsNotifications(
 		}),
 		to: subscriber.email,
 	}));
-
-	const total = await countEmailSubscriptionsByJpa(jpa.id);
 
 	if (mails.length > 0) {
 		void dispatch(jpa, mails, publishedAt);
