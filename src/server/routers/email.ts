@@ -73,7 +73,11 @@ export const emailRouter = router({
 				return { ok: true };
 			}
 
-			const subscriber = await upsertPendingSubscriber(input.email, ip);
+			const subscriber = await upsertPendingSubscriber(
+				input.email,
+				ip,
+				existing,
+			);
 			await addEmailSubscription(subscriber.id, jpa.id);
 
 			void sendMail({

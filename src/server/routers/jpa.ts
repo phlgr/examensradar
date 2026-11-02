@@ -61,8 +61,7 @@ export const jpaRouter = router({
 				throw new TRPCError({ code: "NOT_FOUND", message: "JPA not found" });
 			}
 
-			await updateJpa(id, data);
-			const updated = await getJpaById(id);
+			const updated = await updateJpa(id, data);
 
 			const scrapeConfigChanged =
 				(data.scrapeUrl !== undefined &&

@@ -82,8 +82,14 @@ export const updateJpa = async (
 		scrapeSelector?: string | null;
 		notificationsDisabled?: boolean;
 	},
-): Promise<void> => {
-	await db.update(schema.jpa).set(data).where(eq(schema.jpa.id, id));
+): Promise<JPA | null> => {
+	const updated = await db
+		.update(schema.jpa)
+		.set(data)
+		.where(eq(schema.jpa.id, id))
+		.returning()
+		.get();
+	return updated ?? null;
 };
 
 export const deleteJpa = async (id: string): Promise<void> => {
@@ -285,9 +291,12 @@ export const getSubscriberByUnsubscribeToken = async (
 export const upsertPendingSubscriber = async (
 	email: string,
 	ip: string | null,
+	/** Pass the row the caller already loaded to skip a second lookup. */
+	known?: Subscriber | null,
 ): Promise<Subscriber & { confirmToken: string }> => {
 	const now = new Date();
-	const existing = await getSubscriberByEmail(email);
+	const existing =
+		known === undefined ? await getSubscriberByEmail(email) : known;
 
 	if (existing && subscriberStatus(existing) === "active") {
 		throw new Error("refusing to reset an active subscriber to pending");
@@ -386,14 +395,17 @@ export const confirmSubscriber = async (
 };
 
 export const unsubscribeSubscriber = async (id: string): Promise<void> => {
-	await db
-		.delete(schema.emailSubscription)
-		.where(eq(schema.emailSubscription.subscriberId, id));
-
-	await db
-		.update(schema.subscriber)
-		.set({ unsubscribedAt: new Date() })
-		.where(eq(schema.subscriber.id, id));
+	// One transaction: a single WAL commit instead of two, and no window where
+	// the subscriptions are gone but the subscriber still reads as active.
+	db.transaction((tx) => {
+		tx.delete(schema.emailSubscription)
+			.where(eq(schema.emailSubscription.subscriberId, id))
+			.run();
+		tx.update(schema.subscriber)
+			.set({ unsubscribedAt: new Date() })
+			.where(eq(schema.subscriber.id, id))
+			.run();
+	});
 };
 
 export const addEmailSubscription = async (
@@ -462,11 +474,12 @@ export const getMailableSubscribersByJpa = async (
 export const countEmailSubscriptionsByJpa = async (
 	jpaId: string,
 ): Promise<number> => {
-	return db
-		.select()
+	const row = await db
+		.select({ count: sql<number>`count(*)` })
 		.from(schema.emailSubscription)
 		.where(eq(schema.emailSubscription.jpaId, jpaId))
-		.all().length;
+		.get();
+	return row?.count ?? 0;
 };
 
 export const getNotificationHistory = async () => {

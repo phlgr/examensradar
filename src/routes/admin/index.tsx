@@ -77,9 +77,7 @@ function AdminPage() {
 
 	const jpasQuery = trpc.jpa.getAll.useQuery();
 	const subscriptionCountsQuery = trpc.jpa.getSubscriptionCounts.useQuery();
-	const scrapeStatesQuery = trpc.jpa.getScrapeStates.useQuery(undefined, {
-		enabled: isAuthenticated === true,
-	});
+	const scrapeStatesQuery = trpc.jpa.getScrapeStates.useQuery();
 
 	const createJpa = trpc.jpa.create.useMutation({
 		onSuccess: () => {
