@@ -88,10 +88,11 @@ Proof standards:
 $V/verify.sh stop myrun     # prints: stopped myrun; evidence kept at /tmp/examensradar-verify/myrun/evidence
 ```
 
-`stop` kills only the two process groups `launch` started (from `state/*.pid`), never by name. It copies logs and mail into `evidence/` and deletes `state/` (DB, pids, fixture). Evidence survives until you delete `/tmp/examensradar-verify/<run-id>` yourself, or until a reboot clears `/tmp`. Run `stop` after every failed attempt too. Then `ss -ltn | grep <port>` should print nothing.
+`stop` kills only the two process groups `launch` started (from `state/*.pid`), never by name. It copies logs and mail into `evidence/` and deletes `state/` (DB, pids, fixture). Evidence survives until you delete `/tmp/examensradar-verify/<run-id>` yourself, or until a reboot clears `/tmp`. Run `stop` after every failed attempt too. Then `lsof -nP -iTCP:<port> -sTCP:LISTEN` (or `ss -ltn | grep <port>` on Linux) should print nothing.
 
 ## Gotchas
 
+- Runs on Linux and macOS. `verify.sh` uses `setsid`/`ss`/`/proc` where they exist and falls back to perl `setpgrp`/`lsof`/`ps eww` on macOS. Keep it bash 3.2 compatible (macOS `/bin/bash`), and avoid GNU-only flags such as `grep -P` or `env -C`.
 - `.env.local` in the main checkout holds real Scaleway SMTP creds. `launch` overrides them with explicit env, and `doctor` verifies that the override reached the server. Never start the app another way for verification.
 - Worktrees have no `node_modules` and no `data/`. `setup` installs deps, and `launch` never needs `data/`.
 - Playwright is deliberately not a repo dependency, so knip and the lockfile stay clean. `pw.ts` imports it from `~/.cache/examensradar-verify/tools`.
