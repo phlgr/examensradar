@@ -23,6 +23,34 @@ run_dir() { [[ -n "${1:-}" ]] || die "run-id required"; local d="$ROOT/$1"; [[ -
 load_env() { # shellcheck disable=SC1091
 	source "$1/state/env"; }
 
+# Linux and macOS. setsid, ss and /proc are Linux-only; macOS gets perl's
+# setpgrp, lsof and `ps eww` instead. bash 3.2 compatible (macOS /bin/bash).
+#
+# NEW_PGRP runs a command as the leader of a new process group, keeping its
+# pid, so `( cd dir && exec "${NEW_PGRP[@]}" cmd ) &` makes $! the pgid that
+# stop kills. A background subshell is not a group leader, so util-linux
+# setsid execs in place instead of forking.
+if command -v setsid >/dev/null 2>&1; then
+	NEW_PGRP=(setsid)
+else
+	NEW_PGRP=(perl -e 'setpgrp(0, 0) or die "setpgrp: $!"; exec @ARGV or die "exec $ARGV[0]: $!"')
+fi
+listen_pid() { # pid of the process listening on TCP port $1
+	if command -v ss >/dev/null 2>&1; then
+		ss -ltnp | grep ":$1 " | sed -n 's/.*pid=\([0-9]*\).*/\1/p' | head -1
+	else
+		lsof -nP -iTCP:"$1" -sTCP:LISTEN -t | head -1
+	fi
+}
+proc_env() { # environment of pid $1, one VAR=value per line
+	if [[ -r /proc/$1/environ ]]; then
+		tr '\0' '\n' <"/proc/$1/environ"
+	else
+		# macOS: env follows argv, space-separated (our paths have no spaces).
+		ps eww -o command= -p "$1" | tr ' ' '\n'
+	fi
+}
+
 cmd_setup() {
 	[[ -d "$REPO/node_modules" ]] || (cd "$REPO" && bun install)
 	mkdir -p "$TOOLS"
@@ -55,7 +83,7 @@ EOF
 	load_env "$dir"
 
 	# Sidecar first, so the app's very first mail has somewhere safe to go.
-	setsid bun "$SKILL_DIR/scripts/sidecar.ts" "$dir/state" "$smtp" "$fix" >"$dir/state/sidecar.log" 2>&1 &
+	(exec "${NEW_PGRP[@]}" bun "$SKILL_DIR/scripts/sidecar.ts" "$dir/state" "$smtp" "$fix") >"$dir/state/sidecar.log" 2>&1 &
 	echo $! >"$dir/state/sidecar.pid"
 
 	# Fresh DB: migrations + seed, then disarm every seeded JPA's scraper (no
@@ -70,11 +98,11 @@ EOF
 		db.close();' "$DB" "$FIXTURE_URL"
 
 	# Explicit env beats any .env.local vite would load — SMTP points at the sink.
-	# setsid makes the server its own process group, so stop can kill exactly it.
-	setsid env -C "$REPO" TZ=Europe/Berlin DATABASE_PATH="$DB" APP_URL="$BASE_URL" ADMIN_PASSWORD="$ADMIN_PASSWORD" \
+	# NEW_PGRP makes the server its own process group, so stop can kill exactly it.
+	(cd "$REPO" && exec "${NEW_PGRP[@]}" env TZ=Europe/Berlin DATABASE_PATH="$DB" APP_URL="$BASE_URL" ADMIN_PASSWORD="$ADMIN_PASSWORD" \
 		SMTP_HOST=127.0.0.1 SMTP_PORT="$smtp" SMTP_USER=verify SMTP_PASS=verify \
 		MAIL_FROM=noreply@examensradar.test SCRAPE_INTERVAL_MS=86400000 \
-		bunx --bun vite dev --host 127.0.0.1 --port "$app" --strictPort >"$dir/state/server.log" 2>&1 &
+		bunx --bun vite dev --host 127.0.0.1 --port "$app" --strictPort) >"$dir/state/server.log" 2>&1 &
 	echo $! >"$dir/state/server.pid"
 
 	# Ready = usable: the tRPC list serves the test JPA and the scraper booted.
@@ -96,13 +124,12 @@ cmd_doctor() {
 	local spid; spid=$(cat "$dir/state/server.pid" 2>/dev/null || echo 0)
 	check "server pid $spid alive" "kill -0 $spid"
 	check "sidecar alive" "kill -0 $(cat "$dir/state/sidecar.pid" 2>/dev/null || echo 0)"
-	check "port $APP_PORT owned by our process group" \
-		"ss -ltnp | grep ':$APP_PORT ' | grep -oP 'pid=\K[0-9]+' | xargs -I{} ps -o pgid= -p {} | grep -qw $spid"
+	local vpid; vpid=$(listen_pid "$APP_PORT" || true)
+	check "port $APP_PORT owned by our process group" "[[ -n '$vpid' ]] && ps -o pgid= -p $vpid | grep -qw $spid"
 	check "HTTP serves test JPA" "http_get $BASE_URL/api/trpc/jpa.getAll | grep -q verify-test"
 	# The process actually listening (bunx's child) carries the app's env.
-	local vpid; vpid=$(ss -ltnp | grep ":$APP_PORT " | grep -oP 'pid=\K[0-9]+' | head -1 || true)
-	check "app SMTP_HOST is the local sink" "tr '\0' '\n' </proc/$vpid/environ | grep -qx SMTP_HOST=127.0.0.1"
-	check "app DATABASE_PATH is this run's DB" "tr '\0' '\n' </proc/$vpid/environ | grep -qx 'DATABASE_PATH=$DB'"
+	check "app SMTP_HOST is the local sink" "[[ -n '$vpid' ]] && proc_env $vpid | grep -qx SMTP_HOST=127.0.0.1"
+	check "app DATABASE_PATH is this run's DB" "[[ -n '$vpid' ]] && proc_env $vpid | grep -qx 'DATABASE_PATH=$DB'"
 	check "only the test JPA has a scrape URL" \
 		"[[ \$(bun -e 'import {Database} from \"bun:sqlite\";console.log(new Database(process.argv[1],{readonly:true}).query(\"select count(*) c from jpa where scrape_url is not null and id != ?\").get(\"jpa-verify-test\").c)' $DB) == 0 ]]"
 	echo "build: $(git -C "$REPO" rev-parse --short HEAD)$(git -C "$REPO" diff --quiet || echo '+dirty')"
@@ -122,7 +149,7 @@ cmd_stop() {
 	local dir; dir=$(run_dir "${1:-}")
 	for name in server sidecar; do
 		local pid; pid=$(cat "$dir/state/$name.pid" 2>/dev/null || true)
-		# setsid made each launch its own process group: kill only that group.
+		# launch made each its own process group: kill only that group.
 		[[ -n "$pid" ]] && kill -- "-$pid" 2>/dev/null || true
 	done
 	sleep 1
