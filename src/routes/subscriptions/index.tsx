@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import type { inferRouterOutputs } from "@trpc/server";
 import { ExternalLink, Loader2, LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
@@ -18,6 +19,7 @@ import { trackEvent } from "@/lib/analytics";
 import { summarizeReleases } from "@/lib/release-summary";
 import { noindex } from "@/lib/seo";
 import { trpc } from "@/lib/trpc";
+import type { AppRouter } from "@/server/routers/_app";
 
 // The param must not make validateSearch throw: mail clients truncate links,
 // and a throw here replaces the whole page with the raw router error instead
@@ -34,6 +36,8 @@ export const Route = createFileRoute("/subscriptions/")({
 	validateSearch,
 	component: SubscriptionsPage,
 });
+
+type RouterOutputs = inferRouterOutputs<AppRouter>;
 
 const INVALID_LINK_FLAG = "examensradar_link_invalid";
 
@@ -61,10 +65,11 @@ function SubscriptionsPage() {
 	}, []);
 
 	const meQuery = trpc.email.me.useQuery(undefined, { retry: false });
-	// Started here rather than only in Managing/Signup so they share the batched
-	// request with `me` instead of waiting for it to resolve first.
-	trpc.jpa.getAll.useQuery();
-	trpc.jpa.getHistory.useQuery();
+	// Owned here and passed down rather than queried in Managing/Signup: they
+	// share the batched request with `me` instead of waiting for it, and no
+	// second observer mounts later to refetch the then-stale data.
+	const jpasQuery = trpc.jpa.getAll.useQuery();
+	const historyQuery = trpc.jpa.getHistory.useQuery();
 
 	if (meQuery.isLoading || manage) return <PageSpinner />;
 
@@ -100,19 +105,39 @@ function SubscriptionsPage() {
 				)}
 
 				{me === null || me.unsubscribed ? (
-					<Signup signedOut={me === null} />
+					<Signup signedOut={me === null} jpasQuery={jpasQuery} />
 				) : (
-					<Managing email={me.email} jpaIds={me.jpas.map((jpa) => jpa.jpaId)} />
+					<Managing
+						email={me.email}
+						jpaIds={me.jpas.map((jpa) => jpa.jpaId)}
+						jpasQuery={jpasQuery}
+						historyQuery={historyQuery}
+					/>
 				)}
 			</div>
 		</div>
 	);
 }
 
-function Managing({ email, jpaIds }: { email: string; jpaIds: string[] }) {
+type JpasQuery = {
+	data: RouterOutputs["jpa"]["getAll"] | undefined;
+	isLoading: boolean;
+	isError: boolean;
+};
+type HistoryQuery = { data: RouterOutputs["jpa"]["getHistory"] | undefined };
+
+function Managing({
+	email,
+	jpaIds,
+	jpasQuery,
+	historyQuery,
+}: {
+	email: string;
+	jpaIds: string[];
+	jpasQuery: JpasQuery;
+	historyQuery: HistoryQuery;
+}) {
 	const utils = trpc.useUtils();
-	const jpasQuery = trpc.jpa.getAll.useQuery();
-	const historyQuery = trpc.jpa.getHistory.useQuery();
 
 	const jpas = jpasQuery.data ?? [];
 	const search = useJpaSearch(jpas);
@@ -255,8 +280,13 @@ function Managing({ email, jpaIds }: { email: string; jpaIds: string[] }) {
 	);
 }
 
-function Signup({ signedOut }: { signedOut: boolean }) {
-	const jpasQuery = trpc.jpa.getAll.useQuery();
+function Signup({
+	signedOut,
+	jpasQuery,
+}: {
+	signedOut: boolean;
+	jpasQuery: JpasQuery;
+}) {
 	const [jpaId, setJpaId] = useState("");
 
 	useEffect(() => {
