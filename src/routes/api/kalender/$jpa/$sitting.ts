@@ -10,7 +10,7 @@ const appUrl = () => process.env.APP_URL || "https://examensradar.de";
 const asciiFileName = (month: string, year: string) =>
 	`klausuren-${month.toLowerCase().replace("ä", "ae")}-${year}.ics`;
 
-/** Calendar download linked from the welcome mail only, not from the public site. */
+/** Calendar download linked from the welcome mail and the JPA page's exam timeline. */
 export const Route = createFileRoute("/api/kalender/$jpa/$sitting")({
 	server: {
 		handlers: {

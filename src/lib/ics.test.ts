@@ -34,6 +34,7 @@ describe("sittingCalendar", () => {
 		expect(all[0]).toContain("DTEND;VALUE=DATE:20261120\r\n");
 		expect(all[0]).toContain("SUMMARY:Examensklausur Zivilrecht (ZR)");
 		expect(all[0]).toContain("UID:20261119-1@examensradar.de");
+		expect(all[0]).toContain("Viel Erfolg wünscht dir Examensradar!");
 		expect(all[6]).toContain("DTSTART;VALUE=DATE:20270301\r\n");
 		expect(all[6]).toContain("DTEND;VALUE=DATE:20270302\r\n");
 		expect(all[6]).toContain("TRANSP:TRANSPARENT");
@@ -66,7 +67,7 @@ describe("sittingCalendar", () => {
 			.replaceAll(";", String.raw`\;`)
 			.replaceAll(",", String.raw`\,`);
 		expect(unfold(ics)).toContain(
-			`DESCRIPTION:Staatliche Pflichtfachprüfung\\, ${escaped}. Angaben ohne Gewähr.`,
+			`DESCRIPTION:Staatliche Pflichtfachprüfung beim ${escaped}. Viel Erfolg wünscht dir Examensradar! Angaben ohne Gewähr.`,
 		);
 		expect(ics).not.toContain("�");
 	});

@@ -89,7 +89,7 @@ export function sittingCalendar({
 	const exams = sitting.days.flatMap((day, index) =>
 		allDay(`${compactDate(day.date)}-${index + 1}@examensradar.de`, day.date, [
 			`SUMMARY:${escapeText(`Examensklausur ${SUBJECT_LABEL[day.subject]}`)}`,
-			`DESCRIPTION:${escapeText(`Staatliche Pflichtfachprüfung, ${jpaName}. Angaben ohne Gewähr.`)}`,
+			`DESCRIPTION:${escapeText(`Staatliche Pflichtfachprüfung beim ${jpaName}. Viel Erfolg wünscht dir Examensradar! Angaben ohne Gewähr.`)}`,
 		]),
 	);
 
@@ -98,7 +98,7 @@ export function sittingCalendar({
 		localDate(expectedResults),
 		[
 			`SUMMARY:${escapeText(`Examensergebnisse voraussichtlich (${jpaName})`)}`,
-			`DESCRIPTION:${escapeText(`Voraussichtlicher Termin, ohne Gewähr. Den genauen Zeitpunkt erfährst du per E-Mail von Examensradar: ${jpaUrl}`)}`,
+			`DESCRIPTION:${escapeText(`Voraussichtlicher Termin, ohne Gewähr. Wir drücken dir die Daumen! Den genauen Zeitpunkt erfährst du per E-Mail von Examensradar: ${jpaUrl}`)}`,
 			`URL:${jpaUrl}`,
 			"TRANSP:TRANSPARENT",
 		],

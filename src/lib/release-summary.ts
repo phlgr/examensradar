@@ -108,11 +108,7 @@ export function summarizeReleases(
 
 const MAX_UPCOMING_SITTINGS = 4;
 
-export type SittingPhase =
-	| "veröffentlicht"
-	| "ausstehend"
-	| "läuft"
-	| "anstehend";
+type SittingPhase = "veröffentlicht" | "ausstehend" | "läuft" | "anstehend";
 
 type SittingResults =
 	| { kind: "released"; date: Date }

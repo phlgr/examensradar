@@ -85,10 +85,33 @@ export function formatSittingRange(
 	return `${start} – ${d2}. ${MONTHS[m2]}${end}`;
 }
 
-/** "August 2026": the month a sitting starts in. */
-export function formatSittingMonth(sitting: ExamSitting): string {
+/** "August", or "August 2027" when the sitting starts outside `currentYear`. */
+export function formatSittingMonth(
+	sitting: ExamSitting,
+	currentYear: number,
+): string {
 	const [year, month] = parts(sitting.days[0].date);
-	return `${MONTHS[month]} ${year}`;
+	return year === currentYear ? MONTHS[month] : `${MONTHS[month]} ${year}`;
+}
+
+/** "20.–28.08." or, spilling over a month end, "22.02.–02.03.". */
+export function formatSittingRangeShort(sitting: ExamSitting): string {
+	const [, m1, d1] = parts(sitting.days[0].date);
+	const [, m2, d2] = parts(sitting.days[sitting.days.length - 1].date);
+	const pad = (n: number) => String(n).padStart(2, "0");
+	return m1 === m2
+		? `${pad(d1)}.–${pad(d2)}.${pad(m2 + 1)}.`
+		: `${pad(d1)}.${pad(m1 + 1)}.–${pad(d2)}.${pad(m2 + 1)}.`;
+}
+
+/** Names of the months strictly between the start months of two sittings, e.g. ["Juli"]. */
+export function monthsBetween(a: ExamSitting, b: ExamSitting): string[] {
+	const [y1, m1] = parts(a.days[0].date);
+	const [y2, m2] = parts(b.days[0].date);
+	const gap: string[] = [];
+	for (let i = y1 * 12 + m1 + 1; i < y2 * 12 + m2; i++)
+		gap.push(MONTHS[i % 12]);
+	return gap;
 }
 
 /** "Do 19.11." for an exam day (YYYY-MM-DD). */

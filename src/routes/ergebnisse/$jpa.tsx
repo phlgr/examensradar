@@ -1,18 +1,22 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { ExternalLink } from "lucide-react";
+import { CalendarPlus, ExternalLink } from "lucide-react";
 import { Fragment, useState } from "react";
 import { FaqList } from "@/components/FaqList";
 import { Footer } from "@/components/Footer";
 import { SignupForm } from "@/components/SignupForm";
 import { Card } from "@/components/ui/card";
 import { Eyebrow, SectionIntro } from "@/components/ui/heading";
+import { trackEvent } from "@/lib/analytics";
 import {
 	calendarDate,
-	type ExamSubject,
+	type ExamSitting,
 	formatExamDay,
 	formatSittingMonth,
 	formatSittingRange,
+	formatSittingRangeShort,
 	formatStand,
+	monthsBetween,
+	resultMonthIndex,
 	resultMonthName,
 	SUBJECT_NAME,
 } from "@/lib/exam-calendar";
@@ -24,7 +28,6 @@ import {
 	formatDayMonth,
 	formatDayMonthShort,
 	relativeLabel,
-	type SittingPhase,
 	summarizeReleases,
 	type TimelineEntry,
 } from "@/lib/release-summary";
@@ -97,134 +100,199 @@ export const Route = createFileRoute("/ergebnisse/$jpa")({
 	component: JpaPage,
 });
 
-const SUBJECT_TINT: Record<ExamSubject, string> = {
-	ZR: "bg-blue-100 text-blue-900",
-	ÖR: "bg-ok-soft text-ok",
-	SR: "bg-seal-soft text-seal-deep",
-};
+const dayMonthYear = (date: Date, currentYear: number) =>
+	date.getFullYear() === currentYear
+		? formatDayMonth(date)
+		: `${formatDayMonth(date)} ${date.getFullYear()}`;
 
-const chipClass = (subject: ExamSubject) =>
-	cn(
-		"inline-block rounded px-1.5 py-0.5 text-[11px] font-semibold leading-none",
-		SUBJECT_TINT[subject],
-	);
+const joinMonths = (months: string[]) =>
+	months.length > 1
+		? `${months.slice(0, -1).join(", ")} und ${months[months.length - 1]}`
+		: months[0];
 
-const DOT: Record<SittingPhase, string> = {
-	veröffentlicht: "bg-ink/40",
-	ausstehend: "bg-ink",
-	läuft: "bg-seal",
-	anstehend: "bg-paper border-2 border-ink",
-};
+const LABEL = "text-[11px] font-semibold uppercase tracking-[0.08em]";
 
-function ResultsLine({ sitting, results }: TimelineEntry) {
+function ResultsLine({
+	sitting,
+	results,
+	currentYear,
+	highlight,
+}: TimelineEntry & { currentYear: number; highlight: boolean }) {
 	if (results.kind === "released") {
-		return <>✓ Ergebnisse am {formatLongDate(results.date)} veröffentlicht</>;
+		return (
+			<span className="text-ink/55">
+				Ergebnisse am {dayMonthYear(results.date, currentYear)} ✓
+			</span>
+		);
 	}
+	const value = results.exact
+		? dayMonthYear(results.date, currentYear)
+		: resultMonthLabel(sitting, currentYear);
 	return (
-		<>
-			Ergebnisse voraussichtlich{" "}
-			{results.exact ? (
-				<>
-					am <b className="text-ink">{formatLongDate(results.date)}</b>
-				</>
-			) : (
-				<>
-					Ende <b className="text-ink">{resultMonthName(sitting)}</b>
-				</>
-			)}
-		</>
+		<span>
+			Ergebnisse {!results.exact && "Ende "}
+			<span className={cn("font-serif text-[17px]", highlight && "marker")}>
+				{value}
+			</span>
+		</span>
+	);
+}
+
+function resultMonthLabel(sitting: ExamSitting, currentYear: number) {
+	const year = Math.floor(resultMonthIndex(sitting) / 12);
+	return year === currentYear
+		? resultMonthName(sitting)
+		: `${resultMonthName(sitting)} ${year}`;
+}
+
+function ExamDays({ entry, today }: { entry: TimelineEntry; today: string }) {
+	return (
+		<ul className="mt-3 grid gap-x-6 gap-y-0.5 sm:grid-cols-3">
+			{entry.sitting.days.map((day) => (
+				<li
+					key={day.date}
+					className={cn(
+						"flex gap-3 py-0.5",
+						entry.phase === "läuft" && day.date < today && "text-ink/45",
+					)}
+				>
+					<span className="figures w-[74px] shrink-0 text-[13px] text-ink/55">
+						{formatExamDay(day.date)}
+					</span>
+					<span>{SUBJECT_NAME[day.subject]}</span>
+				</li>
+			))}
+		</ul>
+	);
+}
+
+function CalendarLink({
+	jpaSlug,
+	sitting,
+}: {
+	jpaSlug: string;
+	sitting: ExamSitting;
+}) {
+	const start = sitting.days[0].date;
+	return (
+		<a
+			href={`/api/kalender/${jpaParam(jpaSlug)}/${start}`}
+			download
+			onClick={() =>
+				trackEvent("calendar_download", { jpa: jpaSlug, sitting: start })
+			}
+			className="mt-2 inline-flex items-center gap-1.5 text-[13px] text-ink/55 hover:text-ink"
+		>
+			<CalendarPlus className="size-3.5" aria-hidden="true" />
+			In den Kalender
+		</a>
 	);
 }
 
 function ExamTimelineList({
 	entries,
+	jpaSlug,
 	now,
 }: {
 	entries: TimelineEntry[];
+	jpaSlug: string;
 	now: Date;
 }) {
 	const today = calendarDate(now);
-	const firstUpcoming = entries.findIndex((e) => e.phase === "anstehend");
-	const todayMarkerAt = entries.some((e) => e.phase === "läuft")
-		? -1
-		: firstUpcoming === -1
-			? entries.length
-			: firstUpcoming;
-	const marker = (
-		<li className="-ml-3 flex items-center gap-3 pb-7 last:pb-0">
-			<span className="rounded-full bg-seal px-2.5 py-1 text-xs font-semibold text-white">
-				Heute
-			</span>
-			<span className="text-[13px] text-ink/55">{formatLongDate(now)}</span>
+	const currentYear = now.getFullYear();
+	const firstOpen = entries.findIndex(
+		(e) => e.phase === "läuft" || e.phase === "anstehend",
+	);
+	const todayAt = firstOpen === -1 ? entries.length : firstOpen;
+	const firstExpected = entries.findIndex((e) => e.results.kind === "expected");
+	const running = entries.some((e) => e.phase === "läuft");
+
+	const todayRule = (
+		<li className={cn(LABEL, "border-t-[1.5px] border-seal py-2.5 text-seal")}>
+			Heute · {formatDayMonth(now)}
 		</li>
 	);
 
 	return (
-		<ol className="ml-1.5 border-l-2 border-ink/10">
-			{entries.map((entry, index) => (
-				<Fragment key={entry.sitting.days[0].date}>
-					{index === todayMarkerAt && marker}
-					<li className="relative pb-7 pl-6 last:pb-0">
-						<span
-							aria-hidden="true"
-							className={cn(
-								"absolute top-1.5 -left-[7px] size-3 rounded-full",
-								DOT[entry.phase],
+		<ol>
+			{entries.map((entry, index) => {
+				const open = entry.phase === "läuft" || entry.phase === "anstehend";
+				const expanded = index === firstOpen;
+				const previous = entries[index - 1];
+				const gap = previous
+					? monthsBetween(previous.sitting, entry.sitting)
+					: [];
+				const head = (
+					<div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+						<span>
+							<span className="font-serif text-[19px]">
+								{formatSittingMonth(entry.sitting, currentYear)}
+							</span>{" "}
+							<span className="figures text-[13px] text-ink/55">
+								{formatSittingRangeShort(entry.sitting)}
+							</span>
+							{entry.phase === "läuft" && (
+								<span className={cn(LABEL, "ml-2 text-ink/50")}>
+									läuft gerade
+								</span>
 							)}
+							{expanded && entry.phase === "anstehend" && !running && (
+								<span className={cn(LABEL, "ml-2 text-ink/50")}>
+									nächster Durchgang
+								</span>
+							)}
+							{open && !expanded && (
+								<span className="ml-2 text-[13px] text-ink/55">
+									Tage{" "}
+									<span className="inline-block group-open:rotate-90">›</span>
+								</span>
+							)}
+						</span>
+						<ResultsLine
+							{...entry}
+							currentYear={currentYear}
+							highlight={index === firstExpected}
 						/>
-						<div
-							className={cn(entry.phase === "veröffentlicht" && "opacity-60")}
+					</div>
+				);
+				const body = open && (
+					<>
+						<ExamDays entry={entry} today={today} />
+						<CalendarLink jpaSlug={jpaSlug} sitting={entry.sitting} />
+					</>
+				);
+				return (
+					<Fragment key={entry.sitting.days[0].date}>
+						{gap.length > 0 && (
+							<li className="border-t border-ink/10 py-2.5 text-[13px] text-ink/50">
+								Keine Klausuren im {joinMonths(gap)}
+							</li>
+						)}
+						{index === todayAt && todayRule}
+						<li
+							className={cn(
+								index !== todayAt && "border-t border-ink/10",
+								entry.phase === "veröffentlicht" && "opacity-50",
+							)}
 						>
-							<div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-								<p>
-									<span className="font-semibold">
-										{formatSittingMonth(entry.sitting)}
-									</span>
-									<span className="text-[13px] text-ink/55">
-										{" · "}
-										{formatSittingRange(entry.sitting, { year: false })}
-									</span>
-									{entry.phase === "läuft" && (
-										<span className="ml-2 rounded-full bg-seal px-2 py-0.5 text-[11px] font-semibold text-white">
-											läuft gerade
-										</span>
-									)}
-								</p>
-								<p className="text-[13px] text-ink/55">
-									<ResultsLine {...entry} />
-								</p>
-							</div>
-							<ul className="mt-2 flex flex-wrap gap-1.5">
-								{entry.sitting.days.map((day) => (
-									<li
-										key={day.date}
-										className={cn(
-											"flex items-center gap-1.5 rounded-lg bg-sheet px-2 py-1 text-[13px] ring-1 ring-ink/10",
-											entry.phase === "läuft" &&
-												day.date < today &&
-												"opacity-50",
-										)}
-									>
-										<span>{formatExamDay(day.date)}</span>
-										<span title={SUBJECT_NAME[day.subject]}>
-											<span
-												aria-hidden="true"
-												className={chipClass(day.subject)}
-											>
-												{day.subject}
-											</span>
-											<span className="sr-only">
-												{SUBJECT_NAME[day.subject]}
-											</span>
-										</span>
-									</li>
-								))}
-							</ul>
-						</div>
-					</li>
-				</Fragment>
-			))}
-			{todayMarkerAt === entries.length && marker}
+							{open && !expanded ? (
+								<details className="group py-3.5">
+									<summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+										{head}
+									</summary>
+									{body}
+								</details>
+							) : (
+								<div className={cn("py-3.5", index === todayAt && "pt-1")}>
+									{head}
+									{body}
+								</div>
+							)}
+						</li>
+					</Fragment>
+				);
+			})}
+			{todayAt === entries.length && todayRule}
 		</ol>
 	);
 }
@@ -329,22 +397,10 @@ function JpaPage() {
 							</p>
 							<ExamTimelineList
 								entries={timeline.entries}
+								jpaSlug={jpa.slug}
 								now={new Date(now)}
 							/>
-							<p className="flex flex-wrap gap-x-4 gap-y-1 text-[13px] text-ink/55 mt-5">
-								{Object.entries(SUBJECT_NAME).map(([subject, name]) => (
-									<span key={subject}>
-										<span
-											aria-hidden="true"
-											className={chipClass(subject as ExamSubject)}
-										>
-											{subject}
-										</span>{" "}
-										{name}
-									</span>
-								))}
-							</p>
-							<p className="text-[13px] text-ink/55 mt-2">
+							<p className="border-t border-ink/10 pt-3 text-[13px] text-ink/55">
 								Ohne Gewähr. Quelle:{" "}
 								<a
 									href={timeline.calendar.pageUrl}

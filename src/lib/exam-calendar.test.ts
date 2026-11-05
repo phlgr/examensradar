@@ -1,7 +1,10 @@
 import { describe, expect, test } from "bun:test";
 import {
 	examCalendarFor,
+	formatSittingMonth,
 	formatSittingRange,
+	formatSittingRangeShort,
+	monthsBetween,
 	resultMonthIndex,
 	sittingStatus,
 } from "./exam-calendar.ts";
@@ -15,6 +18,28 @@ const sittingStarting = (date: string) => {
 };
 
 describe("exam calendar", () => {
+	test("short range is numeric, with both months when it spills over", () => {
+		expect(formatSittingRangeShort(sittingStarting("2026-08-20"))).toBe(
+			"20.–28.08.",
+		);
+		expect(formatSittingRangeShort(sittingStarting("2026-02-23"))).toBe(
+			"23.02.–03.03.",
+		);
+	});
+
+	test("month label names the year only outside the current one", () => {
+		const august = sittingStarting("2026-08-20");
+		expect(formatSittingMonth(august, 2026)).toBe("August");
+		expect(formatSittingMonth(august, 2025)).toBe("August 2026");
+	});
+
+	test("lists the months without a sitting between two sittings", () => {
+		const between = (a: string, b: string) =>
+			monthsBetween(sittingStarting(a), sittingStarting(b));
+		expect(between("2026-06-22", "2026-08-20")).toEqual(["Juli"]);
+		expect(between("2026-10-22", "2026-11-19")).toEqual([]);
+	});
+
 	test("covers the NRW offices and nothing else", () => {
 		expect(examCalendarFor("hamm")?.sittings).toBe(sittings);
 		expect(examCalendarFor("düsseldorf")?.sittings).toBe(sittings);
