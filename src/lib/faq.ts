@@ -155,7 +155,6 @@ export interface OfficePageMeta {
 	intro: string;
 }
 
-/** Title, heading, description and intro of an office page; queries are mostly "<office> termine", so dates lead. */
 export function officePageMeta(
 	name: string,
 	summary: JpaReleaseSummary | undefined,
@@ -166,8 +165,6 @@ export function officePageMeta(
 	);
 	const prediction = summary?.prediction;
 	const range = open ? formatSittingRange(open.sitting) : null;
-	// Results first: the next results belong to an earlier sitting, and
-	// "Klausuren …, Ergebnisse am …" reads as if they were for the same one.
 	const dates = [
 		prediction &&
 			`Nächste Ergebnisse voraussichtlich am ${formatLongDate(prediction.date)}`,

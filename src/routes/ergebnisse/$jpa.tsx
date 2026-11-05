@@ -8,12 +8,12 @@ import { Card } from "@/components/ui/card";
 import { Eyebrow, SectionIntro } from "@/components/ui/heading";
 import { trackEvent } from "@/lib/analytics";
 import {
-	calendarDate,
 	type ExamSitting,
 	formatExamDay,
 	formatSittingMonth,
 	formatSittingRange,
 	formatStand,
+	localIsoDate,
 	monthsBetween,
 	resultMonthIndex,
 	resultMonthName,
@@ -191,7 +191,7 @@ function ExamTimelineList({
 	jpaSlug: string;
 	now: Date;
 }) {
-	const today = calendarDate(now);
+	const today = localIsoDate(now);
 	const currentYear = now.getFullYear();
 	const firstOpen = entries.findIndex(
 		(e) => e.phase === "läuft" || e.phase === "anstehend",

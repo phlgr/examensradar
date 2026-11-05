@@ -21,7 +21,6 @@ export const formatLongDate = (date: Date) =>
 		year: "numeric",
 	});
 
-/** The later of the last release and the calendar's `stand` (YYYY-MM-DD, or YYYY-MM counted as the 1st). */
 export function officeLastmod(
 	lastRelease: Date | undefined,
 	stand: string | null | undefined,

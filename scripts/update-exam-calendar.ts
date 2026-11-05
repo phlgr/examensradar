@@ -29,19 +29,36 @@ const OFFICES = {
 	},
 };
 
-const DATE = String.raw`(\d{2})\.(\d{2})\.(\d{4}|\d{2})`;
-const SUBJECT = "(ZR|ÖR|SR)";
-const WEEKDAY = "(Mo|Di|Mi|Do|Fr|Sa)[a-z]*,?";
+const DATE = String.raw`(?<day>\d{2})\.(?<month>\d{2})\.(?<year>\d{4}|\d{2})`;
+const SUBJECT = "(?<subject>ZR|ÖR|SR)";
+const WEEKDAY = "(?<weekday>Mo|Di|Mi|Do|Fr|Sa)[a-z]*,?";
+const STAND_DATE = `Stand:? ${DATE}`;
 
-// Group indices: weekday, day, month, year, subject.
-const LAYOUTS: { re: RegExp; groups: number[] }[] = [
+type ExamDayGroups = {
+	day: string;
+	month: string;
+	year: string;
+	subject: ExamSubject;
+	weekday?: string;
+};
+
+const LAYOUTS = [
 	// Hamm: "Do 21.01.27 SR"
-	{ re: new RegExp(`${WEEKDAY} ${DATE} ${SUBJECT}`, "g"), groups: [1, 2, 3, 4, 5] },
+	new RegExp(`${WEEKDAY} ${DATE} ${SUBJECT}`, "g"),
 	// Köln: "SR Donnerstag, 21.01.2027"
-	{ re: new RegExp(`${SUBJECT} ${WEEKDAY} ${DATE}`, "g"), groups: [2, 3, 4, 5, 1] },
+	new RegExp(`${SUBJECT} ${WEEKDAY} ${DATE}`, "g"),
 	// Düsseldorf: "21.01.2027 SR"
-	{ re: new RegExp(`${DATE} ${SUBJECT}`, "g"), groups: [0, 1, 2, 3, 4] },
+	new RegExp(`${DATE} ${SUBJECT}`, "g"),
 ];
+
+const fullYear = (year: string) => (year.length === 2 ? 2000 + +year : +year);
+
+function coversEveryDate(hits: RegExpMatchArray[], text: string): boolean {
+	const dates = text
+		.replace(new RegExp(STAND_DATE, "g"), "")
+		.matchAll(new RegExp(DATE, "g"));
+	return hits.length > 0 && hits.length === [...dates].length;
+}
 
 async function fetchBytes(url: string): Promise<Uint8Array> {
 	const response = await fetch(url, { headers: { "user-agent": USER_AGENT } });
@@ -50,40 +67,30 @@ async function fetchBytes(url: string): Promise<Uint8Array> {
 }
 
 function parseSittings(url: string, text: string) {
-	// "Stand: 11.06.2026" (Düsseldorf) or "Stand Juni 2026" (Hamm), stored as
-	// YYYY-MM-DD or YYYY-MM so the newest one wins a string comparison.
-	const standDate = text.match(new RegExp(`Stand:? ${DATE}`));
+	// "Stand: 11.06.2026" (Düsseldorf) or "Stand Juni 2026" (Hamm)
+	const standDate = text.match(new RegExp(STAND_DATE))?.groups;
 	const standMonth = text.match(/Stand:? ([A-ZÄÖÜ][a-zäöü]+) (\d{4})/);
 	const monthIndex = standMonth ? MONTHS.indexOf(standMonth[1]) : -1;
 	const stand = standDate
-		? `${standDate[3].length === 2 ? `20${standDate[3]}` : standDate[3]}-${standDate[2]}-${standDate[1]}`
+		? `${fullYear(standDate.year)}-${standDate.month}-${standDate.day}`
 		: standMonth && monthIndex >= 0
 			? `${standMonth[2]}-${String(monthIndex + 1).padStart(2, "0")}`
 			: null;
 
-	// A layout only counts if it accounts for every date in the PDF; otherwise
-	// the Hamm pattern happily pairs Köln's dates with the next row's subject.
-	const totalDates = [
-		...text.replace(new RegExp(`Stand:? ${DATE}`, "g"), "").matchAll(new RegExp(DATE, "g")),
-	].length;
-
-	for (const { re, groups } of LAYOUTS) {
-		const hits = [...text.matchAll(re)];
-		if (hits.length === 0 || hits.length !== totalDates) continue;
-		const [weekday, day, month, year, subject] = groups;
+	for (const layout of LAYOUTS) {
+		const hits = [...text.matchAll(layout)];
+		if (!coversEveryDate(hits, text)) continue;
 		const days: ExamDay[] = hits
 			.map((hit) => {
-				const fullYear = hit[year].length === 2 ? 2000 + +hit[year] : +hit[year];
-				const date = new Date(Date.UTC(fullYear, +hit[month] - 1, +hit[day]));
+				const { day, month, year, subject, weekday } =
+					hit.groups as ExamDayGroups;
+				const date = new Date(Date.UTC(fullYear(year), +month - 1, +day));
 				const dow = date.getUTCDay();
-				if (weekday && WEEKDAYS[dow] !== hit[weekday])
+				if (weekday && WEEKDAYS[dow] !== weekday)
 					throw new Error(`${url}: weekday mismatch in "${hit[0]}"`);
 				if (!weekday && (dow === 0 || dow === 6))
 					throw new Error(`${url}: exam on a weekend in "${hit[0]}"`);
-				return {
-					date: date.toISOString().slice(0, 10),
-					subject: hit[subject] as ExamSubject,
-				};
+				return { date: date.toISOString().slice(0, 10), subject };
 			})
 			.sort((a, b) => a.date.localeCompare(b.date));
 		if (days.length % 6 !== 0)

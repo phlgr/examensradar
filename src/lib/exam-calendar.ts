@@ -3,12 +3,10 @@ import { NRW_SITTINGS, NRW_SOURCES } from "@/lib/exam-calendar.data";
 export type ExamSubject = "ZR" | "ÖR" | "SR";
 
 export interface ExamDay {
-	/** Calendar date in Germany, YYYY-MM-DD. */
 	date: string;
 	subject: ExamSubject;
 }
 
-/** One "Durchgang": 6 exam days in ascending order. */
 export interface ExamSitting {
 	days: readonly ExamDay[];
 }
@@ -44,8 +42,6 @@ export interface ExamCalendar {
 	stand: string | null;
 }
 
-// Keyed by JPA slug. The NRW offices publish identical calendars (the update
-// script cross-checks that), so they share one sitting list.
 const CALENDARS: Record<string, ExamCalendar> = {
 	hamm: { sittings: NRW_SITTINGS, ...NRW_SOURCES.hamm },
 	köln: { sittings: NRW_SITTINGS, ...NRW_SOURCES.köln },
@@ -61,7 +57,6 @@ function parts(date: string): [year: number, month: number, day: number] {
 	return [y, m - 1, d];
 }
 
-/** Month index (year * 12 + month) in which the sitting's results are released. */
 export function resultMonthIndex(sitting: ExamSitting): number {
 	const [year, month] = parts(sitting.days[0].date);
 	return year * 12 + month + RESULT_LAG_MONTHS;
@@ -104,7 +99,6 @@ export function formatSittingRangeShort(sitting: ExamSitting): string {
 		: `${pad(d1)}.${pad(m1 + 1)}.–${pad(d2)}.${pad(m2 + 1)}.`;
 }
 
-/** Names of the months strictly between the start months of two sittings, e.g. ["Juli"]. */
 export function monthsBetween(a: ExamSitting, b: ExamSitting): string[] {
 	const [y1, m1] = parts(a.days[0].date);
 	const [y2, m2] = parts(b.days[0].date);
@@ -123,8 +117,7 @@ export function formatExamDay(date: string): string {
 	return `${weekday} ${String(day).padStart(2, "0")}.${String(month + 1).padStart(2, "0")}.`;
 }
 
-/** Local calendar date as YYYY-MM-DD, comparable with exam day strings. */
-export function calendarDate(date: Date): string {
+export function localIsoDate(date: Date): string {
 	return [
 		date.getFullYear(),
 		String(date.getMonth() + 1).padStart(2, "0"),

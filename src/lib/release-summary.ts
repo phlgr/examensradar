@@ -1,8 +1,8 @@
 import {
-	calendarDate,
 	type ExamCalendar,
 	type ExamSitting,
 	examCalendarFor,
+	localIsoDate,
 	sittingStatus,
 } from "@/lib/exam-calendar";
 import {
@@ -112,7 +112,6 @@ type SittingPhase = "veröffentlicht" | "ausstehend" | "läuft" | "anstehend";
 
 type SittingResults =
 	| { kind: "released"; date: Date }
-	/** `exact` is false when the JPA has no release history, so only the month is known. */
 	| { kind: "expected"; date: Date; exact: boolean };
 
 export interface TimelineEntry {
@@ -123,11 +122,9 @@ export interface TimelineEntry {
 
 export interface ExamTimeline {
 	calendar: ExamCalendar;
-	/** Ascending by date. */
 	entries: TimelineEntry[];
 }
 
-/** The latest released sitting as a trust signal, then every sitting still awaiting its results or yet to be written. */
 export function examTimeline(
 	slug: string,
 	releaseDates: Date[],
@@ -136,7 +133,7 @@ export function examTimeline(
 	const calendar = examCalendarFor(slug);
 	if (!calendar) return null;
 	const offset = medianReleaseOffset(releaseDates);
-	const today = calendarDate(now);
+	const today = localIsoDate(now);
 	const entries: TimelineEntry[] = [];
 
 	for (const sitting of calendar.sittings) {

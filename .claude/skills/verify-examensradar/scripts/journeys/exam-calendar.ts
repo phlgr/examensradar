@@ -1,6 +1,3 @@
-// Journey: office-page exam calendar → .ics download + Plausible event →
-// Hamm signup whose welcome mail offers calendar links → crawler files.
-// See features/exam-calendar.md. Usage: bun exam-calendar.ts <run-id>
 import { check, open, waitForMail } from "../pw.ts";
 
 const v = await open("exam-calendar");

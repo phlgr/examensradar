@@ -153,7 +153,6 @@ const OFFERED_SITTINGS = 3;
 const berlinDate = (date: Date) =>
 	new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Berlin" }).format(date);
 
-/** The next sittings per JPA that has a calendar; JPAs without one are left out. */
 export function calendarOffers(
 	jpas: { jpaSlug: string; jpaName: string }[],
 	now: Date,

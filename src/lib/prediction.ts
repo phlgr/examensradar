@@ -63,12 +63,11 @@ function offsetFromMonthEnd(date: Date): number {
 	);
 }
 
-// Offices that publish after month end (Hamm) roll a weekend forward to
-// Monday; month-end offices roll Saturday back to Friday.
 function releaseDay(monthIndex: number, offsetDays: number): Date {
 	const date = addDays(lastWorkingDayOfMonth(monthIndex), offsetDays);
+	const publishesAfterMonthEnd = offsetDays > 0;
 	const day = date.getDay();
-	if (day === 6) return addDays(date, offsetDays > 0 ? 2 : -1);
+	if (day === 6) return addDays(date, publishesAfterMonthEnd ? 2 : -1);
 	if (day === 0) return addDays(date, 1);
 	return date;
 }
@@ -101,7 +100,6 @@ export function medianReleaseOffset(fireDates: Date[]): number {
 		: Math.round(median(releases.map(offsetFromMonthEnd)));
 }
 
-/** Expected release day of a sitting: its result month's last working day plus the JPA's usual offset. */
 export function expectedReleaseDate(
 	sitting: ExamSitting,
 	medianOffsetDays: number,
@@ -109,7 +107,6 @@ export function expectedReleaseDate(
 	return releaseDay(resultMonthIndex(sitting), medianOffsetDays);
 }
 
-/** The recorded release that falls in a sitting's result cycle, if any. */
 export function releaseForSitting(
 	sitting: ExamSitting,
 	fireDates: Date[],
@@ -120,7 +117,6 @@ export function releaseForSitting(
 	);
 }
 
-/** Sittings whose results are not out yet, ascending. A sitting counts as released once a release lands in its result cycle, or once it is more than the grace period overdue. */
 export function pendingSittings(
 	sittings: readonly ExamSitting[],
 	now: Date,
