@@ -6,10 +6,12 @@ import { Footer } from "@/components/Footer";
 import { SignupForm } from "@/components/SignupForm";
 import { Card } from "@/components/ui/card";
 import { Eyebrow, SectionIntro } from "@/components/ui/heading";
-import { jpaFaqs, nextReleaseSentence } from "@/lib/faq";
+import { formatSittingRange, formatStand } from "@/lib/exam-calendar";
+import { expectedResultsPhrase, jpaFaqs, nextReleaseSentence } from "@/lib/faq";
 import { clusterReleases } from "@/lib/prediction";
 import {
 	CONFIDENCE_LABEL,
+	examSchedule,
 	formatDayMonth,
 	formatDayMonthShort,
 	relativeLabel,
@@ -32,14 +34,16 @@ export const Route = createFileRoute("/ergebnisse/$jpa")({
 		const { jpas, history } = await getPublicData();
 		const jpa = jpas.find((j) => jpaParam(j.slug) === params.jpa);
 		if (!jpa) throw notFound();
-		const summary = summarizeReleases(history, new Date()).find(
+		const now = new Date();
+		const summary = summarizeReleases(history, now).find(
 			(s) => s.slug === jpa.slug,
 		);
-		return { jpas, jpa, summary };
+		const schedule = examSchedule(jpa.slug, summary?.dates ?? [], now);
+		return { jpas, jpa, summary, schedule };
 	},
 	head: ({ loaderData }) => {
 		if (!loaderData) return {};
-		const { jpa, summary } = loaderData;
+		const { jpa, summary, schedule } = loaderData;
 		const path = jpaPath(jpa.slug);
 		const next = summary?.prediction
 			? `Nächster Termin voraussichtlich am ${formatLongDate(summary.prediction.date)}. `
@@ -52,7 +56,7 @@ export const Route = createFileRoute("/ergebnisse/$jpa")({
 		return {
 			...page,
 			scripts: [
-				faqJsonLd(jpaFaqs(jpa.name, summary)),
+				faqJsonLd(jpaFaqs(jpa.name, summary, schedule?.rows)),
 				jsonLd({
 					"@type": "BreadcrumbList",
 					itemListElement: [
@@ -83,7 +87,7 @@ export const Route = createFileRoute("/ergebnisse/$jpa")({
 });
 
 function JpaPage() {
-	const { jpas, jpa, summary } = Route.useLoaderData();
+	const { jpas, jpa, summary, schedule } = Route.useLoaderData();
 	const [jpaId, setJpaId] = useState(jpa.id);
 	const prediction = summary?.prediction ?? null;
 	const daysUntil = summary?.daysUntil ?? null;
@@ -138,6 +142,12 @@ function JpaPage() {
 									>
 										{relativeLabel(daysUntil)}
 									</p>
+									{prediction.sitting && (
+										<p className="text-[13px] mt-1 text-ink/55">
+											für die Klausuren vom{" "}
+											{formatSittingRange(prediction.sitting)}
+										</p>
+									)}
 									<p className="text-[13px] mt-1 text-ink/55">
 										Wahrscheinlich zwischen dem{" "}
 										{formatDayMonthShort(prediction.windowStart)} und dem{" "}
@@ -164,6 +174,62 @@ function JpaPage() {
 							/>
 						</div>
 					</div>
+
+					{schedule && schedule.rows.length > 0 && (
+						<section className="mb-14">
+							<h2 className="text-2xl font-semibold leading-tight mb-2">
+								Klausurtermine
+							</h2>
+							<p className="text-[15px] text-ink/55 mb-5">
+								Die schriftlichen Prüfungen der staatlichen Pflichtfachprüfung
+								und wann die Ergebnisse voraussichtlich kommen.
+							</p>
+							<ul className="divide-y divide-ink/10 border-y border-ink/10">
+								{schedule.rows.map((row) => (
+									<li
+										key={row.sitting.days[0].date}
+										className="py-3 flex justify-between gap-4"
+									>
+										<span>
+											<span className="font-medium">
+												{formatSittingRange(row.sitting)}
+											</span>
+											<span className="block text-[13px] text-ink/55">
+												{row.sitting.days.map((day) => day.subject).join(" · ")}
+											</span>
+										</span>
+										<span className="text-right">
+											<span
+												className={cn(
+													"block font-semibold",
+													row.status === "läuft" && "text-seal",
+												)}
+											>
+												{row.status}
+											</span>
+											<span className="block text-[13px] text-ink/55">
+												Ergebnisse voraussichtlich {expectedResultsPhrase(row)}
+											</span>
+										</span>
+									</li>
+								))}
+							</ul>
+							<p className="text-[13px] text-ink/55 mt-3">
+								Ohne Gewähr. Quelle:{" "}
+								<a
+									href={schedule.calendar.pageUrl}
+									target="_blank"
+									rel="noopener noreferrer"
+									className="underline decoration-1 underline-offset-4 hover:decoration-2"
+								>
+									Klausurtermine des Justizprüfungsamts beim {jpa.name}
+								</a>
+								{schedule.calendar.stand &&
+									`, Stand ${formatStand(schedule.calendar.stand)}`}
+								.
+							</p>
+						</section>
+					)}
 
 					{releases.length > 0 && (
 						<section className="mb-14">
@@ -205,7 +271,7 @@ function JpaPage() {
 						<h2 className="text-2xl font-semibold leading-tight mb-5">
 							Häufige Fragen
 						</h2>
-						<FaqList faqs={jpaFaqs(jpa.name, summary)} />
+						<FaqList faqs={jpaFaqs(jpa.name, summary, schedule?.rows)} />
 					</section>
 
 					{jpa.websiteUrl && (

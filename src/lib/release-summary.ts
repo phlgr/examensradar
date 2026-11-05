@@ -1,6 +1,16 @@
 import {
+	type ExamCalendar,
+	type ExamSitting,
+	examCalendarFor,
+	type SittingStatus,
+	sittingStatus,
+} from "@/lib/exam-calendar";
+import {
 	clusterReleases,
+	expectedReleaseDate,
+	medianReleaseOffset,
 	type PredictionConfidence,
+	pendingSittings,
 	predictNextRelease,
 	type ReleasePrediction,
 } from "@/lib/prediction";
@@ -64,7 +74,11 @@ export function summarizeReleases(
 				(weekdayCounts.get(date.getDay()) ?? 0) + 1,
 			);
 		}
-		const prediction = predictNextRelease(dates, now);
+		const prediction = predictNextRelease(
+			dates,
+			now,
+			examCalendarFor(slug)?.sittings,
+		);
 		summaries.push({
 			slug,
 			name: group.name,
@@ -89,6 +103,45 @@ export function summarizeReleases(
 		if (b.daysUntil === null) return -1;
 		return a.daysUntil - b.daysUntil;
 	});
+}
+
+const MAX_EXAM_ROWS = 6;
+
+export interface ExamRow {
+	sitting: ExamSitting;
+	status: SittingStatus;
+	expected: Date;
+	/** False when the JPA has no release history, so only the month is known. */
+	exactDate: boolean;
+}
+
+export interface ExamSchedule {
+	calendar: ExamCalendar;
+	rows: ExamRow[];
+}
+
+export function examSchedule(
+	slug: string,
+	releaseDates: Date[],
+	now: Date,
+): ExamSchedule | null {
+	const calendar = examCalendarFor(slug);
+	if (!calendar) return null;
+	const offset = medianReleaseOffset(releaseDates);
+	const today = [
+		now.getFullYear(),
+		String(now.getMonth() + 1).padStart(2, "0"),
+		String(now.getDate()).padStart(2, "0"),
+	].join("-");
+	const rows = pendingSittings(calendar.sittings, now, releaseDates)
+		.slice(0, MAX_EXAM_ROWS)
+		.map((sitting) => ({
+			sitting,
+			status: sittingStatus(sitting, today),
+			expected: expectedReleaseDate(sitting, offset),
+			exactDate: releaseDates.length > 0,
+		}));
+	return { calendar, rows };
 }
 
 export function relativeLabel(daysUntil: number): string {

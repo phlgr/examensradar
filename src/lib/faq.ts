@@ -1,5 +1,7 @@
+import { formatSittingRange, resultMonthName } from "@/lib/exam-calendar";
 import {
 	CONFIDENCE_LABEL,
+	type ExamRow,
 	type JpaReleaseSummary,
 	monthPositionLabel,
 } from "@/lib/release-summary";
@@ -88,7 +90,17 @@ export const extraFaqs: Faq[] = [
 	},
 ];
 
-export function jpaFaqs(name: string, summary: JpaReleaseSummary | undefined) {
+export function expectedResultsPhrase(row: ExamRow): string {
+	return row.exactDate
+		? `am ${formatLongDate(row.expected)}`
+		: `Ende ${resultMonthName(row.sitting)}`;
+}
+
+export function jpaFaqs(
+	name: string,
+	summary: JpaReleaseSummary | undefined,
+	examRows: ExamRow[] = [],
+) {
 	const faqs: Faq[] = [];
 	const prediction = summary?.prediction;
 
@@ -108,6 +120,20 @@ export function jpaFaqs(name: string, summary: JpaReleaseSummary | undefined) {
 		faqs.push({
 			question: `Wann kommen die Examensergebnisse beim ${name}?`,
 			answer: `Für das ${name} haben wir noch keine Veröffentlichung erfasst. Sobald dort neue Ergebnisse erscheinen, bekommen alle Angemeldeten eine E-Mail.`,
+		});
+	}
+
+	const nextExams = examRows.filter((row) => row.status !== "geschrieben");
+	if (nextExams.length > 0) {
+		const list = nextExams
+			.slice(0, 3)
+			.map(
+				(row) =>
+					`${formatSittingRange(row.sitting)} (Ergebnisse voraussichtlich ${expectedResultsPhrase(row)})`,
+			);
+		faqs.push({
+			question: `Wann sind die nächsten Examensklausuren beim ${name}?`,
+			answer: `Die nächsten Klausurtermine der staatlichen Pflichtfachprüfung beim ${name} sind ${listNames(list)}. Jeder Durchgang besteht aus sechs Klausuren: drei im Zivilrecht, zwei im Öffentlichen Recht und eine im Strafrecht. Die Ergebnisse folgen in der Regel etwa drei Monate nach Beginn des Durchgangs. Angaben ohne Gewähr.`,
 		});
 	}
 

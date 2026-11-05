@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { examCalendarFor } from "./exam-calendar.ts";
 import {
 	clusterReleases,
 	predictNextRelease,
@@ -148,5 +149,76 @@ describe("predictNextRelease", () => {
 		) as ReleasePrediction;
 		expect(p.windowStart.getTime()).toBeLessThan(p.date.getTime());
 		expect(p.windowEnd.getTime()).toBeGreaterThan(p.date.getTime());
+	});
+});
+
+describe("predictNextRelease with the exam calendar", () => {
+	const sittings = examCalendarFor("köln")?.sittings ?? [];
+	const ymd = (date: Date) =>
+		`${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+
+	test("Köln-like history skips the empty October cycle", () => {
+		const prediction = predictNextRelease(
+			[
+				"2026-04-30T11:00:00",
+				"2026-05-29T11:00:00",
+				"2026-07-31T11:00:00",
+				"2026-08-31T11:00:00",
+				"2026-09-30T11:00:00",
+			].map(d),
+			d("2026-10-05T12:00:00"),
+			sittings,
+		);
+		expect(prediction && ymd(prediction.date)).toBe("2026-11-30");
+		expect(prediction?.sitting?.days[0].date).toBe("2026-08-20");
+		expect(prediction?.confidence).toBe("high");
+	});
+
+	test("Hamm-like history lands one working day after month end", () => {
+		const prediction = predictNextRelease(
+			[
+				"2026-04-30T11:00:00",
+				"2026-06-01T11:00:00",
+				"2026-08-03T11:00:00",
+				"2026-09-01T11:00:00",
+				"2026-10-01T11:00:00",
+			].map(d),
+			d("2026-11-05T12:00:00"),
+			sittings,
+		);
+		expect(prediction && ymd(prediction.date)).toBe("2026-12-01");
+	});
+
+	test("moves on as soon as the expected release happened, not after the grace period", () => {
+		const prediction = predictNextRelease(
+			[
+				"2026-08-03T11:00:00",
+				"2026-09-01T11:00:00",
+				"2026-10-01T11:00:00",
+				"2026-12-01T11:00:00",
+			].map(d),
+			d("2026-12-02T12:00:00"),
+			sittings,
+		);
+		expect(prediction?.sitting?.days[0].date).toBe("2026-10-22");
+		expect(prediction && ymd(prediction.date)).toBe("2027-02-01");
+	});
+
+	test("a single release is enough once the calendar gives the cadence", () => {
+		const prediction = predictNextRelease(
+			[d("2026-09-30T11:00:00")],
+			d("2026-10-05T12:00:00"),
+			sittings,
+		);
+		expect(prediction && ymd(prediction.date)).toBe("2026-11-30");
+		expect(prediction?.confidence).toBe("low");
+	});
+
+	test("falls back to the monthly model when the calendar is exhausted", () => {
+		const fires = ["2025-01-31T11:00:00", "2025-02-28T11:00:00"].map(d);
+		const now = d("2031-01-05T12:00:00");
+		expect(predictNextRelease(fires, now, sittings)).toEqual(
+			predictNextRelease(fires, now),
+		);
 	});
 });
