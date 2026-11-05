@@ -45,9 +45,10 @@ bun $V/journeys/subscribe-confirm.ts myrun     # exits 0 and prints PASS subscri
 bun $V/journeys/manage-subscriptions.ts myrun
 bun $V/journeys/admin-scraper.ts myrun
 bun $V/journeys/unsubscribe.ts myrun           # last: it ends the subscriber's mail
+bun $V/journeys/exam-calendar.ts myrun         # independent: its own Hamm signup, any order
 ```
 
-The last three continue with the subscriber that `subscribe-confirm` created (`verify+<run-id>@example.test`), so run them in this order on one instance. To rerun the set, launch a fresh instance: the second `manage-subscriptions` run on the same instance hits that address's mail throttle at the resend step.
+`manage-subscriptions`, `admin-scraper` and `unsubscribe` continue with the subscriber that `subscribe-confirm` created (`verify+<run-id>@example.test`), so run them in this order on one instance. `exam-calendar` signs up its own `verify+cal-<run-id>@example.test` on Hamm and needs nothing else. To rerun the set, launch a fresh instance: the second `manage-subscriptions` run on the same instance hits that address's mail throttle at the resend step.
 
 `pw.ts` provides the following:
 - `open(name)` gives `{ page, context, base, env, runId, out, visit, proof, card, cookie, note, close }`.
