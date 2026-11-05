@@ -90,7 +90,7 @@ export const extraFaqs: Faq[] = [
 	},
 ];
 
-function resultsPhrase({ sitting, results }: TimelineEntry): string {
+export function resultsPhrase({ sitting, results }: TimelineEntry): string {
 	return results.kind === "expected" && !results.exact
 		? `Ende ${resultMonthName(sitting)}`
 		: `am ${formatLongDate(results.date)}`;
@@ -146,4 +146,57 @@ export function jpaFaqs(
 	});
 
 	return faqs;
+}
+
+export interface OfficePageMeta {
+	title: string;
+	h1: string;
+	description: string;
+	intro: string;
+}
+
+/** Title, heading, description and intro of an office page; queries are mostly "<office> termine", so dates lead. */
+export function officePageMeta(
+	name: string,
+	summary: JpaReleaseSummary | undefined,
+	entries: TimelineEntry[] = [],
+): OfficePageMeta {
+	const open = entries.find(
+		(e) => e.phase === "läuft" || e.phase === "anstehend",
+	);
+	const prediction = summary?.prediction;
+	const range = open ? formatSittingRange(open.sitting) : null;
+	// Results first: the next results belong to an earlier sitting, and
+	// "Klausuren …, Ergebnisse am …" reads as if they were for the same one.
+	const dates = [
+		prediction &&
+			`Nächste Ergebnisse voraussichtlich am ${formatLongDate(prediction.date)}`,
+		range && `nächste Klausuren ${range}`,
+	].filter(Boolean);
+
+	const description =
+		dates.length > 0
+			? `${name}: ${dates.join(", ")}. Kostenlose E-Mail, sobald sie online sind.`
+			: `${prediction ? `Nächster Termin voraussichtlich am ${formatLongDate(prediction.date)}. ` : ""}Alle bisherigen Veröffentlichungen des Justizprüfungsamts beim ${name} im ersten Staatsexamen – und eine kostenlose E-Mail, sobald neue Ergebnisse online sind.`;
+
+	const results = summary
+		? nextReleaseSentence(summary)
+		: `Für das ${name} haben wir noch keine Veröffentlichung erfasst.`;
+	const lastDay = open?.sitting.days.at(-1)?.date.split("-").map(Number);
+	const datesSentence =
+		open && lastDay
+			? open.phase === "läuft"
+				? `Die aktuellen Examensklausuren beim ${name} laufen noch bis ${formatLongDate(new Date(lastDay[0], lastDay[1] - 1, lastDay[2]))}. `
+				: `Die nächsten Examensklausuren beim ${name} sind vom ${range?.replace(".–", ". bis ").replace(" – ", " bis ")}. `
+			: "";
+
+	const base = `${name}: Termine & Ergebnisse 1. Examen`;
+	const title = `${base} | Examensradar`;
+
+	return {
+		title: title.length > 60 ? base : title,
+		h1: `${name}: Klausurtermine und Ergebnisse im 1. Examen`,
+		description,
+		intro: `${datesSentence}${results} Mit Examensradar bekommst du eine E-Mail, sobald die Ergebnisse online sind.`,
+	};
 }

@@ -19,7 +19,7 @@ import {
 	resultMonthName,
 	SUBJECT_NAME,
 } from "@/lib/exam-calendar";
-import { jpaFaqs, nextReleaseSentence } from "@/lib/faq";
+import { jpaFaqs, officePageMeta } from "@/lib/faq";
 import { clusterReleases } from "@/lib/prediction";
 import {
 	CONFIDENCE_LABEL,
@@ -30,15 +30,7 @@ import {
 	summarizeReleases,
 	type TimelineEntry,
 } from "@/lib/release-summary";
-import {
-	faqJsonLd,
-	formatLongDate,
-	jpaParam,
-	jpaPath,
-	jsonLd,
-	SITE_URL,
-	seo,
-} from "@/lib/seo";
+import { faqJsonLd, jpaParam, jpaPath, jsonLd, SITE_URL, seo } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 import { getPublicData } from "@/server/public-data";
 
@@ -58,12 +50,10 @@ export const Route = createFileRoute("/ergebnisse/$jpa")({
 		if (!loaderData) return {};
 		const { jpa, summary, timeline } = loaderData;
 		const path = jpaPath(jpa.slug);
-		const next = summary?.prediction
-			? `Nächster Termin voraussichtlich am ${formatLongDate(summary.prediction.date)}. `
-			: "";
+		const meta = officePageMeta(jpa.name, summary, timeline?.entries);
 		const page = seo({
-			title: `Examensergebnisse ${jpa.name}: Wann kommen sie? | Examensradar`,
-			description: `${next}Alle bisherigen Veröffentlichungen des Justizprüfungsamts beim ${jpa.name} im ersten Staatsexamen – und eine kostenlose E-Mail, sobald neue Ergebnisse online sind.`,
+			title: meta.title,
+			description: meta.description,
 			path,
 		});
 		return {
@@ -88,7 +78,7 @@ export const Route = createFileRoute("/ergebnisse/$jpa")({
 						{
 							"@type": "ListItem",
 							position: 3,
-							name: `Examensergebnisse ${jpa.name}`,
+							name: `Termine & Ergebnisse ${jpa.name}`,
 							item: `${SITE_URL}${path}`,
 						},
 					],
@@ -292,6 +282,7 @@ function JpaPage() {
 	const prediction = summary?.prediction ?? null;
 	const daysUntil = summary?.daysUntil ?? null;
 	const overdue = daysUntil !== null && daysUntil < 0;
+	const meta = officePageMeta(jpa.name, summary, timeline?.entries);
 	const releases = summary ? clusterReleases(summary.dates).reverse() : [];
 
 	return (
@@ -310,16 +301,8 @@ function JpaPage() {
 						<span className="text-ink/70">{jpa.name}</span>
 					</nav>
 
-					<SectionIntro
-						as="h1"
-						title={`Examensergebnisse ${jpa.name}: Wann kommen sie?`}
-						className="mb-10 sm:mb-14"
-					>
-						{summary
-							? nextReleaseSentence(summary)
-							: `Für das ${jpa.name} haben wir noch keine Veröffentlichung erfasst.`}{" "}
-						Mit Examensradar bekommst du eine E-Mail, sobald die Ergebnisse
-						online sind.
+					<SectionIntro as="h1" title={meta.h1} className="mb-10 sm:mb-14">
+						{meta.intro}
 					</SectionIntro>
 
 					<div className="grid gap-6 md:grid-cols-[0.8fr_1.2fr] mb-14">
@@ -378,7 +361,7 @@ function JpaPage() {
 					{timeline && timeline.entries.length > 0 && (
 						<section className="mb-14">
 							<h2 className="text-2xl font-semibold leading-tight mb-2">
-								Klausurtermine
+								Klausurtermine beim {jpa.name}
 							</h2>
 							<p className="text-[15px] text-ink/55 mb-6">
 								Wann geschrieben wird und wann die Ergebnisse voraussichtlich

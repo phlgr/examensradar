@@ -21,6 +21,18 @@ export const formatLongDate = (date: Date) =>
 		year: "numeric",
 	});
 
+/** The later of the last release and the calendar's `stand` (YYYY-MM-DD, or YYYY-MM counted as the 1st). */
+export function officeLastmod(
+	lastRelease: Date | undefined,
+	stand: string | null | undefined,
+): Date | undefined {
+	const standDate = stand
+		? new Date(stand.length === 7 ? `${stand}-01` : stand)
+		: undefined;
+	if (!standDate || !lastRelease) return standDate ?? lastRelease;
+	return standDate > lastRelease ? standDate : lastRelease;
+}
+
 interface SeoOptions {
 	title: string;
 	description: string;
