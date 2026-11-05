@@ -109,6 +109,17 @@ export function expectedReleaseDate(
 	return releaseDay(resultMonthIndex(sitting), medianOffsetDays);
 }
 
+/** The recorded release that falls in a sitting's result cycle, if any. */
+export function releaseForSitting(
+	sitting: ExamSitting,
+	fireDates: Date[],
+): Date | undefined {
+	const cycle = resultMonthIndex(sitting);
+	return clusterReleases(fireDates).find(
+		(release) => anchorMonthIndex(release) === cycle,
+	);
+}
+
 /** Sittings whose results are not out yet, ascending. A sitting counts as released once a release lands in its result cycle, or once it is more than the grace period overdue. */
 export function pendingSittings(
 	sittings: readonly ExamSitting[],

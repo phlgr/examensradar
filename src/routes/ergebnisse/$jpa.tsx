@@ -1,21 +1,32 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ExternalLink } from "lucide-react";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { FaqList } from "@/components/FaqList";
 import { Footer } from "@/components/Footer";
 import { SignupForm } from "@/components/SignupForm";
 import { Card } from "@/components/ui/card";
 import { Eyebrow, SectionIntro } from "@/components/ui/heading";
-import { formatSittingRange, formatStand } from "@/lib/exam-calendar";
-import { expectedResultsPhrase, jpaFaqs, nextReleaseSentence } from "@/lib/faq";
+import {
+	calendarDate,
+	type ExamSubject,
+	formatExamDay,
+	formatSittingMonth,
+	formatSittingRange,
+	formatStand,
+	resultMonthName,
+	SUBJECT_NAME,
+} from "@/lib/exam-calendar";
+import { jpaFaqs, nextReleaseSentence } from "@/lib/faq";
 import { clusterReleases } from "@/lib/prediction";
 import {
 	CONFIDENCE_LABEL,
-	examSchedule,
+	examTimeline,
 	formatDayMonth,
 	formatDayMonthShort,
 	relativeLabel,
+	type SittingPhase,
 	summarizeReleases,
+	type TimelineEntry,
 } from "@/lib/release-summary";
 import {
 	faqJsonLd,
@@ -38,12 +49,12 @@ export const Route = createFileRoute("/ergebnisse/$jpa")({
 		const summary = summarizeReleases(history, now).find(
 			(s) => s.slug === jpa.slug,
 		);
-		const schedule = examSchedule(jpa.slug, summary?.dates ?? [], now);
-		return { jpas, jpa, summary, schedule };
+		const timeline = examTimeline(jpa.slug, summary?.dates ?? [], now);
+		return { jpas, jpa, summary, timeline, now: now.toISOString() };
 	},
 	head: ({ loaderData }) => {
 		if (!loaderData) return {};
-		const { jpa, summary, schedule } = loaderData;
+		const { jpa, summary, timeline } = loaderData;
 		const path = jpaPath(jpa.slug);
 		const next = summary?.prediction
 			? `Nächster Termin voraussichtlich am ${formatLongDate(summary.prediction.date)}. `
@@ -56,7 +67,7 @@ export const Route = createFileRoute("/ergebnisse/$jpa")({
 		return {
 			...page,
 			scripts: [
-				faqJsonLd(jpaFaqs(jpa.name, summary, schedule?.rows)),
+				faqJsonLd(jpaFaqs(jpa.name, summary, timeline?.entries)),
 				jsonLd({
 					"@type": "BreadcrumbList",
 					itemListElement: [
@@ -86,8 +97,140 @@ export const Route = createFileRoute("/ergebnisse/$jpa")({
 	component: JpaPage,
 });
 
+const SUBJECT_TINT: Record<ExamSubject, string> = {
+	ZR: "bg-blue-100 text-blue-900",
+	ÖR: "bg-ok-soft text-ok",
+	SR: "bg-seal-soft text-seal-deep",
+};
+
+const chipClass = (subject: ExamSubject) =>
+	cn(
+		"inline-block rounded px-1.5 py-0.5 text-[11px] font-semibold leading-none",
+		SUBJECT_TINT[subject],
+	);
+
+const DOT: Record<SittingPhase, string> = {
+	veröffentlicht: "bg-ink/40",
+	ausstehend: "bg-ink",
+	läuft: "bg-seal",
+	anstehend: "bg-paper border-2 border-ink",
+};
+
+function ResultsLine({ sitting, results }: TimelineEntry) {
+	if (results.kind === "released") {
+		return <>✓ Ergebnisse am {formatLongDate(results.date)} veröffentlicht</>;
+	}
+	return (
+		<>
+			Ergebnisse voraussichtlich{" "}
+			{results.exact ? (
+				<>
+					am <b className="text-ink">{formatLongDate(results.date)}</b>
+				</>
+			) : (
+				<>
+					Ende <b className="text-ink">{resultMonthName(sitting)}</b>
+				</>
+			)}
+		</>
+	);
+}
+
+function ExamTimelineList({
+	entries,
+	now,
+}: {
+	entries: TimelineEntry[];
+	now: Date;
+}) {
+	const today = calendarDate(now);
+	const firstUpcoming = entries.findIndex((e) => e.phase === "anstehend");
+	const todayMarkerAt = entries.some((e) => e.phase === "läuft")
+		? -1
+		: firstUpcoming === -1
+			? entries.length
+			: firstUpcoming;
+	const marker = (
+		<li className="-ml-3 flex items-center gap-3 pb-7 last:pb-0">
+			<span className="rounded-full bg-seal px-2.5 py-1 text-xs font-semibold text-white">
+				Heute
+			</span>
+			<span className="text-[13px] text-ink/55">{formatLongDate(now)}</span>
+		</li>
+	);
+
+	return (
+		<ol className="ml-1.5 border-l-2 border-ink/10">
+			{entries.map((entry, index) => (
+				<Fragment key={entry.sitting.days[0].date}>
+					{index === todayMarkerAt && marker}
+					<li className="relative pb-7 pl-6 last:pb-0">
+						<span
+							aria-hidden="true"
+							className={cn(
+								"absolute top-1.5 -left-[7px] size-3 rounded-full",
+								DOT[entry.phase],
+							)}
+						/>
+						<div
+							className={cn(entry.phase === "veröffentlicht" && "opacity-60")}
+						>
+							<div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+								<p>
+									<span className="font-semibold">
+										{formatSittingMonth(entry.sitting)}
+									</span>
+									<span className="text-[13px] text-ink/55">
+										{" · "}
+										{formatSittingRange(entry.sitting, { year: false })}
+									</span>
+									{entry.phase === "läuft" && (
+										<span className="ml-2 rounded-full bg-seal px-2 py-0.5 text-[11px] font-semibold text-white">
+											läuft gerade
+										</span>
+									)}
+								</p>
+								<p className="text-[13px] text-ink/55">
+									<ResultsLine {...entry} />
+								</p>
+							</div>
+							<ul className="mt-2 flex flex-wrap gap-1.5">
+								{entry.sitting.days.map((day) => (
+									<li
+										key={day.date}
+										className={cn(
+											"flex items-center gap-1.5 rounded-lg bg-sheet px-2 py-1 text-[13px] ring-1 ring-ink/10",
+											entry.phase === "läuft" &&
+												day.date < today &&
+												"opacity-50",
+										)}
+									>
+										<span>{formatExamDay(day.date)}</span>
+										<span title={SUBJECT_NAME[day.subject]}>
+											<span
+												aria-hidden="true"
+												className={chipClass(day.subject)}
+											>
+												{day.subject}
+											</span>
+											<span className="sr-only">
+												{SUBJECT_NAME[day.subject]}
+											</span>
+										</span>
+									</li>
+								))}
+							</ul>
+						</div>
+					</li>
+				</Fragment>
+			))}
+			{todayMarkerAt === entries.length && marker}
+		</ol>
+	);
+}
+
 function JpaPage() {
-	const { jpas, jpa, summary, schedule } = Route.useLoaderData();
+	const { jpas, jpa, summary, timeline, now } = Route.useLoaderData();
 	const [jpaId, setJpaId] = useState(jpa.id);
 	const prediction = summary?.prediction ?? null;
 	const daysUntil = summary?.daysUntil ?? null;
@@ -175,57 +318,44 @@ function JpaPage() {
 						</div>
 					</div>
 
-					{schedule && schedule.rows.length > 0 && (
+					{timeline && timeline.entries.length > 0 && (
 						<section className="mb-14">
 							<h2 className="text-2xl font-semibold leading-tight mb-2">
 								Klausurtermine
 							</h2>
-							<p className="text-[15px] text-ink/55 mb-5">
-								Die schriftlichen Prüfungen der staatlichen Pflichtfachprüfung
-								und wann die Ergebnisse voraussichtlich kommen.
+							<p className="text-[15px] text-ink/55 mb-6">
+								Wann geschrieben wird und wann die Ergebnisse voraussichtlich
+								kommen. Die Termine gelten für alle Justizprüfungsämter in NRW.
 							</p>
-							<ul className="divide-y divide-ink/10 border-y border-ink/10">
-								{schedule.rows.map((row) => (
-									<li
-										key={row.sitting.days[0].date}
-										className="py-3 flex justify-between gap-4"
-									>
-										<span>
-											<span className="font-medium">
-												{formatSittingRange(row.sitting)}
-											</span>
-											<span className="block text-[13px] text-ink/55">
-												{row.sitting.days.map((day) => day.subject).join(" · ")}
-											</span>
-										</span>
-										<span className="text-right">
-											<span
-												className={cn(
-													"block font-semibold",
-													row.status === "läuft" && "text-seal",
-												)}
-											>
-												{row.status}
-											</span>
-											<span className="block text-[13px] text-ink/55">
-												Ergebnisse voraussichtlich {expectedResultsPhrase(row)}
-											</span>
-										</span>
-									</li>
+							<ExamTimelineList
+								entries={timeline.entries}
+								now={new Date(now)}
+							/>
+							<p className="flex flex-wrap gap-x-4 gap-y-1 text-[13px] text-ink/55 mt-5">
+								{Object.entries(SUBJECT_NAME).map(([subject, name]) => (
+									<span key={subject}>
+										<span
+											aria-hidden="true"
+											className={chipClass(subject as ExamSubject)}
+										>
+											{subject}
+										</span>{" "}
+										{name}
+									</span>
 								))}
-							</ul>
-							<p className="text-[13px] text-ink/55 mt-3">
+							</p>
+							<p className="text-[13px] text-ink/55 mt-2">
 								Ohne Gewähr. Quelle:{" "}
 								<a
-									href={schedule.calendar.pageUrl}
+									href={timeline.calendar.pageUrl}
 									target="_blank"
 									rel="noopener noreferrer"
 									className="underline decoration-1 underline-offset-4 hover:decoration-2"
 								>
 									Klausurtermine des Justizprüfungsamts beim {jpa.name}
 								</a>
-								{schedule.calendar.stand &&
-									`, Stand ${formatStand(schedule.calendar.stand)}`}
+								{timeline.calendar.stand &&
+									`, Stand ${formatStand(timeline.calendar.stand)}`}
 								.
 							</p>
 						</section>
@@ -271,7 +401,7 @@ function JpaPage() {
 						<h2 className="text-2xl font-semibold leading-tight mb-5">
 							Häufige Fragen
 						</h2>
-						<FaqList faqs={jpaFaqs(jpa.name, summary, schedule?.rows)} />
+						<FaqList faqs={jpaFaqs(jpa.name, summary, timeline?.entries)} />
 					</section>
 
 					{jpa.websiteUrl && (

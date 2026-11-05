@@ -5,7 +5,7 @@ import {
 	resultMonthIndex,
 	sittingStatus,
 } from "./exam-calendar.ts";
-import { examSchedule } from "./release-summary.ts";
+import { examTimeline } from "./release-summary.ts";
 
 const sittings = examCalendarFor("köln")?.sittings ?? [];
 const sittingStarting = (date: string) => {
@@ -38,6 +38,9 @@ describe("exam calendar", () => {
 		expect(formatSittingRange(sittingStarting("2026-01-22"))).toBe(
 			"22.–30. Januar 2026",
 		);
+		expect(
+			formatSittingRange(sittingStarting("2026-02-23"), { year: false }),
+		).toBe("23. Februar – 3. März");
 	});
 
 	test("labels a sitting relative to today", () => {
@@ -48,35 +51,74 @@ describe("exam calendar", () => {
 	});
 });
 
-describe("examSchedule", () => {
-	const koeln = [
+describe("examTimeline", () => {
+	const hamm = [
 		"2026-04-30T11:00:00",
-		"2026-05-29T11:00:00",
-		"2026-07-31T11:00:00",
+		"2026-06-01T11:00:00",
+		"2026-08-03T11:00:00",
+		"2026-09-01T11:00:00",
+		"2026-10-01T11:00:00",
 	].map((d) => new Date(d));
+	const startOf = (e: { sitting: { days: readonly { date: string }[] } }) =>
+		e.sitting.days[0].date;
 
-	test("keeps written sittings awaiting results and drops released ones", () => {
-		const schedule = examSchedule(
-			"köln",
-			koeln,
-			new Date("2026-10-05T12:00:00"),
+	test("shows the latest release, pending sittings and four upcoming ones", () => {
+		const timeline = examTimeline(
+			"hamm",
+			hamm,
+			new Date("2026-11-05T12:00:00"),
 		);
-		const starts = schedule?.rows.map((r) => r.sitting.days[0].date);
-		expect(starts?.[0]).toBe("2026-08-20");
-		expect(schedule?.rows[0].status).toBe("geschrieben");
-		expect(schedule?.rows[0].expected.toDateString()).toBe(
-			new Date("2026-11-30T00:00:00").toDateString(),
+		const entries = timeline?.entries ?? [];
+		expect(entries.map(startOf).slice(0, 3)).toEqual([
+			"2026-06-22",
+			"2026-08-20",
+			"2026-10-22",
+		]);
+		expect(entries.map((e) => e.phase)).toEqual([
+			"veröffentlicht",
+			"ausstehend",
+			"ausstehend",
+			"anstehend",
+			"anstehend",
+			"anstehend",
+			"anstehend",
+		]);
+		expect(startOf(entries[3])).toBe("2026-11-19");
+
+		const released = entries[0].results;
+		expect(released.kind).toBe("released");
+		expect(released.date.toDateString()).toBe(
+			new Date("2026-10-01T00:00:00").toDateString(),
 		);
-		expect(starts).toHaveLength(6);
-		expect(schedule?.rows.at(-1)?.status).toBe("anstehend");
+		expect(entries[1].results).toMatchObject({ kind: "expected", exact: true });
+		expect(entries[1].results.date.toDateString()).toBe(
+			new Date("2026-12-01T00:00:00").toDateString(),
+		);
+		expect(entries[2].results.date.toDateString()).toBe(
+			new Date("2027-02-01T00:00:00").toDateString(),
+		);
+	});
+
+	test("a sitting in progress is running", () => {
+		const timeline = examTimeline(
+			"hamm",
+			hamm,
+			new Date("2026-11-23T12:00:00"),
+		);
+		const november = timeline?.entries.find((e) => startOf(e) === "2026-11-19");
+		expect(november?.phase).toBe("läuft");
 	});
 
 	test("without history only the month is known", () => {
-		const schedule = examSchedule("köln", [], new Date("2026-10-05T12:00:00"));
-		expect(schedule?.rows.every((r) => !r.exactDate)).toBe(true);
+		const timeline = examTimeline("köln", [], new Date("2026-10-05T12:00:00"));
+		expect(timeline?.entries.length).toBeGreaterThan(0);
+		for (const entry of timeline?.entries ?? []) {
+			expect(entry.results.kind).toBe("expected");
+			expect(entry.results).toMatchObject({ exact: false });
+		}
 	});
 
-	test("JPAs without a calendar have no schedule", () => {
-		expect(examSchedule("berlin", koeln, new Date())).toBeNull();
+	test("JPAs without a calendar have no timeline", () => {
+		expect(examTimeline("berlin", hamm, new Date())).toBeNull();
 	});
 });

@@ -1,8 +1,8 @@
 import {
+	calendarDate,
 	type ExamCalendar,
 	type ExamSitting,
 	examCalendarFor,
-	type SittingStatus,
 	sittingStatus,
 } from "@/lib/exam-calendar";
 import {
@@ -13,6 +13,7 @@ import {
 	pendingSittings,
 	predictNextRelease,
 	type ReleasePrediction,
+	releaseForSitting,
 } from "@/lib/prediction";
 
 export interface HistoryEntry {
@@ -105,43 +106,69 @@ export function summarizeReleases(
 	});
 }
 
-const MAX_EXAM_ROWS = 6;
+const MAX_UPCOMING_SITTINGS = 4;
 
-export interface ExamRow {
+export type SittingPhase =
+	| "veröffentlicht"
+	| "ausstehend"
+	| "läuft"
+	| "anstehend";
+
+type SittingResults =
+	| { kind: "released"; date: Date }
+	/** `exact` is false when the JPA has no release history, so only the month is known. */
+	| { kind: "expected"; date: Date; exact: boolean };
+
+export interface TimelineEntry {
 	sitting: ExamSitting;
-	status: SittingStatus;
-	expected: Date;
-	/** False when the JPA has no release history, so only the month is known. */
-	exactDate: boolean;
+	phase: SittingPhase;
+	results: SittingResults;
 }
 
-export interface ExamSchedule {
+export interface ExamTimeline {
 	calendar: ExamCalendar;
-	rows: ExamRow[];
+	/** Ascending by date. */
+	entries: TimelineEntry[];
 }
 
-export function examSchedule(
+/** The latest released sitting as a trust signal, then every sitting still awaiting its results or yet to be written. */
+export function examTimeline(
 	slug: string,
 	releaseDates: Date[],
 	now: Date,
-): ExamSchedule | null {
+): ExamTimeline | null {
 	const calendar = examCalendarFor(slug);
 	if (!calendar) return null;
 	const offset = medianReleaseOffset(releaseDates);
-	const today = [
-		now.getFullYear(),
-		String(now.getMonth() + 1).padStart(2, "0"),
-		String(now.getDate()).padStart(2, "0"),
-	].join("-");
-	const rows = pendingSittings(calendar.sittings, now, releaseDates)
-		.slice(0, MAX_EXAM_ROWS)
-		.map((sitting) => ({
+	const today = calendarDate(now);
+	const entries: TimelineEntry[] = [];
+
+	for (const sitting of calendar.sittings) {
+		const date = releaseForSitting(sitting, releaseDates);
+		if (date) {
+			entries[0] = {
+				sitting,
+				phase: "veröffentlicht",
+				results: { kind: "released", date },
+			};
+		}
+	}
+
+	let upcoming = 0;
+	for (const sitting of pendingSittings(calendar.sittings, now, releaseDates)) {
+		const status = sittingStatus(sitting, today);
+		if (status === "anstehend" && upcoming++ >= MAX_UPCOMING_SITTINGS) break;
+		entries.push({
 			sitting,
-			status: sittingStatus(sitting, today),
-			expected: expectedReleaseDate(sitting, offset),
-			exactDate: releaseDates.length > 0,
-		}));
-	return { calendar, rows };
+			phase: status === "geschrieben" ? "ausstehend" : status,
+			results: {
+				kind: "expected",
+				date: expectedReleaseDate(sitting, offset),
+				exact: releaseDates.length > 0,
+			},
+		});
+	}
+	return { calendar, entries };
 }
 
 export function relativeLabel(daysUntil: number): string {

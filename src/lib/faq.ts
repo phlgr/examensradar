@@ -1,9 +1,9 @@
 import { formatSittingRange, resultMonthName } from "@/lib/exam-calendar";
 import {
 	CONFIDENCE_LABEL,
-	type ExamRow,
 	type JpaReleaseSummary,
 	monthPositionLabel,
+	type TimelineEntry,
 } from "@/lib/release-summary";
 import { type Faq, formatLongDate } from "@/lib/seo";
 
@@ -90,16 +90,16 @@ export const extraFaqs: Faq[] = [
 	},
 ];
 
-export function expectedResultsPhrase(row: ExamRow): string {
-	return row.exactDate
-		? `am ${formatLongDate(row.expected)}`
-		: `Ende ${resultMonthName(row.sitting)}`;
+function resultsPhrase({ sitting, results }: TimelineEntry): string {
+	return results.kind === "expected" && !results.exact
+		? `Ende ${resultMonthName(sitting)}`
+		: `am ${formatLongDate(results.date)}`;
 }
 
 export function jpaFaqs(
 	name: string,
 	summary: JpaReleaseSummary | undefined,
-	examRows: ExamRow[] = [],
+	entries: TimelineEntry[] = [],
 ) {
 	const faqs: Faq[] = [];
 	const prediction = summary?.prediction;
@@ -123,13 +123,15 @@ export function jpaFaqs(
 		});
 	}
 
-	const nextExams = examRows.filter((row) => row.status !== "geschrieben");
+	const nextExams = entries.filter(
+		(entry) => entry.phase === "läuft" || entry.phase === "anstehend",
+	);
 	if (nextExams.length > 0) {
 		const list = nextExams
 			.slice(0, 3)
 			.map(
-				(row) =>
-					`${formatSittingRange(row.sitting)} (Ergebnisse voraussichtlich ${expectedResultsPhrase(row)})`,
+				(entry) =>
+					`${formatSittingRange(entry.sitting)} (Ergebnisse voraussichtlich ${resultsPhrase(entry)})`,
 			);
 		faqs.push({
 			question: `Wann sind die nächsten Examensklausuren beim ${name}?`,
