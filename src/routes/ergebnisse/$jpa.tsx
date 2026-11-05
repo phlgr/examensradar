@@ -1,5 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { CalendarPlus, ExternalLink } from "lucide-react";
+import { CalendarPlus, ChevronDown, ExternalLink } from "lucide-react";
 import { Fragment, useState } from "react";
 import { FaqList } from "@/components/FaqList";
 import { Footer } from "@/components/Footer";
@@ -241,12 +241,6 @@ function ExamTimelineList({
 									nächster Durchgang
 								</span>
 							)}
-							{open && !expanded && (
-								<span className="ml-2 text-[13px] text-ink/55">
-									Tage{" "}
-									<span className="inline-block group-open:rotate-90">›</span>
-								</span>
-							)}
 						</span>
 						<ResultsLine
 							{...entry}
@@ -277,8 +271,20 @@ function ExamTimelineList({
 						>
 							{open && !expanded ? (
 								<details className="group py-3.5">
-									<summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+									<summary className="-mx-3 cursor-pointer list-none rounded-lg px-3 py-1 transition-colors hover:bg-ink/[0.04] [&::-webkit-details-marker]:hidden">
 										{head}
+										<span className="mt-1.5 inline-flex items-center gap-1 text-[13px] font-medium text-seal underline decoration-1 underline-offset-4 group-hover:decoration-2">
+											<span className="group-open:hidden">
+												Klausurtage anzeigen
+											</span>
+											<span className="hidden group-open:inline">
+												Klausurtage ausblenden
+											</span>
+											<ChevronDown
+												aria-hidden="true"
+												className="size-3.5 transition-transform group-open:rotate-180"
+											/>
+										</span>
 									</summary>
 									{body}
 								</details>
