@@ -1,6 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { CalendarPlus, ChevronDown, ExternalLink } from "lucide-react";
-import { Fragment, useState } from "react";
+import { CalendarPlus, ExternalLink } from "lucide-react";
+import { useState } from "react";
 import { FaqList } from "@/components/FaqList";
 import { Footer } from "@/components/Footer";
 import { SignupForm } from "@/components/SignupForm";
@@ -13,7 +13,6 @@ import {
 	formatExamDay,
 	formatSittingMonth,
 	formatSittingRange,
-	formatSittingRangeShort,
 	formatStand,
 	monthsBetween,
 	resultMonthIndex,
@@ -105,11 +104,6 @@ const dayMonthYear = (date: Date, currentYear: number) =>
 		? formatDayMonth(date)
 		: `${formatDayMonth(date)} ${date.getFullYear()}`;
 
-const joinMonths = (months: string[]) =>
-	months.length > 1
-		? `${months.slice(0, -1).join(", ")} und ${months[months.length - 1]}`
-		: months[0];
-
 const LABEL = "text-[11px] font-semibold uppercase tracking-[0.08em]";
 
 function ResultsLine({
@@ -118,20 +112,25 @@ function ResultsLine({
 	currentYear,
 	highlight,
 }: TimelineEntry & { currentYear: number; highlight: boolean }) {
-	if (results.kind === "released") {
-		return (
-			<span className="text-ink/55">
-				Ergebnisse am {dayMonthYear(results.date, currentYear)} ✓
-			</span>
-		);
-	}
-	const value = results.exact
-		? dayMonthYear(results.date, currentYear)
-		: resultMonthLabel(sitting, currentYear);
+	const released = results.kind === "released";
+	const value = released
+		? `${dayMonthYear(results.date, currentYear)} ✓`
+		: results.exact
+			? dayMonthYear(results.date, currentYear)
+			: `Ende ${resultMonthLabel(sitting, currentYear)}`;
 	return (
-		<span>
-			Ergebnisse {!results.exact && "Ende "}
-			<span className={cn("font-serif text-[17px]", highlight && "marker")}>
+		<span className={cn("block", released && "text-ink/55")}>
+			<span className="block text-[11px] text-ink/55">
+				{released
+					? "Ergebnisse veröffentlicht am"
+					: "Ergebnisse voraussichtlich"}
+			</span>
+			<span
+				className={cn(
+					"font-serif text-[15px] whitespace-nowrap",
+					highlight && "marker",
+				)}
+			>
 				{value}
 			</span>
 		</span>
@@ -147,19 +146,19 @@ function resultMonthLabel(sitting: ExamSitting, currentYear: number) {
 
 function ExamDays({ entry, today }: { entry: TimelineEntry; today: string }) {
 	return (
-		<ul className="mt-3 grid gap-x-6 gap-y-0.5 sm:grid-cols-3">
+		<ul className="mt-3 space-y-0.5 text-[14px]">
 			{entry.sitting.days.map((day) => (
 				<li
 					key={day.date}
 					className={cn(
-						"flex gap-3 py-0.5",
+						"flex gap-2",
 						entry.phase === "läuft" && day.date < today && "text-ink/45",
 					)}
 				>
-					<span className="figures w-[74px] shrink-0 text-[13px] text-ink/55">
-						{formatExamDay(day.date)}
-					</span>
-					<span>{SUBJECT_NAME[day.subject]}</span>
+					<span className="figures text-ink/55">{formatExamDay(day.date)}</span>
+					<abbr title={SUBJECT_NAME[day.subject]} className="no-underline">
+						{day.subject}
+					</abbr>
 				</li>
 			))}
 		</ul>
@@ -181,13 +180,17 @@ function CalendarLink({
 			onClick={() =>
 				trackEvent("calendar_download", { jpa: jpaSlug, sitting: start })
 			}
-			className="mt-2 inline-flex items-center gap-1.5 text-[13px] text-ink/55 hover:text-ink"
+			className="mt-2 inline-flex items-center gap-1.5 text-[12px] text-ink/55 hover:text-ink"
 		>
 			<CalendarPlus className="size-3.5" aria-hidden="true" />
 			In den Kalender
 		</a>
 	);
 }
+
+type Pod =
+	| { kind: "gap"; month: string }
+	| { kind: "sitting"; entry: TimelineEntry; index: number };
 
 function ExamTimelineList({
 	entries,
@@ -203,102 +206,82 @@ function ExamTimelineList({
 	const firstOpen = entries.findIndex(
 		(e) => e.phase === "läuft" || e.phase === "anstehend",
 	);
-	const todayAt = firstOpen === -1 ? entries.length : firstOpen;
 	const firstExpected = entries.findIndex((e) => e.results.kind === "expected");
 	const running = entries.some((e) => e.phase === "läuft");
 
-	const todayRule = (
-		<li className={cn(LABEL, "border-t-[1.5px] border-seal py-2.5 text-seal")}>
-			Heute · {formatDayMonth(now)}
-		</li>
-	);
+	const pods: Pod[] = entries.flatMap((entry, index) => {
+		const previous = entries[index - 1];
+		const gap = previous ? monthsBetween(previous.sitting, entry.sitting) : [];
+		return [
+			...gap.map((month): Pod => ({ kind: "gap", month })),
+			{ kind: "sitting", entry, index },
+		];
+	});
 
 	return (
-		<ol>
-			{entries.map((entry, index) => {
-				const open = entry.phase === "läuft" || entry.phase === "anstehend";
-				const expanded = index === firstOpen;
-				const previous = entries[index - 1];
-				const gap = previous
-					? monthsBetween(previous.sitting, entry.sitting)
-					: [];
-				const head = (
-					<div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-						<span>
-							<span className="font-serif text-[19px]">
-								{formatSittingMonth(entry.sitting, currentYear)}
-							</span>{" "}
-							<span className="figures text-[13px] text-ink/55">
-								{formatSittingRangeShort(entry.sitting)}
-							</span>
-							{entry.phase === "läuft" && (
-								<span className={cn(LABEL, "ml-2 text-ink/50")}>
-									läuft gerade
-								</span>
-							)}
-							{expanded && entry.phase === "anstehend" && !running && (
-								<span className={cn(LABEL, "ml-2 text-ink/50")}>
-									nächster Durchgang
-								</span>
-							)}
-						</span>
-						<ResultsLine
-							{...entry}
-							currentYear={currentYear}
-							highlight={index === firstExpected}
-						/>
-					</div>
-				);
-				const body = open && (
-					<>
-						<ExamDays entry={entry} today={today} />
-						<CalendarLink jpaSlug={jpaSlug} sitting={entry.sitting} />
-					</>
-				);
-				return (
-					<Fragment key={entry.sitting.days[0].date}>
-						{gap.length > 0 && (
-							<li className="border-t border-ink/10 py-2.5 text-[13px] text-ink/50">
-								Keine Klausuren im {joinMonths(gap)}
-							</li>
-						)}
-						{index === todayAt && todayRule}
+		<ol className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+			{pods.map((pod) => {
+				if (pod.kind === "gap") {
+					return (
 						<li
-							className={cn(
-								index !== todayAt && "border-t border-ink/10",
-								entry.phase === "veröffentlicht" && "opacity-50",
-							)}
+							key={pod.month}
+							className="hidden rounded-xl border border-dashed border-ink/15 p-3.5 sm:block"
 						>
-							{open && !expanded ? (
-								<details className="group py-3.5">
-									<summary className="-mx-3 cursor-pointer list-none rounded-lg px-3 py-1 transition-colors hover:bg-ink/[0.04] [&::-webkit-details-marker]:hidden">
-										{head}
-										<span className="mt-1.5 inline-flex items-center gap-1 text-[13px] font-medium text-seal underline decoration-1 underline-offset-4 group-hover:decoration-2">
-											<span className="group-open:hidden">
-												Klausurtage anzeigen
-											</span>
-											<span className="hidden group-open:inline">
-												Klausurtage ausblenden
-											</span>
-											<ChevronDown
-												aria-hidden="true"
-												className="size-3.5 transition-transform group-open:rotate-180"
-											/>
-										</span>
-									</summary>
-									{body}
-								</details>
-							) : (
-								<div className={cn("py-3.5", index === todayAt && "pt-1")}>
-									{head}
-									{body}
-								</div>
-							)}
+							<p className="font-serif text-[18px] text-ink/50">{pod.month}</p>
+							<p className="mt-2 text-[13px] text-ink/45">Keine Klausuren</p>
 						</li>
-					</Fragment>
+					);
+				}
+				const { entry, index } = pod;
+				const open = entry.phase === "läuft" || entry.phase === "anstehend";
+				const current = index === firstOpen;
+				const status =
+					entry.phase === "veröffentlicht" || entry.phase === "ausstehend"
+						? { text: "geschrieben", seal: false }
+						: entry.phase === "läuft"
+							? { text: "läuft gerade", seal: true }
+							: current && !running
+								? { text: "nächster Durchgang", seal: true }
+								: null;
+				return (
+					<li
+						key={entry.sitting.days[0].date}
+						className={cn(
+							"flex flex-col rounded-xl bg-sheet p-3.5 ring-1 ring-ink/10",
+							entry.phase === "veröffentlicht" && "opacity-50",
+							current && "ring-2 ring-seal",
+						)}
+					>
+						<p className="font-serif text-[18px] leading-tight">
+							{formatSittingMonth(entry.sitting, currentYear)}
+						</p>
+						{status && (
+							<p
+								className={cn(
+									LABEL,
+									"mt-1",
+									status.seal ? "text-seal" : "text-ink/50",
+								)}
+							>
+								{status.text}
+							</p>
+						)}
+						<ExamDays entry={entry} today={today} />
+						<div className="mt-auto flex flex-col items-start pt-3 text-[12px]">
+							<div className="w-full border-t border-ink/10 pt-2.5">
+								<ResultsLine
+									{...entry}
+									currentYear={currentYear}
+									highlight={index === firstExpected}
+								/>
+							</div>
+							{open && (
+								<CalendarLink jpaSlug={jpaSlug} sitting={entry.sitting} />
+							)}
+						</div>
+					</li>
 				);
 			})}
-			{todayAt === entries.length && todayRule}
 		</ol>
 	);
 }
@@ -406,7 +389,10 @@ function JpaPage() {
 								jpaSlug={jpa.slug}
 								now={new Date(now)}
 							/>
-							<p className="border-t border-ink/10 pt-3 text-[13px] text-ink/55">
+							<p className="mt-4 text-[13px] text-ink/55">
+								ZR Zivilrecht · ÖR Öffentliches Recht · SR Strafrecht
+							</p>
+							<p className="mt-1 text-[13px] text-ink/55">
 								Ohne Gewähr. Quelle:{" "}
 								<a
 									href={timeline.calendar.pageUrl}
