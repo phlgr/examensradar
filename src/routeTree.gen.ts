@@ -24,6 +24,7 @@ import { Route as ApiAdminLoginRouteImport } from './routes/api/admin/login'
 import { Route as ApiAdminLogoutRouteImport } from './routes/api/admin/logout'
 import { Route as ApiTrpcSplatRouteImport } from './routes/api/trpc/$'
 import { Route as ApiEmailUnsubscribeTokenRouteImport } from './routes/api/email/unsubscribe/$token'
+import { Route as ApiKalenderJpaSittingRouteImport } from './routes/api/kalender/$jpa/$sitting'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -101,6 +102,11 @@ const ApiEmailUnsubscribeTokenRoute =
     path: '/api/email/unsubscribe/$token',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiKalenderJpaSittingRoute = ApiKalenderJpaSittingRouteImport.update({
+  id: '/api/kalender/$jpa/$sitting',
+  path: '/api/kalender/$jpa/$sitting',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -118,6 +124,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/logout': typeof ApiAdminLogoutRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/api/email/unsubscribe/$token': typeof ApiEmailUnsubscribeTokenRoute
+  '/api/kalender/$jpa/$sitting': typeof ApiKalenderJpaSittingRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -135,6 +142,7 @@ export interface FileRoutesByTo {
   '/api/admin/logout': typeof ApiAdminLogoutRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/api/email/unsubscribe/$token': typeof ApiEmailUnsubscribeTokenRoute
+  '/api/kalender/$jpa/$sitting': typeof ApiKalenderJpaSittingRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -153,6 +161,7 @@ export interface FileRoutesById {
   '/api/admin/logout': typeof ApiAdminLogoutRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/api/email/unsubscribe/$token': typeof ApiEmailUnsubscribeTokenRoute
+  '/api/kalender/$jpa/$sitting': typeof ApiKalenderJpaSittingRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -172,6 +181,7 @@ export interface FileRouteTypes {
     | '/api/admin/logout'
     | '/api/trpc/$'
     | '/api/email/unsubscribe/$token'
+    | '/api/kalender/$jpa/$sitting'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -189,6 +199,7 @@ export interface FileRouteTypes {
     | '/api/admin/logout'
     | '/api/trpc/$'
     | '/api/email/unsubscribe/$token'
+    | '/api/kalender/$jpa/$sitting'
   id:
     | '__root__'
     | '/'
@@ -206,6 +217,7 @@ export interface FileRouteTypes {
     | '/api/admin/logout'
     | '/api/trpc/$'
     | '/api/email/unsubscribe/$token'
+    | '/api/kalender/$jpa/$sitting'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -224,6 +236,7 @@ export interface RootRouteChildren {
   ApiAdminLogoutRoute: typeof ApiAdminLogoutRoute
   ApiTrpcSplatRoute: typeof ApiTrpcSplatRoute
   ApiEmailUnsubscribeTokenRoute: typeof ApiEmailUnsubscribeTokenRoute
+  ApiKalenderJpaSittingRoute: typeof ApiKalenderJpaSittingRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -333,6 +346,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiEmailUnsubscribeTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/kalender/$jpa/$sitting': {
+      id: '/api/kalender/$jpa/$sitting'
+      path: '/api/kalender/$jpa/$sitting'
+      fullPath: '/api/kalender/$jpa/$sitting'
+      preLoaderRoute: typeof ApiKalenderJpaSittingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -352,6 +372,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminLogoutRoute: ApiAdminLogoutRoute,
   ApiTrpcSplatRoute: ApiTrpcSplatRoute,
   ApiEmailUnsubscribeTokenRoute: ApiEmailUnsubscribeTokenRoute,
+  ApiKalenderJpaSittingRoute: ApiKalenderJpaSittingRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

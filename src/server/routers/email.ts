@@ -16,6 +16,7 @@ import {
 import { getClientIp } from "@/lib/client-ip";
 import { sendMail } from "@/lib/mail";
 import {
+	calendarOffers,
 	type MailTokens,
 	renderConfirmMail,
 	renderManageLinkMail,
@@ -116,16 +117,19 @@ export const emailRouter = router({
 				});
 			}
 
+			const jpas = await getSubscriberJpas(subscriber.id);
+
 			void sendMail({
-				...renderWelcomeMail(tokensFor(subscriber)),
+				...renderWelcomeMail(
+					tokensFor(subscriber),
+					calendarOffers(jpas, new Date()),
+				),
 				to: subscriber.email,
 			});
 
 			return {
 				manageToken: subscriber.manageToken,
-				jpaNames: (await getSubscriberJpas(subscriber.id)).map(
-					(jpa) => jpa.jpaName,
-				),
+				jpaNames: jpas.map((jpa) => jpa.jpaName),
 			};
 		}),
 
