@@ -5,6 +5,6 @@ Disallow: /admin
 Disallow: /api/
 Disallow: /confirm/
 Disallow: /unsubscribe/
-Disallow: /subscriptions
+# /subscriptions is not disallowed: Google must crawl it to see its noindex.
 
 Sitemap: https://examensradar.de/sitemap.xml

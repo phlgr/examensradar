@@ -1,3 +1,5 @@
+import { type ExamSitting, resultMonthIndex } from "@/lib/exam-calendar";
+
 const MS_PER_DAY = 86_400_000;
 
 const CLUSTER_GAP_DAYS = 7;
@@ -20,6 +22,7 @@ export interface ReleasePrediction {
 	monthStep: number;
 	medianOffsetDays: number;
 	releaseCount: number;
+	sitting?: ExamSitting;
 }
 
 function dateOnly(date: Date): Date {
@@ -60,9 +63,11 @@ function offsetFromMonthEnd(date: Date): number {
 	);
 }
 
-function avoidWeekend(date: Date): Date {
+function releaseDay(monthIndex: number, offsetDays: number): Date {
+	const date = addDays(lastWorkingDayOfMonth(monthIndex), offsetDays);
+	const publishesAfterMonthEnd = offsetDays > 0;
 	const day = date.getDay();
-	if (day === 6) return addDays(date, -1);
+	if (day === 6) return addDays(date, publishesAfterMonthEnd ? 2 : -1);
 	if (day === 0) return addDays(date, 1);
 	return date;
 }
@@ -88,12 +93,53 @@ export function clusterReleases(dates: Date[]): Date[] {
 	return clusters;
 }
 
+export function medianReleaseOffset(fireDates: Date[]): number {
+	const releases = clusterReleases(fireDates);
+	return releases.length === 0
+		? 0
+		: Math.round(median(releases.map(offsetFromMonthEnd)));
+}
+
+export function expectedReleaseDate(
+	sitting: ExamSitting,
+	medianOffsetDays: number,
+): Date {
+	return releaseDay(resultMonthIndex(sitting), medianOffsetDays);
+}
+
+export function releaseForSitting(
+	sitting: ExamSitting,
+	fireDates: Date[],
+): Date | undefined {
+	const cycle = resultMonthIndex(sitting);
+	return clusterReleases(fireDates).find(
+		(release) => anchorMonthIndex(release) === cycle,
+	);
+}
+
+export function pendingSittings(
+	sittings: readonly ExamSitting[],
+	now: Date,
+	fireDates: Date[],
+): ExamSitting[] {
+	const offset = medianReleaseOffset(fireDates);
+	const lastRelease = clusterReleases(fireDates).at(-1);
+	const releasedThrough = lastRelease ? anchorMonthIndex(lastRelease) : -1;
+	const cutoff = now.getTime() - OVERDUE_GRACE_DAYS * MS_PER_DAY;
+	return sittings.filter(
+		(sitting) =>
+			resultMonthIndex(sitting) > releasedThrough &&
+			expectedReleaseDate(sitting, offset).getTime() >= cutoff,
+	);
+}
+
 export function predictNextRelease(
 	fireDates: Date[],
 	now: Date,
+	sittings: readonly ExamSitting[] = [],
 ): ReleasePrediction | null {
 	const releases = clusterReleases(fireDates);
-	if (releases.length < 2) return null;
+	if (releases.length < 1) return null;
 
 	const anchors = releases.map(anchorMonthIndex);
 	const offsets = releases.map(offsetFromMonthEnd);
@@ -104,10 +150,42 @@ export function predictNextRelease(
 	const monthStep = Math.max(1, Math.round(median(steps)));
 
 	const medianOffset = median(offsets);
-	const lastAnchor = anchors[anchors.length - 1];
+	const offsetRange = Math.max(...offsets) - Math.min(...offsets);
+	const radius = Math.max(MIN_WINDOW_RADIUS_DAYS, Math.round(offsetRange / 2));
+	const stepsConsistent = new Set(steps).size === 1;
 
+	const build = (
+		predicted: Date,
+		confidence: PredictionConfidence,
+		sitting?: ExamSitting,
+	): ReleasePrediction => ({
+		date: predicted,
+		windowStart: addDays(predicted, -radius),
+		windowEnd: addDays(predicted, radius),
+		confidence,
+		monthStep,
+		medianOffsetDays: Math.round(medianOffset),
+		releaseCount: releases.length,
+		sitting,
+	});
+
+	const [sitting] = pendingSittings(sittings, now, fireDates);
+	if (sitting) {
+		let confidence: PredictionConfidence = "low";
+		if (releases.length >= 4 && offsetRange <= 6) confidence = "high";
+		else if (releases.length >= 3 && offsetRange <= 12) confidence = "medium";
+		return build(
+			expectedReleaseDate(sitting, medianOffset),
+			confidence,
+			sitting,
+		);
+	}
+
+	if (releases.length < 2) return null;
+
+	const lastAnchor = anchors[anchors.length - 1];
 	const predictForAnchor = (anchorIndex: number) =>
-		avoidWeekend(addDays(lastWorkingDayOfMonth(anchorIndex), medianOffset));
+		releaseDay(anchorIndex, medianOffset);
 
 	let targetAnchor = lastAnchor + monthStep;
 	let predicted = predictForAnchor(targetAnchor);
@@ -121,10 +199,6 @@ export function predictNextRelease(
 		predicted = predictForAnchor(targetAnchor);
 	}
 
-	const offsetRange = Math.max(...offsets) - Math.min(...offsets);
-	const radius = Math.max(MIN_WINDOW_RADIUS_DAYS, Math.round(offsetRange / 2));
-	const stepsConsistent = new Set(steps).size === 1;
-
 	let confidence: PredictionConfidence;
 	if (releases.length >= 4 && offsetRange <= 6 && stepsConsistent) {
 		confidence = "high";
@@ -134,13 +208,5 @@ export function predictNextRelease(
 		confidence = "low";
 	}
 
-	return {
-		date: predicted,
-		windowStart: addDays(predicted, -radius),
-		windowEnd: addDays(predicted, radius),
-		confidence,
-		monthStep,
-		medianOffsetDays: Math.round(medianOffset),
-		releaseCount: releases.length,
-	};
+	return build(predicted, confidence);
 }

@@ -6,7 +6,7 @@ A visitor picks a Justizprüfungsamt, enters an email address and submits. They 
 
 - `signup-new` creates a pending subscriber + subscription and mails "Bitte bestätige deine E-Mail-Adresse".
 - `signup-active` gives an already-confirmed address the identical reply, but the mail is "Dein Link zur Abo-Verwaltung" and no subscription is added.
-- `confirm` opens `/confirm/:token` showing "Anmeldung bestätigen". "Jetzt bestätigen" leads to "E-Mail bestätigt." with the office name, and mails "Alles bereit — wir halten dich auf dem Laufenden".
+- `confirm` opens `/confirm/:token` showing "Anmeldung bestätigen". "Jetzt bestätigen" leads to "E-Mail bestätigt." with the office name, and mails "Alles bereit — wir halten dich auf dem Laufenden". For an office with an exam calendar (Hamm, Köln, Düsseldorf) that mail also offers calendar links; see [exam-calendar](./exam-calendar.md).
 - `confirm-reopen`: reopening a used link shows "E-Mail bestätigt." again, not an error. It has no `Abo verwalten` link; it points to the "Willkommens-E-Mail" instead.
 - `confirm-invalid`: an unknown token shows "Link nicht mehr gültig".
 
@@ -26,7 +26,7 @@ Preconditions: baseline. The address you use has never been used in this run.
 - **Submit.** `page.getByRole("button", { name: "Benachrichtigen lassen" }).click()`. `getByRole("status")` contains `Fast geschafft.` and the address.
 - **Side effect.** `verify.sh sql <run> "select confirmed_at from subscriber where email='<email>'"` shows one row with `confirmed_at` null, plus an `email_subscription` row for `jpa-verify-test`. `waitForMail(run, email, /bestätige deine E-Mail/)` returns one link containing `/confirm/` that starts with `BASE_URL`.
 - **Confirm.** `visit(confirmLink)`. The heading `Anmeldung bestätigen` is shown. Click the `Jetzt bestätigen` button. The heading `E-Mail bestätigt.` appears with "JPA Verifikation (Test)", along with the `Abo verwalten` link (`getByRole("link")`), which signs in to `/subscriptions`.
-- **Second view.** `confirmed_at` is now set, and `waitForMail(run, email, /Alles bereit/)` has links to `/subscriptions?manage=` and `/unsubscribe/`.
+- **Second view.** `confirmed_at` is now set, and `waitForMail(run, email, /Alles bereit/)` has links to `/subscriptions?manage=` and `/unsubscribe/`. The test JPA has no exam calendar, so this welcome mail has no `/api/kalender/` links; the calendar variant is driven by `journeys/exam-calendar.ts` with a Hamm signup.
 - **Office-page entry.** `visit(base + "/ergebnisse/verify-test")`. The combobox already shows the test office. Repeat Fill/Submit with a new address.
 - **Signed-out `/subscriptions` entry.** Use a context without the manage cookie. The page has two `E-Mail-Adresse` fields (signup and resend), so scope to the signup form: `page.locator("#anmelden").getByLabel("E-Mail-Adresse")`. Its office select defaults to the first office, so pick the test JPA explicitly.
 - **Already-active.** Submit the confirmed address again. The reply is identical, the mail subject is `Dein Link zur Abo-Verwaltung`, and the `email_subscription` count is unchanged.

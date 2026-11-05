@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getJpas, getNotificationHistory } from "@/db";
+import { examCalendarFor } from "@/lib/exam-calendar";
 import { summarizeReleases } from "@/lib/release-summary";
-import { jpaPath, SITE_URL } from "@/lib/seo";
+import { jpaPath, officeLastmod, SITE_URL } from "@/lib/seo";
 
 export const Route = createFileRoute("/sitemap.xml")({
 	server: {
@@ -24,7 +25,10 @@ export const Route = createFileRoute("/sitemap.xml")({
 					...jpas.map((jpa) => ({
 						path: jpaPath(jpa.slug),
 						lastmod: lastmodOf(
-							summaries.find((s) => s.slug === jpa.slug)?.lastRelease,
+							officeLastmod(
+								summaries.find((s) => s.slug === jpa.slug)?.lastRelease,
+								examCalendarFor(jpa.slug)?.stand,
+							),
 						),
 					})),
 				];

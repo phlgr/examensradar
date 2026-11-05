@@ -21,6 +21,17 @@ export const formatLongDate = (date: Date) =>
 		year: "numeric",
 	});
 
+export function officeLastmod(
+	lastRelease: Date | undefined,
+	stand: string | null | undefined,
+): Date | undefined {
+	const standDate = stand
+		? new Date(stand.length === 7 ? `${stand}-01` : stand)
+		: undefined;
+	if (!standDate || !lastRelease) return standDate ?? lastRelease;
+	return standDate > lastRelease ? standDate : lastRelease;
+}
+
 interface SeoOptions {
 	title: string;
 	description: string;

@@ -1,4 +1,6 @@
+import { examCalendarFor, formatSittingRange } from "./exam-calendar";
 import type { Mail } from "./mail";
+import { jpaParam } from "./seo";
 
 export type MailContent = Omit<Mail, "to">;
 
@@ -141,7 +143,76 @@ ohne Bestätigung senden wir dir nichts.
 	};
 }
 
-export function renderWelcomeMail(tokens: MailTokens): MailContent {
+export interface CalendarOffer {
+	jpaName: string;
+	links: { label: string; url: string }[];
+}
+
+const OFFERED_SITTINGS = 3;
+
+const berlinDate = (date: Date) =>
+	new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Berlin" }).format(date);
+
+export function calendarOffers(
+	jpas: { jpaSlug: string; jpaName: string }[],
+	now: Date,
+): CalendarOffer[] {
+	const today = berlinDate(now);
+	return jpas.flatMap(({ jpaSlug, jpaName }) => {
+		const links = (examCalendarFor(jpaSlug)?.sittings ?? [])
+			.filter((sitting) => sitting.days[0].date > today)
+			.slice(0, OFFERED_SITTINGS)
+			.map((sitting) => ({
+				label: formatSittingRange(sitting),
+				url: `${appUrl()}/api/kalender/${jpaParam(jpaSlug)}/${sitting.days[0].date}`,
+			}));
+		return links.length > 0 ? [{ jpaName, links }] : [];
+	});
+}
+
+function calendarSection(offers: CalendarOffer[]): {
+	html: string;
+	text: string;
+} {
+	if (offers.length === 0) return { html: "", text: "" };
+
+	const html = offers
+		.map(
+			({ jpaName, links }) =>
+				`${escapeHtml(jpaName)}: ${links
+					.map(
+						(link) =>
+							`<a href="${escapeHtml(link.url)}" style="color:${INK}">${escapeHtml(link.label)}</a>`,
+					)
+					.join(" &middot; ")}`,
+		)
+		.join("<br>");
+	const text = offers
+		.map(
+			({ jpaName, links }) =>
+				`${jpaName}\n${links.map((link) => `  ${link.label}: ${link.url}`).join("\n")}`,
+		)
+		.join("\n\n");
+
+	return {
+		html: `<p style="margin:0 0 6px;font-family:${SERIF};font-size:20px;line-height:1.3;color:${INK}">Klausurtermine in deinen Kalender</p>
+<p style="margin:0 0 24px;color:#45433f">${html}<br><span style="font-size:13px;color:${MUTED}">Ohne Gewähr.</span></p>`,
+		text: `Klausurtermine in deinen Kalender
+
+${text}
+
+Ohne Gewähr.
+
+`,
+	};
+}
+
+export function renderWelcomeMail(
+	tokens: MailTokens,
+	offers: CalendarOffer[] = [],
+): MailContent {
+	const calendar = calendarSection(offers);
+
 	return {
 		subject: "Alles bereit — wir halten dich auf dem Laufenden",
 		text: `Alles bereit
@@ -150,7 +221,7 @@ Wir benachrichtigen dich, sobald eines deiner Prüfungsämter neue
 Examensergebnisse veröffentlicht. Welche das sind, siehst und änderst du
 über den Link unten.
 
-Abo verwalten: ${manageUrl(tokens.manage)}
+${calendar.text}Abo verwalten: ${manageUrl(tokens.manage)}
 
 --
 Bewahre diese E-Mail auf: über den Link oben kannst du dein Abo jederzeit
@@ -160,9 +231,10 @@ Abmelden: ${unsubscribeUrl(tokens.unsubscribe)}
 `,
 		html: layout({
 			heading: "Alles bereit",
-			body: paragraph(
-				"Wir benachrichtigen dich, sobald eines deiner Prüfungsämter neue Examensergebnisse veröffentlicht. Welche das sind, siehst und änderst du über den Link unten.",
-			),
+			body:
+				paragraph(
+					"Wir benachrichtigen dich, sobald eines deiner Prüfungsämter neue Examensergebnisse veröffentlicht. Welche das sind, siehst und änderst du über den Link unten.",
+				) + calendar.html,
 			cta: { url: manageUrl(tokens.manage), label: "Abo verwalten" },
 			footer: `Bewahre diese E-Mail auf — über den Link kannst du dein Abo jederzeit verwalten oder beenden.<br>
 ${footerLink(unsubscribeUrl(tokens.unsubscribe), "Abmelden")}`,

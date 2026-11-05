@@ -12,6 +12,7 @@
  */
 import { sendBatchMails, sendMail } from "@/lib/mail";
 import {
+	calendarOffers,
 	type MailContent,
 	renderConfirmMail,
 	renderManageLinkMail,
@@ -29,7 +30,10 @@ const TOKENS = {
 
 const templates: Record<string, () => MailContent> = {
 	confirm: () => renderConfirmMail(CONFIRM_TOKEN),
-	welcome: () => renderWelcomeMail(TOKENS),
+	welcome: () => renderWelcomeMail(
+			TOKENS,
+			calendarOffers([{ jpaSlug: "hamm", jpaName: JPA_NAME }], new Date()),
+		),
 	results: () => renderResultsMail(JPA_NAME, JPA_URL, TOKENS),
 	manage: () => renderManageLinkMail(TOKENS),
 };

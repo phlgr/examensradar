@@ -1,7 +1,9 @@
+import { formatSittingRange, resultMonthName } from "@/lib/exam-calendar";
 import {
 	CONFIDENCE_LABEL,
 	type JpaReleaseSummary,
 	monthPositionLabel,
+	type TimelineEntry,
 } from "@/lib/release-summary";
 import { type Faq, formatLongDate } from "@/lib/seo";
 
@@ -88,7 +90,17 @@ export const extraFaqs: Faq[] = [
 	},
 ];
 
-export function jpaFaqs(name: string, summary: JpaReleaseSummary | undefined) {
+export function resultsPhrase({ sitting, results }: TimelineEntry): string {
+	return results.kind === "expected" && !results.exact
+		? `Ende ${resultMonthName(sitting)}`
+		: `am ${formatLongDate(results.date)}`;
+}
+
+export function jpaFaqs(
+	name: string,
+	summary: JpaReleaseSummary | undefined,
+	entries: TimelineEntry[] = [],
+) {
 	const faqs: Faq[] = [];
 	const prediction = summary?.prediction;
 
@@ -111,6 +123,22 @@ export function jpaFaqs(name: string, summary: JpaReleaseSummary | undefined) {
 		});
 	}
 
+	const nextExams = entries.filter(
+		(entry) => entry.phase === "läuft" || entry.phase === "anstehend",
+	);
+	if (nextExams.length > 0) {
+		const list = nextExams
+			.slice(0, 3)
+			.map(
+				(entry) =>
+					`${formatSittingRange(entry.sitting)} (Ergebnisse voraussichtlich ${resultsPhrase(entry)})`,
+			);
+		faqs.push({
+			question: `Wann sind die nächsten Examensklausuren beim ${name}?`,
+			answer: `Die nächsten Klausurtermine der staatlichen Pflichtfachprüfung beim ${name} sind ${listNames(list)}. Jeder Durchgang besteht aus sechs Klausuren: drei im Zivilrecht, zwei im Öffentlichen Recht und eine im Strafrecht. Die Ergebnisse folgen in der Regel etwa drei Monate nach Beginn des Durchgangs. Angaben ohne Gewähr.`,
+		});
+	}
+
 	faqs.push({
 		question: `Wie erfahre ich sofort, wenn das ${name} Ergebnisse veröffentlicht?`,
 		answer: `Melde dich bei Examensradar für das ${name} an. Wir prüfen die Ergebnisseite alle paar Minuten und schicken dir eine E-Mail, sobald dort etwas Neues steht. Kostenlos, ohne Konto, jederzeit abbestellbar.`,
@@ -118,4 +146,54 @@ export function jpaFaqs(name: string, summary: JpaReleaseSummary | undefined) {
 	});
 
 	return faqs;
+}
+
+export interface OfficePageMeta {
+	title: string;
+	h1: string;
+	description: string;
+	intro: string;
+}
+
+export function officePageMeta(
+	name: string,
+	summary: JpaReleaseSummary | undefined,
+	entries: TimelineEntry[] = [],
+): OfficePageMeta {
+	const open = entries.find(
+		(e) => e.phase === "läuft" || e.phase === "anstehend",
+	);
+	const prediction = summary?.prediction;
+	const range = open ? formatSittingRange(open.sitting) : null;
+	const dates = [
+		prediction &&
+			`Nächste Ergebnisse voraussichtlich am ${formatLongDate(prediction.date)}`,
+		range && `nächste Klausuren ${range}`,
+	].filter(Boolean);
+
+	const description =
+		dates.length > 0
+			? `${name}: ${dates.join(", ")}. Kostenlose E-Mail, sobald sie online sind.`
+			: `${prediction ? `Nächster Termin voraussichtlich am ${formatLongDate(prediction.date)}. ` : ""}Alle bisherigen Veröffentlichungen des Justizprüfungsamts beim ${name} im ersten Staatsexamen – und eine kostenlose E-Mail, sobald neue Ergebnisse online sind.`;
+
+	const results = summary
+		? nextReleaseSentence(summary)
+		: `Für das ${name} haben wir noch keine Veröffentlichung erfasst.`;
+	const lastDay = open?.sitting.days.at(-1)?.date.split("-").map(Number);
+	const datesSentence =
+		open && lastDay
+			? open.phase === "läuft"
+				? `Die aktuellen Examensklausuren beim ${name} laufen noch bis ${formatLongDate(new Date(lastDay[0], lastDay[1] - 1, lastDay[2]))}. `
+				: `Die nächsten Examensklausuren beim ${name} sind vom ${range?.replace(".–", ". bis ").replace(" – ", " bis ")}. `
+			: "";
+
+	const base = `${name}: Termine & Ergebnisse 1. Examen`;
+	const title = `${base} | Examensradar`;
+
+	return {
+		title: title.length > 60 ? base : title,
+		h1: `${name}: Klausurtermine und Ergebnisse im 1. Examen`,
+		description,
+		intro: `${datesSentence}${results} Mit Examensradar bekommst du eine E-Mail, sobald die Ergebnisse online sind.`,
+	};
 }

@@ -9,6 +9,7 @@ A confirmed subscriber opens the manage link from any mail. The link is traded f
 - `manage-remove`: "Abbestellen" on an active card removes it.
 - `manage-signout`: "Ausloggen" clears the cookie, and the page reloads signed out.
 - `manage-resend`: signed out, "Link zuschicken" mails "Dein Link zur Abo-Verwaltung", but only to active addresses. The reply is the same either way.
+- `manage-invalid`: an unknown or expired `?manage=` token shows the banner `Dieser Link ist nicht mehr gültig.` above the signed-out view, and the token leaves the URL.
 
 ## How to get to it (user POV)
 
@@ -25,11 +26,13 @@ Preconditions: a confirmed subscriber from [subscribe-confirm](./subscribe-confi
 - **Remove an office.** On the same card, click `Abbestellen`. `Aktiv` disappears and the row is gone.
 - **Sign out.** Click the `Ausloggen` button. After the reload, the signup form and `Link zuschicken` are shown.
 - **Resend.** Signed out, `getByLabel("E-Mail-Adresse")` resolves to two fields (signup + resend). Use `.last()` for the resend form, fill in the confirmed address, and click `Link zuschicken`. `waitForMail(run, email, /Abo-Verwaltung/)` arrives. With an unknown `example.test` address, the reply is the same (`Falls diese Adresse …`) and no mail is captured.
+- **Invalid link.** `visit(base + "/subscriptions?manage=0000000000000000x")`. `Dieser Link ist nicht mehr gültig.` is visible and `page.url()` has no `manage=`. Driven on 2026-11-05 with an ad-hoc script.
 - **Proof.** Run `bun $V/journeys/manage-subscriptions.ts <run>` after `subscribe-confirm`. It covers sign-in, add, remove, sign-out and resend to the confirmed address. Its output is `evidence/manage-subscriptions/01..05*.png` + `result.json`.
 
 ## Gotchas
 
 - While a toggle is in flight, the card's button is a spinner with no text. Wait on the card's own new state (`Aktiv`, or the `Abonnieren` button), not on text elsewhere on the page.
 - With the cookie, the signed-in view replaces the signup form. Use a fresh `context` (`v.context.browser().newContext()`) for the signed-out steps, or sign out first.
+- The cookie is `examensradar_manage` (HttpOnly, SameSite=Lax, session lifetime), read it with `v.cookie("examensradar_manage")`.
 - The office list has a search box (`Prüfungsamt suchen`) only with more than 6 offices (`src/components/jpa-search.tsx`). The verify instance has 5, so it never shows there.
 - The resend step counts against the address's mail throttle (3 per hour, see [subscribe-confirm](./subscribe-confirm.md)). Rerunning the journey on the same instance fails at resend because no new mail arrives. Rerun on a fresh instance.
