@@ -87,7 +87,7 @@ describe("examTimeline", () => {
 	const startOf = (e: { sitting: { days: readonly { date: string }[] } }) =>
 		e.sitting.days[0].date;
 
-	test("shows the latest release, pending sittings and six upcoming ones", () => {
+	test("shows the latest release, pending sittings and every upcoming one", () => {
 		const timeline = examTimeline(
 			"hamm",
 			hamm,
@@ -99,19 +99,15 @@ describe("examTimeline", () => {
 			"2026-08-20",
 			"2026-10-22",
 		]);
-		expect(entries.map((e) => e.phase)).toEqual([
+		expect(entries.slice(0, 3).map((e) => e.phase)).toEqual([
 			"veröffentlicht",
 			"ausstehend",
 			"ausstehend",
-			"anstehend",
-			"anstehend",
-			"anstehend",
-			"anstehend",
-			"anstehend",
-			"anstehend",
 		]);
+		expect(entries.slice(3).every((e) => e.phase === "anstehend")).toBe(true);
 		expect(startOf(entries[3])).toBe("2026-11-19");
 		expect(startOf(entries[8])).toBe("2027-05-20");
+		expect(startOf(entries[entries.length - 1])).toBe("2028-12-13");
 
 		const released = entries[0].results;
 		expect(released.kind).toBe("released");

@@ -104,8 +104,6 @@ export function summarizeReleases(
 	});
 }
 
-const MAX_UPCOMING_SITTINGS = 6;
-
 const RECENT_RELEASE_DAYS = 7;
 
 type SittingPhase = "veröffentlicht" | "ausstehend" | "läuft" | "anstehend";
@@ -141,10 +139,8 @@ export function examTimeline(
 		if (date) entries[0] = releasedEntry(sitting, date);
 	}
 
-	let upcoming = 0;
 	for (const sitting of pendingSittings(calendar.sittings, now, releaseDates)) {
 		const status = sittingStatus(sitting, today);
-		if (status === "anstehend" && upcoming++ >= MAX_UPCOMING_SITTINGS) break;
 		entries.push({
 			sitting,
 			phase: status === "geschrieben" ? "ausstehend" : status,
