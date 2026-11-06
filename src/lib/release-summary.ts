@@ -31,7 +31,6 @@ export interface JpaReleaseSummary {
 	lastRelease: Date;
 	releaseCount: number;
 	typicalHour: number;
-	weekdayCounts: Map<number, number>;
 	prediction: ReleasePrediction | null;
 	daysUntil: number | null;
 }
@@ -68,13 +67,6 @@ export function summarizeReleases(
 	const summaries: JpaReleaseSummary[] = [];
 	for (const [slug, group] of groups) {
 		const dates = [...group.dates].sort((a, b) => b.getTime() - a.getTime());
-		const weekdayCounts = new Map<number, number>();
-		for (const date of dates) {
-			weekdayCounts.set(
-				date.getDay(),
-				(weekdayCounts.get(date.getDay()) ?? 0) + 1,
-			);
-		}
 		const prediction = predictNextRelease(
 			dates,
 			now,
@@ -88,7 +80,6 @@ export function summarizeReleases(
 			lastRelease: dates[0],
 			releaseCount: clusterReleases(dates).length,
 			typicalHour: median(dates.map((d) => d.getHours())),
-			weekdayCounts,
 			prediction,
 			daysUntil: prediction
 				? Math.ceil((prediction.date.getTime() - now.getTime()) / MS_PER_DAY)
@@ -106,7 +97,9 @@ export function summarizeReleases(
 	});
 }
 
-const MAX_UPCOMING_SITTINGS = 4;
+const MAX_UPCOMING_SITTINGS = 6;
+
+const RECENT_RELEASE_DAYS = 7;
 
 type SittingPhase = "veröffentlicht" | "ausstehend" | "läuft" | "anstehend";
 
@@ -138,13 +131,7 @@ export function examTimeline(
 
 	for (const sitting of calendar.sittings) {
 		const date = releaseForSitting(sitting, releaseDates);
-		if (date) {
-			entries[0] = {
-				sitting,
-				phase: "veröffentlicht",
-				results: { kind: "released", date },
-			};
-		}
+		if (date) entries[0] = releasedEntry(sitting, date);
 	}
 
 	let upcoming = 0;
@@ -162,6 +149,78 @@ export function examTimeline(
 		});
 	}
 	return { calendar, entries };
+}
+
+function releasedEntry(sitting: ExamSitting, date: Date): TimelineEntry {
+	return {
+		sitting,
+		phase: "veröffentlicht",
+		results: { kind: "released", date },
+	};
+}
+
+export type ReleaseCard =
+	| { kind: "sitting"; entry: TimelineEntry }
+	| { kind: "release"; date: Date };
+
+export function olderReleases(
+	slug: string,
+	releaseDates: Date[],
+	shown: TimelineEntry[],
+): ReleaseCard[] {
+	const sittings = examCalendarFor(slug)?.sittings ?? [];
+	const shownTimes = new Set(
+		shown.flatMap((e) =>
+			e.results.kind === "released" ? [e.results.date.getTime()] : [],
+		),
+	);
+	return clusterReleases(releaseDates)
+		.filter((date) => !shownTimes.has(date.getTime()))
+		.map((date): ReleaseCard => {
+			const sitting = sittings.find(
+				(s) => releaseForSitting(s, releaseDates)?.getTime() === date.getTime(),
+			);
+			return sitting
+				? { kind: "sitting", entry: releasedEntry(sitting, date) }
+				: { kind: "release", date };
+		});
+}
+
+export type OfficeStatus =
+	| { kind: "released"; date: Date }
+	| { kind: "overdue"; daysUntil: number }
+	| { kind: "waiting"; entry: TimelineEntry; next: TimelineEntry | undefined }
+	| { kind: "running"; entry: TimelineEntry }
+	| { kind: "upcoming"; entry: TimelineEntry }
+	| { kind: "noCalendar"; prediction: ReleasePrediction }
+	| { kind: "unknown"; lastRelease: Date | null };
+
+export function officeStatus(
+	summary: JpaReleaseSummary | undefined,
+	entries: TimelineEntry[],
+	now: Date,
+): OfficeStatus {
+	const latest = summary && clusterReleases(summary.dates).at(-1);
+	if (
+		latest &&
+		now.getTime() - latest.getTime() < RECENT_RELEASE_DAYS * MS_PER_DAY
+	) {
+		return { kind: "released", date: latest };
+	}
+	if (summary?.daysUntil != null && summary.daysUntil < 0) {
+		return { kind: "overdue", daysUntil: summary.daysUntil };
+	}
+	const waiting = entries.find((e) => e.phase === "ausstehend");
+	const next = entries.find(
+		(e) => e.phase === "läuft" || e.phase === "anstehend",
+	);
+	if (waiting) return { kind: "waiting", entry: waiting, next };
+	if (next?.phase === "läuft") return { kind: "running", entry: next };
+	if (next) return { kind: "upcoming", entry: next };
+	if (summary?.prediction) {
+		return { kind: "noCalendar", prediction: summary.prediction };
+	}
+	return { kind: "unknown", lastRelease: summary?.lastRelease ?? null };
 }
 
 export function relativeLabel(daysUntil: number): string {

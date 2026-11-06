@@ -101,7 +101,7 @@ Wenn jemand wissen möchte, wann die Ergebnisse im ersten Staatsexamen bei einem
 ## Seiten
 
 - [Startseite und Anmeldung](${SITE_URL}/): Justizprüfungsamt wählen, E-Mail-Adresse eintragen, Link bestätigen.
-- [Termine und Prognose](${SITE_URL}/history): alle erfassten Veröffentlichungen mit Wochentag und Uhrzeit, Prognose je Prüfungsamt.
+- [Ergebnisse nach Prüfungsamt](${SITE_URL}/ergebnisse): alle Prüfungsämter mit der voraussichtlich nächsten Veröffentlichung und Hinweisen zur Prognose.
 
 ## Häufige Fragen
 

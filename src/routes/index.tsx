@@ -125,8 +125,7 @@ function LandingPage() {
 								jpas={jpas}
 								loading={false}
 								error={false}
-								jpaId={jpaId}
-								onJpaChange={setJpaId}
+								jpa={{ kind: "pick", jpaId, onChange: setJpaId }}
 								source="landing"
 							/>
 						</div>

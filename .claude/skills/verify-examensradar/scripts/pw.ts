@@ -78,8 +78,8 @@ export async function open(journey: string) {
 		context,
 		/**
 		 * goto + wait for React hydration. SSR renders the forms before React
-		 * owns them; input typed before hydration is wiped and the submit button
-		 * stays disabled.
+		 * owns them; input typed before hydration is wiped, so the submit fails the
+		 * email validation.
 		 */
 		async visit(url: string) {
 			await page.goto(url);

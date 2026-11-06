@@ -4,8 +4,8 @@ The NRW office pages list upcoming oral exam days with their places. The server 
 
 ## Sub-features
 
-- `oral-section`: `/ergebnisse/<slug>` for `hamm`, `köln` and `düsseldorf` has the section `Mündliche Prüfungen beim <name>`, below the Klausur pods. Days from today on are grouped by month, as `Fr 13.11.` plus places (Hamm courts, Köln `Raum …`, Düsseldorf `Saal …`). Other offices, or an office with no upcoming days, have no section.
-- `oral-disclaimer`: below the list come the line "… im fünften Monat nach den Klausuren statt …" and `Ohne Gewähr. Quelle: …, abgerufen am <Datum>`.
+- `oral-section`: `/ergebnisse/<slug>` for `hamm`, `köln` and `düsseldorf` has the section `Mündliche Prüfungen beim <name>` between the Klausur card grid and the FAQ. Days from today on sit in one card per month, as `Fr 13.11.` plus places (Hamm courts, Köln `Raum …`, Düsseldorf `Saal …`). Other offices, or an office with no upcoming days, have no section.
+- `oral-disclaimer`: the intro under the heading says "… im fünften Monat nach den Klausuren statt …", and below the cards comes `Ohne Gewähr. Quelle: …, abgerufen am <Datum>`.
 - `oral-privacy`: no examiner names or Kennziffern appear anywhere on the page.
 
 ## How to get to it (user POV)

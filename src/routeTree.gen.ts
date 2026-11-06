@@ -15,6 +15,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as ConfirmTokenRouteImport } from './routes/confirm/$token'
+import { Route as ErgebnisseIndexRouteImport } from './routes/ergebnisse/index'
 import { Route as ErgebnisseJpaRouteImport } from './routes/ergebnisse/$jpa'
 import { Route as HistoryIndexRouteImport } from './routes/history/index'
 import { Route as SubscriptionsIndexRouteImport } from './routes/subscriptions/index'
@@ -54,6 +55,11 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
 const ConfirmTokenRoute = ConfirmTokenRouteImport.update({
   id: '/confirm/$token',
   path: '/confirm/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ErgebnisseIndexRoute = ErgebnisseIndexRouteImport.update({
+  id: '/ergebnisse/',
+  path: '/ergebnisse/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ErgebnisseJpaRoute = ErgebnisseJpaRouteImport.update({
@@ -117,6 +123,7 @@ export interface FileRoutesByFullPath {
   '/ergebnisse/$jpa': typeof ErgebnisseJpaRoute
   '/unsubscribe/$token': typeof UnsubscribeTokenRoute
   '/admin/': typeof AdminIndexRoute
+  '/ergebnisse/': typeof ErgebnisseIndexRoute
   '/history/': typeof HistoryIndexRoute
   '/subscriptions/': typeof SubscriptionsIndexRoute
   '/api/admin/check': typeof ApiAdminCheckRoute
@@ -135,6 +142,7 @@ export interface FileRoutesByTo {
   '/ergebnisse/$jpa': typeof ErgebnisseJpaRoute
   '/unsubscribe/$token': typeof UnsubscribeTokenRoute
   '/admin': typeof AdminIndexRoute
+  '/ergebnisse': typeof ErgebnisseIndexRoute
   '/history': typeof HistoryIndexRoute
   '/subscriptions': typeof SubscriptionsIndexRoute
   '/api/admin/check': typeof ApiAdminCheckRoute
@@ -154,6 +162,7 @@ export interface FileRoutesById {
   '/ergebnisse/$jpa': typeof ErgebnisseJpaRoute
   '/unsubscribe/$token': typeof UnsubscribeTokenRoute
   '/admin/': typeof AdminIndexRoute
+  '/ergebnisse/': typeof ErgebnisseIndexRoute
   '/history/': typeof HistoryIndexRoute
   '/subscriptions/': typeof SubscriptionsIndexRoute
   '/api/admin/check': typeof ApiAdminCheckRoute
@@ -174,6 +183,7 @@ export interface FileRouteTypes {
     | '/ergebnisse/$jpa'
     | '/unsubscribe/$token'
     | '/admin/'
+    | '/ergebnisse/'
     | '/history/'
     | '/subscriptions/'
     | '/api/admin/check'
@@ -192,6 +202,7 @@ export interface FileRouteTypes {
     | '/ergebnisse/$jpa'
     | '/unsubscribe/$token'
     | '/admin'
+    | '/ergebnisse'
     | '/history'
     | '/subscriptions'
     | '/api/admin/check'
@@ -210,6 +221,7 @@ export interface FileRouteTypes {
     | '/ergebnisse/$jpa'
     | '/unsubscribe/$token'
     | '/admin/'
+    | '/ergebnisse/'
     | '/history/'
     | '/subscriptions/'
     | '/api/admin/check'
@@ -229,6 +241,7 @@ export interface RootRouteChildren {
   ErgebnisseJpaRoute: typeof ErgebnisseJpaRoute
   UnsubscribeTokenRoute: typeof UnsubscribeTokenRoute
   AdminIndexRoute: typeof AdminIndexRoute
+  ErgebnisseIndexRoute: typeof ErgebnisseIndexRoute
   HistoryIndexRoute: typeof HistoryIndexRoute
   SubscriptionsIndexRoute: typeof SubscriptionsIndexRoute
   ApiAdminCheckRoute: typeof ApiAdminCheckRoute
@@ -281,6 +294,13 @@ declare module '@tanstack/react-router' {
       path: '/confirm/$token'
       fullPath: '/confirm/$token'
       preLoaderRoute: typeof ConfirmTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ergebnisse/': {
+      id: '/ergebnisse/'
+      path: '/ergebnisse'
+      fullPath: '/ergebnisse/'
+      preLoaderRoute: typeof ErgebnisseIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ergebnisse/$jpa': {
@@ -365,6 +385,7 @@ const rootRouteChildren: RootRouteChildren = {
   ErgebnisseJpaRoute: ErgebnisseJpaRoute,
   UnsubscribeTokenRoute: UnsubscribeTokenRoute,
   AdminIndexRoute: AdminIndexRoute,
+  ErgebnisseIndexRoute: ErgebnisseIndexRoute,
   HistoryIndexRoute: HistoryIndexRoute,
   SubscriptionsIndexRoute: SubscriptionsIndexRoute,
   ApiAdminCheckRoute: ApiAdminCheckRoute,

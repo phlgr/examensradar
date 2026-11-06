@@ -4,7 +4,7 @@ The NRW offices' Klausur dates appear on their office pages as month pods: the s
 
 ## Sub-features
 
-- `calendar-pods`: `/ergebnisse/<slug>` for `hamm`, `köln` and `düsseldorf` has the section `Klausurtermine beim <name>` with one pod per sitting: the latest released one (`geschrieben`, `Ergebnisse veröffentlicht am … ✓`), written ones awaiting results (`geschrieben`), a running one (`läuft gerade`) or the next one (`nächster Durchgang`, outlined), and up to four upcoming. Months without a sitting show a `Keine Klausuren` pod from the `sm` breakpoint up. Other offices have no section.
+- `calendar-pods`: `/ergebnisse/<slug>` for `hamm`, `köln` and `düsseldorf` has the section `Klausurtermine beim <name>` with one pod per sitting: the latest released one (`geschrieben`, `Ergebnisse veröffentlicht am … ✓`), written ones awaiting results (`geschrieben`), a running one (`läuft gerade`) or the next one (`nächster Durchgang`, outlined), and up to six upcoming. Months without a sitting show a `Keine Klausuren` pod from the `sm` breakpoint up. The button `Ältere Veröffentlichungen anzeigen` above the pods reveals older releases. They are in the SSR HTML as `hidden` list items: a release that matches a sitting is a dimmed sitting pod, and an older one is a small `Ergebnisse veröffentlicht am …` card. Offices without a calendar show their releases as small cards under `Ergebnisse beim <name>`, with no toggle. Offices with neither have no section.
 - `calendar-results`: each pod ends with `Ergebnisse voraussichtlich` and a date, or `Ende <Monat>` when the office has no release history yet.
 - `calendar-download`: upcoming and running pods have the link `In den Kalender` to `/api/kalender/<param>/<first exam day>`. It downloads `klausuren-<monat>-<jahr>.ics` with six all-day exam events ("Viel Erfolg wünscht dir Examensradar!") and a results event. Unknown office or sitting is 404.
 - `calendar-event`: clicking the link calls Plausible with `calendar_download` and props `{ jpa: <slug>, sitting: <YYYY-MM-DD> }`.
@@ -17,9 +17,9 @@ The NRW offices' Klausur dates appear on their office pages as month pods: the s
 
 ## Driving it with pw.ts
 
-Preconditions: baseline. The seeded offices `JPA bei dem OLG Hamm`, `… Köln` and `… Düsseldorf` have calendars but no release history, so results read `Ende <Monat>` there unless you insert `notification_log` rows into the run DB.
+Preconditions: baseline. The seeded offices `OLG Hamm`, `… Köln` and `… Düsseldorf` have calendars but no release history, so results read `Ende <Monat>` there unless you insert `notification_log` rows into the run DB.
 
-- **Pods.** `visit(base + "/ergebnisse/hamm")`. The h1 `JPA bei dem OLG Hamm: Klausurtermine und Ergebnisse im 1. Examen` and the heading `Klausurtermine beim JPA bei dem OLG Hamm` are visible; the section's `ol > li` pods render.
+- **Pods.** `visit(base + "/ergebnisse/hamm")`. The h1 `OLG Hamm: Klausurtermine und Ergebnisse im 1. Examen` and the heading `Klausurtermine beim OLG Hamm` are visible; the section's `ol > li` pods render.
 - **Download.** Read `href` from the section's first `getByRole("link", { name: "In den Kalender" })`, then `Promise.all([page.waitForEvent("download"), link.click()])`. The suggested filename matches `klausuren-<monat>-<jahr>.ics`; the unfolded file (`replace(/\r\n /g, "")`) has 7 `BEGIN:VEVENT` and the luck message.
 - **Plausible.** After `visit()`, replace `window.plausible` with a recorder in `page.evaluate`, then click. It records exactly `calendar_download` with `{ props: { jpa: "hamm", sitting } }`. The real network call to Plausible is not exercised.
 - **Welcome links.** Sign up a new address from the Hamm page form, confirm via the mailed link, then `waitForMail(run, email, /Alles bereit/).links` holds 1 to 3 `/api/kalender/hamm/<date>` links; fetching one returns `text/calendar`.

@@ -94,14 +94,13 @@ export function UpcomingReleases({
 					<p className="text-lg text-ink/70 leading-relaxed max-w-md mb-8">
 						Jedes Prüfungsamt hat seinen eigenen Rhythmus. Aus allen bisherigen
 						Veröffentlichungen rechnen wir hoch, wann es das nächste Mal so weit
-						ist. In der Historie findest du jeden Termin mit Wochentag und
-						Uhrzeit.
+						ist.
 					</p>
 					<Link
-						to="/history"
+						to="/ergebnisse"
 						className="group inline-flex items-center gap-2 text-[15px] font-semibold border-b-2 border-ink pb-0.5 transition-colors hover:text-seal hover:border-seal"
 					>
-						Alle bisherigen Termine
+						Alle Prüfungsämter
 						<ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
 					</Link>
 				</Reveal>
@@ -144,8 +143,7 @@ export function UpcomingReleases({
 							{hidden > 0 && (
 								<li className="py-3.5 text-sm text-ink/50">
 									und {hidden} weitere{" "}
-									{hidden === 1 ? "Prüfungsamt" : "Prüfungsämter"} in der
-									Historie
+									{hidden === 1 ? "Prüfungsamt" : "Prüfungsämter"}
 								</li>
 							)}
 						</ol>

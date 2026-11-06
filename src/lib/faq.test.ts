@@ -44,16 +44,6 @@ describe("officePageMeta", () => {
 		expect(
 			metaFor("OLG Düsseldorf", "düsseldorf").description.length,
 		).toBeLessThanOrEqual(160);
-		expect(meta.intro).toStartWith(
-			"Die nächsten Examensklausuren beim OLG Hamm sind vom 19. bis 27. November 2026.",
-		);
-	});
-
-	test("a running sitting says until when", () => {
-		const meta = metaFor("OLG Hamm", "hamm", new Date("2026-11-23T12:00:00"));
-		expect(meta.intro).toStartWith(
-			"Die aktuellen Examensklausuren beim OLG Hamm laufen noch bis 27. November 2026.",
-		);
 	});
 
 	test("without a timeline it still has a title and no dates", () => {
@@ -63,7 +53,6 @@ describe("officePageMeta", () => {
 		);
 		expect(meta.description).toContain("JPA Berlin");
 		expect(meta.description).not.toMatch(/klausuren/i);
-		expect(meta.intro).toStartWith("Für das JPA Berlin haben wir noch");
 	});
 
 	test("the title stays short for the longest office name", () => {

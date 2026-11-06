@@ -87,7 +87,7 @@ describe("examTimeline", () => {
 	const startOf = (e: { sitting: { days: readonly { date: string }[] } }) =>
 		e.sitting.days[0].date;
 
-	test("shows the latest release, pending sittings and four upcoming ones", () => {
+	test("shows the latest release, pending sittings and six upcoming ones", () => {
 		const timeline = examTimeline(
 			"hamm",
 			hamm,
@@ -107,8 +107,11 @@ describe("examTimeline", () => {
 			"anstehend",
 			"anstehend",
 			"anstehend",
+			"anstehend",
+			"anstehend",
 		]);
 		expect(startOf(entries[3])).toBe("2026-11-19");
+		expect(startOf(entries[8])).toBe("2027-05-20");
 
 		const released = entries[0].results;
 		expect(released.kind).toBe("released");
