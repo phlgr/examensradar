@@ -31,7 +31,6 @@ export interface JpaReleaseSummary {
 	lastRelease: Date;
 	releaseCount: number;
 	typicalHour: number;
-	weekdayCounts: Map<number, number>;
 	prediction: ReleasePrediction | null;
 	daysUntil: number | null;
 }
@@ -68,13 +67,6 @@ export function summarizeReleases(
 	const summaries: JpaReleaseSummary[] = [];
 	for (const [slug, group] of groups) {
 		const dates = [...group.dates].sort((a, b) => b.getTime() - a.getTime());
-		const weekdayCounts = new Map<number, number>();
-		for (const date of dates) {
-			weekdayCounts.set(
-				date.getDay(),
-				(weekdayCounts.get(date.getDay()) ?? 0) + 1,
-			);
-		}
 		const prediction = predictNextRelease(
 			dates,
 			now,
@@ -88,7 +80,6 @@ export function summarizeReleases(
 			lastRelease: dates[0],
 			releaseCount: clusterReleases(dates).length,
 			typicalHour: median(dates.map((d) => d.getHours())),
-			weekdayCounts,
 			prediction,
 			daysUntil: prediction
 				? Math.ceil((prediction.date.getTime() - now.getTime()) / MS_PER_DAY)

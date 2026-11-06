@@ -38,8 +38,8 @@ export default function Header() {
 				</Link>
 
 				<nav className="flex items-center gap-1 sm:gap-2">
-					<NavLink to="/history" icon={CalendarClock}>
-						Historie
+					<NavLink to="/ergebnisse" icon={CalendarClock}>
+						Ergebnisse
 					</NavLink>
 					<NavLink to="/subscriptions" icon={Bell}>
 						Benachrichtigungen

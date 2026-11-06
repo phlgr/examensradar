@@ -72,13 +72,13 @@ export const Route = createFileRoute("/ergebnisse/$jpa")({
 						{
 							"@type": "ListItem",
 							position: 2,
-							name: "Termine",
-							item: `${SITE_URL}/history`,
+							name: "Ergebnisse",
+							item: `${SITE_URL}/ergebnisse`,
 						},
 						{
 							"@type": "ListItem",
 							position: 3,
-							name: `Termine & Ergebnisse ${jpa.name}`,
+							name: jpa.name,
 							item: `${SITE_URL}${path}`,
 						},
 					],
@@ -294,8 +294,8 @@ function JpaPage() {
 							Examensradar
 						</Link>
 						{" / "}
-						<Link to="/history" className="hover:text-ink">
-							Termine
+						<Link to="/ergebnisse" className="hover:text-ink">
+							Ergebnisse
 						</Link>
 						{" / "}
 						<span className="text-ink/70">{jpa.name}</span>

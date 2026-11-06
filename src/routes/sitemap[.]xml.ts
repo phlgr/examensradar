@@ -21,7 +21,7 @@ export const Route = createFileRoute("/sitemap.xml")({
 
 				const urls = [
 					{ path: "/", lastmod: lastmodOf(latest) },
-					{ path: "/history", lastmod: lastmodOf(latest) },
+					{ path: "/ergebnisse", lastmod: lastmodOf(latest) },
 					...jpas.map((jpa) => ({
 						path: jpaPath(jpa.slug),
 						lastmod: lastmodOf(
