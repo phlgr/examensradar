@@ -345,9 +345,11 @@ function ExamDays({ entry, today }: { entry: TimelineEntry; today: string }) {
 
 function CalendarLink({
 	jpaSlug,
+	jpaName,
 	sitting,
 }: {
 	jpaSlug: string;
+	jpaName: string;
 	sitting: ExamSitting;
 }) {
 	const start = sitting.days[0].date;
@@ -356,7 +358,7 @@ function CalendarLink({
 			href={`/api/kalender/${jpaParam(jpaSlug)}/${start}`}
 			download
 			onClick={() =>
-				trackEvent("calendar_download", { jpa: jpaSlug, sitting: start })
+				trackEvent("calendar_download", { jpa: jpaName, sitting: start })
 			}
 			className="mt-2 inline-flex items-center gap-1.5 text-[12px] text-ink/55 hover:text-ink"
 		>
@@ -386,11 +388,13 @@ function ExamTimelineList({
 	entries,
 	older,
 	jpaSlug,
+	jpaName,
 	now,
 }: {
 	entries: TimelineEntry[];
 	older: ReleaseCard[];
 	jpaSlug: string;
+	jpaName: string;
 	now: Date;
 }) {
 	const [showOlder, setShowOlder] = useState(false);
@@ -535,7 +539,11 @@ function ExamTimelineList({
 									/>
 								</div>
 								{open && (
-									<CalendarLink jpaSlug={jpaSlug} sitting={entry.sitting} />
+									<CalendarLink
+										jpaSlug={jpaSlug}
+										jpaName={jpaName}
+										sitting={entry.sitting}
+									/>
 								)}
 							</div>
 						</li>
@@ -638,6 +646,7 @@ function JpaPage() {
 								entries={entries}
 								older={older}
 								jpaSlug={jpa.slug}
+								jpaName={jpa.name}
 								now={now}
 							/>
 							{timeline && (
