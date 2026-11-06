@@ -1,5 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import {
+	ArrowDown,
 	BellRing,
 	CalendarPlus,
 	ChevronDown,
@@ -233,17 +234,7 @@ function monthYear(date: Date, currentYear: number) {
 		: `${month} ${date.getFullYear()}`;
 }
 
-function ExamsCell({
-	entry,
-	open,
-	onToggle,
-	now,
-}: {
-	entry: TimelineEntry;
-	open: boolean;
-	onToggle: () => void;
-	now: Date;
-}) {
+function ExamsCell({ entry, now }: { entry: TimelineEntry; now: Date }) {
 	const running = entry.phase === "läuft";
 	const today = localIsoDate(now);
 	const { days } = entry.sitting;
@@ -260,91 +251,13 @@ function ExamsCell({
 				{sittingRange(entry.sitting, now.getFullYear())}
 			</p>
 			<p className="text-[14px] text-ink/60">{sub}</p>
-			<button
-				type="button"
-				aria-expanded={open}
-				aria-controls="klausurtage"
-				onClick={onToggle}
-				className="mt-4 inline-flex items-center gap-2 rounded-lg bg-sheet px-4 py-2.5 text-[15px] font-semibold ring-1 ring-ink/15 hover:ring-ink/30 cursor-pointer"
+			<a
+				href="#klausurtermine"
+				className="mt-4 inline-flex items-center gap-2 rounded-lg bg-sheet px-4 py-2.5 text-[15px] font-semibold ring-1 ring-ink/15 hover:ring-ink/30"
 			>
-				Klausurtage {open ? "ausblenden" : "zeigen"}
-				<ChevronDown
-					className={cn("size-4 transition-transform", open && "rotate-180")}
-					aria-hidden
-				/>
-			</button>
-		</div>
-	);
-}
-
-function ExamDaysPanel({
-	entry,
-	open,
-	jpaSlug,
-	now,
-}: {
-	entry: TimelineEntry;
-	open: boolean;
-	jpaSlug: string;
-	now: Date;
-}) {
-	const today = localIsoDate(now);
-	return (
-		<div
-			id="klausurtage"
-			inert={!open}
-			className={cn(
-				"grid transition-[grid-template-rows] duration-200",
-				open ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
-			)}
-		>
-			<div className="min-h-0 overflow-hidden">
-				<div className="mt-3 rounded-2xl bg-sheet p-4 sm:p-5 ring-1 ring-ink/10">
-					<div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-						<p className="font-semibold">
-							{entry.phase === "läuft"
-								? "Klausuren laufen"
-								: "Nächste Klausuren"}
-							: {sittingRange(entry.sitting, now.getFullYear())}
-						</p>
-						<a
-							href="#pruefungstermine"
-							className="text-[14px] text-ink/55 underline decoration-1 underline-offset-4 hover:text-ink"
-						>
-							Alle Klausurtermine ↓
-						</a>
-					</div>
-					<ul className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
-						{entry.sitting.days.map((day) => (
-							<li
-								key={day.date}
-								className={cn(
-									"flex justify-between rounded-lg px-3 py-2 text-[14px] ring-1 ring-inset ring-ink/10",
-									day.date < today && "opacity-45",
-									day.date === today && "ring-2 ring-seal",
-								)}
-							>
-								<span className="figures">
-									<span className="text-ink/55">
-										{formatExamDay(day.date).split(" ")[0]}
-									</span>{" "}
-									{formatExamDay(day.date).split(" ")[1]}
-								</span>
-								<abbr
-									title={SUBJECT_NAME[day.subject]}
-									className="font-semibold no-underline"
-								>
-									{day.subject}
-								</abbr>
-							</li>
-						))}
-					</ul>
-					<div className="mt-3 flex flex-wrap items-center justify-between gap-x-4 text-[12px] text-ink/55">
-						<span>ZR Zivilrecht · ÖR Öffentliches Recht · SR Strafrecht</span>
-						<CalendarLink jpaSlug={jpaSlug} sitting={entry.sitting} />
-					</div>
-				</div>
-			</div>
+				Zu den Klausurtagen
+				<ArrowDown className="size-4" aria-hidden />
+			</a>
 		</div>
 	);
 }
@@ -354,51 +267,33 @@ function StatusBoard({
 	entries,
 	summary,
 	websiteUrl,
-	jpaSlug,
 	now,
 }: {
 	status: OfficeStatus;
 	entries: TimelineEntry[];
 	summary: JpaReleaseSummary | undefined;
 	websiteUrl: string | null;
-	jpaSlug: string;
 	now: Date;
 }) {
-	const [open, setOpen] = useState(false);
 	const exams = entries.find(
 		(e) => e.phase === "läuft" || e.phase === "anstehend",
 	);
 	return (
-		<>
-			<div
-				className={cn(
-					"mt-6 grid overflow-hidden rounded-2xl bg-sheet shadow-paper ring-1 ring-ink/10",
-					exams && "sm:grid-cols-[1.35fr_1fr]",
-				)}
-			>
-				<ResultsCell
-					next={nextResults(status, entries, summary)}
-					status={status}
-					summary={summary}
-					websiteUrl={websiteUrl}
-					now={now}
-				/>
-				{exams && (
-					<ExamsCell
-						entry={exams}
-						open={open}
-						onToggle={() => {
-							if (!open) trackEvent("exam_days_open", { jpa: jpaSlug });
-							setOpen(!open);
-						}}
-						now={now}
-					/>
-				)}
-			</div>
-			{exams && (
-				<ExamDaysPanel entry={exams} open={open} jpaSlug={jpaSlug} now={now} />
+		<div
+			className={cn(
+				"mt-6 grid overflow-hidden rounded-2xl bg-sheet shadow-paper ring-1 ring-ink/10",
+				exams && "sm:grid-cols-[1.35fr_1fr]",
 			)}
-		</>
+		>
+			<ResultsCell
+				next={nextResults(status, entries, summary)}
+				status={status}
+				summary={summary}
+				websiteUrl={websiteUrl}
+				now={now}
+			/>
+			{exams && <ExamsCell entry={exams} now={now} />}
+		</div>
 	);
 }
 
@@ -693,7 +588,6 @@ function JpaPage() {
 						entries={entries}
 						summary={summary}
 						websiteUrl={jpa.websiteUrl}
-						jpaSlug={jpa.slug}
 						now={now}
 					/>
 
@@ -717,7 +611,7 @@ function JpaPage() {
 					</section>
 
 					{(entries.length > 0 || older.length > 0) && (
-						<section className="mb-14">
+						<section id="klausurtermine" className="mb-14">
 							<h2 className="text-2xl font-semibold leading-tight mb-2">
 								{timeline ? "Klausurtermine" : "Ergebnisse"} beim {jpa.name}
 							</h2>
