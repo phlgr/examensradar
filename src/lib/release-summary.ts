@@ -35,7 +35,6 @@ export interface JpaReleaseSummary {
 	daysUntil: number | null;
 }
 
-/** What may leave the server: the raw release timestamps stay behind. */
 export type PublicReleaseSummary = Omit<JpaReleaseSummary, "dates">;
 
 export const publicSummary = ({

@@ -27,10 +27,6 @@ async function loadPublic() {
 	};
 }
 
-/**
- * Loader-fetched so it is in the SSR HTML: crawlers mostly don't run JavaScript.
- * Summaries go out without their raw release timestamps, which stay server-side.
- */
 export const getPublicData = createServerFn({ method: "GET" }).handler(
 	async () => {
 		const { jpas, summaries } = await loadPublic();
