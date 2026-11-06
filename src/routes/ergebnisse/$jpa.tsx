@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import {
 	BellRing,
@@ -5,11 +6,12 @@ import {
 	ChevronDown,
 	ExternalLink,
 } from "lucide-react";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { FaqList } from "@/components/FaqList";
 import { Footer } from "@/components/Footer";
 import { SignupForm } from "@/components/SignupForm";
 import { SectionIntro } from "@/components/ui/heading";
+import { fieldClass, labelClass } from "@/components/ui/input";
 import { trackEvent } from "@/lib/analytics";
 import {
 	type ExamSitting,
@@ -26,6 +28,7 @@ import {
 	sittingEnd,
 } from "@/lib/exam-calendar";
 import { jpaFaqs, officePageMeta } from "@/lib/faq";
+import { normalizeKennziffer, type OralExamAssignment } from "@/lib/kennziffer";
 import type { OralExamDay, OralExamSchedule } from "@/lib/oral-exams";
 import {
 	CONFIDENCE_LABEL,
@@ -43,7 +46,11 @@ import {
 } from "@/lib/release-summary";
 import { faqJsonLd, jpaParam, jpaPath, jsonLd, SITE_URL, seo } from "@/lib/seo";
 import { cn } from "@/lib/utils";
-import { getOralExams, getPublicData } from "@/server/public-data";
+import {
+	getOralExamAssignments,
+	getOralExams,
+	getPublicData,
+} from "@/server/public-data";
 
 export const Route = createFileRoute("/ergebnisse/$jpa")({
 	loader: async ({ params }) => {
@@ -507,15 +514,126 @@ function ExamTimelineList({
 	);
 }
 
+type LookupResult =
+	| { kind: "idle" | "loading" | "error" | "missing" }
+	| { kind: "found"; assignment: OralExamAssignment };
+
+/**
+ * The Kennziffern load only once the field is first used and the typed number is
+ * matched right here: it is in no URL, request, storage or analytics event.
+ */
+function useKennzifferLookup(jpaSlug: string, available: boolean) {
+	const [input, setInput] = useState("");
+	const [requested, setRequested] = useState(false);
+	const assignments = useQuery({
+		queryKey: ["oral-exam-assignments", jpaSlug],
+		queryFn: () => getOralExamAssignments({ data: jpaSlug }),
+		enabled: available && requested,
+		staleTime: Number.POSITIVE_INFINITY,
+		retry: 1,
+	});
+	const key = normalizeKennziffer(input);
+	const assignment = key ? assignments.data?.[key] : undefined;
+	const result: LookupResult = !key
+		? { kind: "idle" }
+		: assignments.isError
+			? { kind: "error" }
+			: !assignments.data
+				? { kind: "loading" }
+				: assignment
+					? { kind: "found", assignment }
+					: { kind: "missing" };
+
+	const tracked = useRef(false);
+	const settled = result.kind === "found" || result.kind === "missing";
+	useEffect(() => {
+		if (!settled || tracked.current) return;
+		tracked.current = true;
+		trackEvent("kennziffer_lookup", { jpa: jpaSlug, found: !!assignment });
+	}, [settled, assignment, jpaSlug]);
+
+	return {
+		input,
+		result,
+		change: (value: string) => {
+			setInput(value);
+			setRequested(true);
+		},
+		activate: () => setRequested(true),
+	};
+}
+
+function KennzifferLookup({
+	lookup,
+}: {
+	lookup: ReturnType<typeof useKennzifferLookup>;
+}) {
+	const { result } = lookup;
+	return (
+		<div className="mb-6 max-w-sm">
+			<label htmlFor="kennziffer" className={labelClass}>
+				Deine Kennziffer
+			</label>
+			<input
+				id="kennziffer"
+				type="text"
+				autoComplete="off"
+				autoCapitalize="off"
+				spellCheck={false}
+				placeholder="z. B. 1234/26"
+				value={lookup.input}
+				onFocus={lookup.activate}
+				onChange={(event) => lookup.change(event.target.value)}
+				className={fieldClass}
+			/>
+			<div role="status" className="mt-2 text-[15px] leading-snug">
+				{result.kind === "loading" && (
+					<p className="text-ink/55">Wird geladen …</p>
+				)}
+				{result.kind === "error" && (
+					<p className="text-ink/70">
+						Die Termine konnten gerade nicht geladen werden. Bitte versuch es
+						später noch einmal.
+					</p>
+				)}
+				{result.kind === "missing" && (
+					<p className="text-ink/70">
+						Für diese Kennziffer ist noch kein Termin veröffentlicht. Die Ladung
+						kommt etwa drei Wochen vor der Prüfung.
+					</p>
+				)}
+				{result.kind === "found" && (
+					<p className="rounded-lg bg-seal-soft p-3.5 ring-1 ring-seal/20">
+						<Mark>{formatExamDay(result.assignment.date)}</Mark>
+						{" · "}
+						{result.assignment.place}
+						{result.assignment.start &&
+							` · ab ca. ${result.assignment.start} Uhr`}
+					</p>
+				)}
+			</div>
+			<p className="mt-2 text-[13px] text-ink/55">
+				Deine Kennziffer bleibt in deinem Browser. Wir speichern und senden sie
+				nicht.
+			</p>
+		</div>
+	);
+}
+
 function OralExamSection({
 	schedule,
+	jpaSlug,
 	jpaName,
 	now,
 }: {
 	schedule: OralExamSchedule;
+	jpaSlug: string;
 	jpaName: string;
 	now: Date;
 }) {
+	const lookup = useKennzifferLookup(jpaSlug, schedule.lookup);
+	const foundDate =
+		lookup.result.kind === "found" ? lookup.result.assignment.date : undefined;
 	const today = localIsoDate(now);
 	const months = new Map<string, OralExamDay[]>();
 	for (const day of schedule.days) {
@@ -535,6 +653,7 @@ function OralExamSection({
 				findet in der Regel im fünften Monat nach den Klausuren statt, die
 				persönliche Ladung kommt etwa drei Wochen vorher.
 			</p>
+			{schedule.lookup && <KennzifferLookup lookup={lookup} />}
 			<ol className="grid gap-3 sm:grid-cols-2">
 				{[...months].map(([key, days]) => (
 					<li
@@ -550,7 +669,12 @@ function OralExamSection({
 						<ul className="mt-3 space-y-0.5 text-[14px]">
 							{days.map((day) => (
 								<li key={day.date} className="flex gap-2">
-									<span className="figures shrink-0 text-ink/55">
+									<span
+										className={cn(
+											"figures shrink-0 text-ink/55",
+											day.date === foundDate && "marker text-ink",
+										)}
+									>
 										{formatExamDay(day.date)}
 									</span>
 									<span>{day.places.join(", ")}</span>
@@ -687,6 +811,7 @@ function JpaPage() {
 					{oralExams && (
 						<OralExamSection
 							schedule={oralExams}
+							jpaSlug={jpa.slug}
 							jpaName={jpa.name}
 							now={now}
 						/>
