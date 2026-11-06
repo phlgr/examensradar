@@ -14,12 +14,14 @@ import {
 	formatSittingRange,
 	formatStand,
 	localIsoDate,
+	MONTHS,
 	monthsBetween,
 	resultMonthIndex,
 	resultMonthName,
 	SUBJECT_NAME,
 } from "@/lib/exam-calendar";
 import { jpaFaqs, officePageMeta } from "@/lib/faq";
+import type { OralExamDay, OralExamSchedule } from "@/lib/oral-exams";
 import { clusterReleases } from "@/lib/prediction";
 import {
 	CONFIDENCE_LABEL,
@@ -32,19 +34,27 @@ import {
 } from "@/lib/release-summary";
 import { faqJsonLd, jpaParam, jpaPath, jsonLd, SITE_URL, seo } from "@/lib/seo";
 import { cn } from "@/lib/utils";
-import { getPublicData } from "@/server/public-data";
+import { getOralExams, getPublicData } from "@/server/public-data";
 
 export const Route = createFileRoute("/ergebnisse/$jpa")({
 	loader: async ({ params }) => {
 		const { jpas, history } = await getPublicData();
 		const jpa = jpas.find((j) => jpaParam(j.slug) === params.jpa);
 		if (!jpa) throw notFound();
+		const oralExams = await getOralExams({ data: jpa.slug });
 		const now = new Date();
 		const summary = summarizeReleases(history, now).find(
 			(s) => s.slug === jpa.slug,
 		);
 		const timeline = examTimeline(jpa.slug, summary?.dates ?? [], now);
-		return { jpas, jpa, summary, timeline, now: now.toISOString() };
+		return {
+			jpas,
+			jpa,
+			summary,
+			timeline,
+			oralExams,
+			now: now.toISOString(),
+		};
 	},
 	head: ({ loaderData }) => {
 		if (!loaderData) return {};
@@ -178,6 +188,76 @@ function CalendarLink({
 	);
 }
 
+function OralExamSection({
+	schedule,
+	jpaName,
+	now,
+}: {
+	schedule: OralExamSchedule;
+	jpaName: string;
+	now: Date;
+}) {
+	const today = localIsoDate(now);
+	const months = new Map<string, OralExamDay[]>();
+	for (const day of schedule.days) {
+		if (day.date < today) continue;
+		const key = day.date.slice(0, 7);
+		months.set(key, [...(months.get(key) ?? []), day]);
+	}
+	if (months.size === 0) return null;
+
+	return (
+		<section className="mb-14">
+			<h2 className="text-2xl font-semibold leading-tight mb-2">
+				Mündliche Prüfungen beim {jpaName}
+			</h2>
+			<p className="text-[15px] text-ink/55 mb-6">
+				An welchen Tagen und wo mündlich geprüft wird.
+			</p>
+			<div className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
+				{[...months].map(([key, days]) => (
+					<div key={key}>
+						<h3 className="font-serif text-[18px] leading-tight mb-2">
+							{MONTHS[Number(key.slice(5)) - 1]}
+							{key.startsWith(`${now.getFullYear()}-`)
+								? ""
+								: ` ${key.slice(0, 4)}`}
+						</h3>
+						<ul className="space-y-1 text-[14px]">
+							{days.map((day) => (
+								<li key={day.date} className="flex gap-3">
+									<span className="figures shrink-0 text-ink/55">
+										{formatExamDay(day.date)}
+									</span>
+									<span>{day.places.join(", ")}</span>
+								</li>
+							))}
+						</ul>
+					</div>
+				))}
+			</div>
+			<p className="mt-4 text-[13px] text-ink/55">
+				Die mündliche Prüfung findet in der Regel im fünften Monat nach den
+				Klausuren statt. Das Prüfungsamt schickt die persönliche Ladung etwa
+				drei Wochen vorher.
+			</p>
+			<p className="mt-1 text-[13px] text-ink/55">
+				Ohne Gewähr. Quelle:{" "}
+				<a
+					href={schedule.sourceUrl}
+					target="_blank"
+					rel="noopener noreferrer"
+					className="underline decoration-1 underline-offset-4 hover:decoration-2"
+				>
+					Mündliche Prüfungstermine des Justizprüfungsamts beim {jpaName}
+				</a>
+				, abgerufen am {formatStand(localIsoDate(new Date(schedule.fetchedAt)))}
+				.
+			</p>
+		</section>
+	);
+}
+
 type Pod =
 	| { kind: "gap"; month: string }
 	| { kind: "sitting"; entry: TimelineEntry; index: number };
@@ -277,7 +357,8 @@ function ExamTimelineList({
 }
 
 function JpaPage() {
-	const { jpas, jpa, summary, timeline, now } = Route.useLoaderData();
+	const { jpas, jpa, summary, timeline, oralExams, now } =
+		Route.useLoaderData();
 	const [jpaId, setJpaId] = useState(jpa.id);
 	const prediction = summary?.prediction ?? null;
 	const daysUntil = summary?.daysUntil ?? null;
@@ -390,6 +471,14 @@ function JpaPage() {
 								.
 							</p>
 						</section>
+					)}
+
+					{oralExams && (
+						<OralExamSection
+							schedule={oralExams}
+							jpaName={jpa.name}
+							now={new Date(now)}
+						/>
 					)}
 
 					{releases.length > 0 && (
