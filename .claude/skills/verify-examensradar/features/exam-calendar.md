@@ -17,9 +17,9 @@ The NRW offices' Klausur dates appear on their office pages as month pods: the s
 
 ## Driving it with pw.ts
 
-Preconditions: baseline. The seeded offices `JPA bei dem OLG Hamm`, `… Köln` and `… Düsseldorf` have calendars but no release history, so results read `Ende <Monat>` there unless you insert `notification_log` rows into the run DB.
+Preconditions: baseline. The seeded offices `OLG Hamm`, `… Köln` and `… Düsseldorf` have calendars but no release history, so results read `Ende <Monat>` there unless you insert `notification_log` rows into the run DB.
 
-- **Pods.** `visit(base + "/ergebnisse/hamm")`. The h1 `JPA bei dem OLG Hamm: Klausurtermine und Ergebnisse im 1. Examen` and the heading `Klausurtermine beim JPA bei dem OLG Hamm` are visible; the section's `ol > li` pods render.
+- **Pods.** `visit(base + "/ergebnisse/hamm")`. The h1 `OLG Hamm: Klausurtermine und Ergebnisse im 1. Examen` and the heading `Klausurtermine beim OLG Hamm` are visible; the section's `ol > li` pods render.
 - **Download.** Read `href` from the section's first `getByRole("link", { name: "In den Kalender" })`, then `Promise.all([page.waitForEvent("download"), link.click()])`. The suggested filename matches `klausuren-<monat>-<jahr>.ics`; the unfolded file (`replace(/\r\n /g, "")`) has 7 `BEGIN:VEVENT` and the luck message.
 - **Plausible.** After `visit()`, replace `window.plausible` with a recorder in `page.evaluate`, then click. It records exactly `calendar_download` with `{ props: { jpa: "hamm", sitting } }`. The real network call to Plausible is not exercised.
 - **Welcome links.** Sign up a new address from the Hamm page form, confirm via the mailed link, then `waitForMail(run, email, /Alles bereit/).links` holds 1 to 3 `/api/kalender/hamm/<date>` links; fetching one returns `text/calendar`.

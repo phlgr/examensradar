@@ -25,7 +25,7 @@ Preconditions: baseline. The seed has mock NRW publications in `notification_log
 
 - **Office page.** `visit(base + "/ergebnisse/nrw")`. The heading `Justizprüfungsamt NRW: Klausurtermine und Ergebnisse im 1. Examen` and `getByRole("navigation", { name: "Brotkrumen" })` are visible. NRW has no exam calendar, so there is no `Klausurtermine beim …` heading.
 - **From the footer.** `visit(base)`, then in `getByRole("navigation", { name: "Examensergebnisse nach Prüfungsamt" })` click the link to an office. You land on its `/ergebnisse/<slug>`.
-- **Office without history.** `/ergebnisse/duesseldorf` shows `Für das JPA bei dem OLG Düsseldorf haben wir noch keine Veröffentlichung erfasst.` That sentence is in the FAQ. The answer block names the oldest waiting sitting with only the month, e.g. `voraussichtlich Ende November`.
+- **Office without history.** `/ergebnisse/duesseldorf` shows `Für das OLG Düsseldorf haben wir noch keine Veröffentlichung erfasst.` That sentence is in the FAQ. The answer block names the oldest waiting sitting with only the month, e.g. `voraussichtlich Ende November`.
 - **Results index.** Click `page.getByRole("banner").getByRole("link", { name: "Ergebnisse" })`. A bare `getByRole("link", { name: "Ergebnisse" })` also matches the footer link. The heading `Examensergebnisse nach Prüfungsamt` is visible and each office is a link to its page.
 - **History redirect.** `fetch(base + "/history", { redirect: "manual" })` returns 301 with `location` ending in `/ergebnisse`. Same for `/history/`.
 - **SSR.** `(await fetch(base + "/ergebnisse/nrw")).text()` already contains the h1 text, so it doesn't depend on JS.

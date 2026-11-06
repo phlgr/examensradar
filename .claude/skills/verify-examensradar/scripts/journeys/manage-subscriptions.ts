@@ -14,7 +14,7 @@ const jpaIds = () =>
 			)
 			.all(email) as { jpa_id: string }[]
 	).map((row) => row.jpa_id);
-const koeln = () => v.card("JPA bei dem OLG Köln");
+const koeln = () => v.card("OLG Köln");
 
 try {
 	const manageLink = welcome.links.find((link) => link.includes("manage="));
