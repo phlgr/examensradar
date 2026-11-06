@@ -34,7 +34,7 @@ Preconditions: baseline. The address you use has never been used in this run.
 
 ## Gotchas
 
-- Typing before hydration silently loses the input and the button stays disabled. Use `visit()`.
+- Typing before hydration silently loses the input, so the submit fails the email validation. Use `visit()`.
 - `confirmState` never returns the manage token, by design. Only the confirm mutation's response (the `Abo verwalten` link) and the welcome mail carry it.
 - Throttle (`src/lib/mail-throttle.ts`): 3 mails per address and 10 per IP per hour, in memory. A throttled request gets the same reply but sends no mail and writes no rows. Confirm, manage-link and resend mails all count against an address, so use a new address and don't assume a missing mail is a bug.
 - Office-page entry, signed-out `/subscriptions` entry, already-active, reopen and unknown token were driven on 2026-10-19 but are not in the journey.

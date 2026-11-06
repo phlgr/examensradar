@@ -136,7 +136,7 @@ export function SignupForm({
 				<div className="sm:self-end">
 					<button
 						type="submit"
-						disabled={!canSubmit}
+						disabled={subscribe.isPending || loading || error || jpaId === ""}
 						className="group h-12 w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-md bg-ink px-5 text-[15px] font-semibold text-sheet transition-colors hover:bg-seal disabled:cursor-not-allowed disabled:bg-ink/25 cursor-pointer"
 					>
 						{subscribe.isPending ? (

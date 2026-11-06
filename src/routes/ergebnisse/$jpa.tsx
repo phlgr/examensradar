@@ -1,5 +1,10 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { CalendarPlus, ChevronDown, ExternalLink } from "lucide-react";
+import {
+	BellRing,
+	CalendarPlus,
+	ChevronDown,
+	ExternalLink,
+} from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { FaqList } from "@/components/FaqList";
 import { Footer } from "@/components/Footer";
@@ -540,8 +545,12 @@ function JpaPage() {
 						</p>
 					)}
 
-					<div className="mt-8 mb-14 max-w-2xl">
-						<p className="mb-3 text-[15px] font-medium">
+					<section className="mt-8 mb-14 max-w-2xl rounded-xl bg-seal-soft p-5 sm:p-7 ring-1 ring-seal/20">
+						<h2 className="flex items-center gap-2.5 text-xl sm:text-2xl font-semibold leading-tight">
+							<BellRing className="size-5 sm:size-6 shrink-0 text-seal" />
+							Per E-Mail Bescheid bekommen
+						</h2>
+						<p className="mt-2 mb-5 text-[15px] text-ink/70 leading-relaxed">
 							Wir schicken dir eine E-Mail, sobald das {jpa.name}{" "}
 							{status.kind === "released" ? "die nächsten" : "neue"} Ergebnisse
 							veröffentlicht.
@@ -553,7 +562,7 @@ function JpaPage() {
 							jpaId={jpa.id}
 							source="jpa"
 						/>
-					</div>
+					</section>
 
 					{(entries.length > 0 || older.length > 0) && (
 						<section className="mb-14">
