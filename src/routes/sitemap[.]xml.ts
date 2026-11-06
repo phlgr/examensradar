@@ -18,10 +18,23 @@ export const Route = createFileRoute("/sitemap.xml")({
 				const latest = summaries
 					.map((s) => s.lastRelease)
 					.sort((a, b) => b.getTime() - a.getTime())[0];
+				const nrwStand = jpas
+					.flatMap((jpa) => {
+						const stand = officeLastmod(
+							undefined,
+							examCalendarFor(jpa.slug)?.stand,
+						);
+						return stand ? [stand] : [];
+					})
+					.sort((a, b) => b.getTime() - a.getTime())[0];
 
 				const urls = [
 					{ path: "/", lastmod: lastmodOf(latest) },
 					{ path: "/history", lastmod: lastmodOf(latest) },
+					{
+						path: "/klausurtermine",
+						lastmod: lastmodOf(nrwStand),
+					},
 					...jpas.map((jpa) => ({
 						path: jpaPath(jpa.slug),
 						lastmod: lastmodOf(

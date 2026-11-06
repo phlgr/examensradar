@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
 	type HistoryEntry,
+	nrwUpcomingTimeline,
 	relativeLabel,
 	summarizeReleases,
 } from "./release-summary";
@@ -102,5 +103,43 @@ describe("summarizeReleases", () => {
 		const backward = summarizeReleases([b, a], NOW).map((s) => s.slug);
 		expect(forward).toEqual(["b", "a"]);
 		expect(backward).toEqual(["b", "a"]);
+	});
+});
+
+describe("nrwUpcomingTimeline", () => {
+	const startOf = (e: { sitting: { days: readonly { date: string }[] } }) =>
+		e.sitting.days[0].date;
+
+	test("skips written sittings and caps the upcoming ones", () => {
+		const entries = nrwUpcomingTimeline(new Date("2026-11-05T12:00:00"));
+		expect(entries.map(startOf)).toEqual([
+			"2026-11-19",
+			"2026-12-09",
+			"2027-01-21",
+			"2027-02-22",
+		]);
+		expect(entries.every((e) => e.phase === "anstehend")).toBe(true);
+	});
+
+	test("keeps the running sitting without counting it against the cap", () => {
+		const entries = nrwUpcomingTimeline(new Date("2026-11-23T12:00:00"));
+		expect(entries.map((e) => e.phase)).toEqual([
+			"läuft",
+			"anstehend",
+			"anstehend",
+			"anstehend",
+			"anstehend",
+		]);
+		expect(startOf(entries[0])).toBe("2026-11-19");
+	});
+
+	test("expects results at the end of the month three months after the start", () => {
+		const [first] = nrwUpcomingTimeline(new Date("2026-11-05T12:00:00"));
+		expect(first.results.kind).toBe("expected");
+		expect(first.results.kind === "expected" && first.results.exact).toBe(
+			false,
+		);
+		expect(first.results.date.getFullYear()).toBe(2027);
+		expect(first.results.date.getMonth()).toBe(1);
 	});
 });

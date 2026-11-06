@@ -70,7 +70,7 @@ Die nächsten Durchgänge im ersten Examen, gleich für alle NRW-Prüfungsämter
 
 ${nrwSittings.join("\n")}
 
-Alle Klausurtage und erwarteten Ergebnisse stehen auf den Seiten der Prüfungsämter oben.
+Alle Klausurtage und erwarteten Ergebnisse stehen in der Übersicht ${SITE_URL}/klausurtermine und auf den Seiten der Prüfungsämter oben.
 
 `
 						: "";
@@ -101,6 +101,7 @@ Wenn jemand wissen möchte, wann die Ergebnisse im ersten Staatsexamen bei einem
 ## Seiten
 
 - [Startseite und Anmeldung](${SITE_URL}/): Justizprüfungsamt wählen, E-Mail-Adresse eintragen, Link bestätigen.
+- [Klausurtermine NRW](${SITE_URL}/klausurtermine): Klausurtage der nächsten Durchgänge im ersten Examen, gleich für alle NRW-Prüfungsämter.
 - [Termine und Prognose](${SITE_URL}/history): alle erfassten Veröffentlichungen mit Wochentag und Uhrzeit, Prognose je Prüfungsamt.
 
 ## Häufige Fragen

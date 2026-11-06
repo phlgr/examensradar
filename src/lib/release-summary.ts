@@ -5,6 +5,7 @@ import {
 	localIsoDate,
 	sittingStatus,
 } from "@/lib/exam-calendar";
+import { NRW_SITTINGS } from "@/lib/exam-calendar.data";
 import {
 	clusterReleases,
 	expectedReleaseDate,
@@ -162,6 +163,27 @@ export function examTimeline(
 		});
 	}
 	return { calendar, entries };
+}
+
+export function nrwUpcomingTimeline(now: Date): TimelineEntry[] {
+	const today = localIsoDate(now);
+	const entries: TimelineEntry[] = [];
+	let upcoming = 0;
+	for (const sitting of NRW_SITTINGS) {
+		const status = sittingStatus(sitting, today);
+		if (status === "geschrieben") continue;
+		if (status === "anstehend" && upcoming++ >= MAX_UPCOMING_SITTINGS) break;
+		entries.push({
+			sitting,
+			phase: status,
+			results: {
+				kind: "expected",
+				date: expectedReleaseDate(sitting, 0),
+				exact: false,
+			},
+		});
+	}
+	return entries;
 }
 
 export function relativeLabel(daysUntil: number): string {

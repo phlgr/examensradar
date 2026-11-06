@@ -11,7 +11,7 @@ interface SignupFormProps {
 	error: boolean;
 	jpaId: string;
 	onJpaChange: (jpaId: string) => void;
-	source: "landing" | "subscriptions" | "jpa";
+	source: "landing" | "subscriptions" | "jpa" | "klausurtermine";
 }
 
 const heroFieldClass = cn(fieldClass, "h-12");
