@@ -1,11 +1,15 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { CalendarPlus, ExternalLink } from "lucide-react";
-import { useState } from "react";
+import {
+	BellRing,
+	CalendarPlus,
+	ChevronDown,
+	ExternalLink,
+} from "lucide-react";
+import { type ReactNode, useState } from "react";
 import { FaqList } from "@/components/FaqList";
 import { Footer } from "@/components/Footer";
 import { SignupForm } from "@/components/SignupForm";
-import { Card } from "@/components/ui/card";
-import { Eyebrow, SectionIntro } from "@/components/ui/heading";
+import { SectionIntro } from "@/components/ui/heading";
 import { trackEvent } from "@/lib/analytics";
 import {
 	type ExamSitting,
@@ -18,14 +22,19 @@ import {
 	resultMonthIndex,
 	resultMonthName,
 	SUBJECT_NAME,
+	sittingEnd,
 } from "@/lib/exam-calendar";
 import { jpaFaqs, officePageMeta } from "@/lib/faq";
-import { clusterReleases } from "@/lib/prediction";
 import {
 	CONFIDENCE_LABEL,
 	examTimeline,
 	formatDayMonth,
 	formatDayMonthShort,
+	monthPositionLabel,
+	type OfficeStatus,
+	officeStatus,
+	olderReleases,
+	type ReleaseCard,
 	relativeLabel,
 	summarizeReleases,
 	type TimelineEntry,
@@ -96,18 +105,154 @@ const dayMonthYear = (date: Date, currentYear: number) =>
 
 const LABEL = "text-[11px] font-semibold uppercase tracking-[0.08em]";
 
+const sittingRange = (sitting: ExamSitting, currentYear: number) =>
+	formatSittingRange(sitting, {
+		year: sittingEnd(sitting).getFullYear() !== currentYear,
+	});
+
+function resultsDate({ sitting, results }: TimelineEntry, currentYear: number) {
+	return results.kind === "expected" && !results.exact
+		? `Ende ${resultMonthLabel(sitting, currentYear)}`
+		: dayMonthYear(results.date, currentYear);
+}
+
+function Mark({ children }: { children: ReactNode }) {
+	return <strong className="marker font-semibold">{children}</strong>;
+}
+
+function Expected({
+	entry,
+	currentYear,
+}: {
+	entry: TimelineEntry;
+	currentYear: number;
+}) {
+	const approximate = entry.results.kind === "expected" && !entry.results.exact;
+	return (
+		<>
+			voraussichtlich {approximate ? "" : "am "}
+			<Mark>{resultsDate(entry, currentYear)}</Mark>
+		</>
+	);
+}
+
+function AnswerBlock({
+	status,
+	websiteUrl,
+	currentYear,
+}: {
+	status: OfficeStatus;
+	websiteUrl: string | null;
+	currentYear: number;
+}) {
+	const { lead, detail } = answerLines(status, websiteUrl, currentYear);
+	return (
+		<>
+			<span className="block text-ink">{lead}</span>
+			{detail && <span className="block mt-1">{detail}</span>}
+		</>
+	);
+}
+
+function answerLines(
+	status: OfficeStatus,
+	websiteUrl: string | null,
+	year: number,
+): { lead: ReactNode; detail?: ReactNode } {
+	switch (status.kind) {
+		case "released":
+			return {
+				lead: (
+					<>
+						Die Ergebnisse vom <Mark>{dayMonthYear(status.date, year)}</Mark>{" "}
+						sind online.
+					</>
+				),
+				detail: websiteUrl && (
+					<a
+						href={websiteUrl}
+						target="_blank"
+						rel="noopener noreferrer"
+						className="font-medium text-seal inline-flex items-center gap-1 underline decoration-1 underline-offset-4 hover:decoration-2"
+					>
+						Zur Website des Prüfungsamts
+						<ExternalLink className="w-4 h-4 shrink-0" />
+					</a>
+				),
+			};
+		case "overdue":
+			return {
+				lead: (
+					<span className="text-seal">
+						Die Ergebnisse sind {relativeLabel(status.daysUntil)}.
+					</span>
+				),
+				detail: "Sie können jeden Tag kommen.",
+			};
+		case "waiting":
+			return {
+				lead: (
+					<>
+						Ergebnisse für die Klausuren vom{" "}
+						{sittingRange(status.entry.sitting, year)}{" "}
+						<Expected entry={status.entry} currentYear={year} />.
+					</>
+				),
+				detail:
+					status.next &&
+					(status.next.phase === "läuft"
+						? `Gerade laufen die Klausuren vom ${sittingRange(status.next.sitting, year)}.`
+						: `Nächste Klausuren: ${sittingRange(status.next.sitting, year)}.`),
+			};
+		case "running":
+			return {
+				lead: `Die Klausuren laufen noch bis ${dayMonthYear(sittingEnd(status.entry.sitting), year)}.`,
+				detail: (
+					<>
+						Ergebnisse <Expected entry={status.entry} currentYear={year} />.
+					</>
+				),
+			};
+		case "upcoming":
+			return {
+				lead: `Nächste Klausuren ${sittingRange(status.entry.sitting, year)}.`,
+				detail: (
+					<>
+						Ergebnisse dafür{" "}
+						<Expected entry={status.entry} currentYear={year} />.
+					</>
+				),
+			};
+		case "noCalendar":
+			return {
+				lead: (
+					<>
+						Die nächsten Ergebnisse erwarten wir am{" "}
+						<Mark>{dayMonthYear(status.prediction.date, year)}</Mark>.
+					</>
+				),
+			};
+		case "unknown":
+			return status.lastRelease
+				? {
+						lead: `Zuletzt veröffentlicht am ${dayMonthYear(status.lastRelease, year)}.`,
+						detail: "Für eine Prognose fehlen noch Daten.",
+					}
+				: {
+						lead: "Für dieses Prüfungsamt haben wir noch keine Veröffentlichung erfasst.",
+					};
+	}
+}
+
 function ResultsLine({
-	sitting,
-	results,
 	currentYear,
 	highlight,
+	...entry
 }: TimelineEntry & { currentYear: number; highlight: boolean }) {
-	const released = results.kind === "released";
+	const released = entry.results.kind === "released";
 	const value = released
-		? `${dayMonthYear(results.date, currentYear)} ✓`
-		: results.exact
-			? dayMonthYear(results.date, currentYear)
-			: `Ende ${resultMonthLabel(sitting, currentYear)}`;
+		? `${resultsDate(entry, currentYear)} ✓`
+		: resultsDate(entry, currentYear);
 	return (
 		<span className={cn("block", released && "text-ink/55")}>
 			<span className="block text-[11px] text-ink/55">
@@ -178,112 +323,189 @@ function CalendarLink({
 	);
 }
 
+interface Slot {
+	card: ReleaseCard;
+	hidden: boolean;
+}
+
 type Pod =
-	| { kind: "gap"; month: string }
-	| { kind: "sitting"; entry: TimelineEntry; index: number };
+	| { kind: "gap"; key: string; month: string; hidden: boolean }
+	| ({ kind: "card" } & Slot);
+
+const cardKey = (card: ReleaseCard) =>
+	card.kind === "sitting"
+		? card.entry.sitting.days[0].date
+		: `release-${card.date.getTime()}`;
 
 function ExamTimelineList({
 	entries,
+	older,
 	jpaSlug,
 	now,
 }: {
 	entries: TimelineEntry[];
+	older: ReleaseCard[];
 	jpaSlug: string;
 	now: Date;
 }) {
+	const [showOlder, setShowOlder] = useState(false);
 	const today = localIsoDate(now);
 	const currentYear = now.getFullYear();
-	const firstOpen = entries.findIndex(
+	const firstOpen = entries.find(
 		(e) => e.phase === "läuft" || e.phase === "anstehend",
 	);
-	const firstExpected = entries.findIndex((e) => e.results.kind === "expected");
+	const firstExpected = entries.find((e) => e.results.kind === "expected");
 	const running = entries.some((e) => e.phase === "läuft");
+	const collapsible = older.length > 0 && entries.length > 0;
 
-	const pods: Pod[] = entries.flatMap((entry, index) => {
-		const previous = entries[index - 1];
-		const gap = previous ? monthsBetween(previous.sitting, entry.sitting) : [];
+	const slots: Slot[] = [
+		...older.map((card) => ({ card, hidden: collapsible && !showOlder })),
+		...entries.map((entry) => ({
+			card: { kind: "sitting", entry } as const,
+			hidden: false,
+		})),
+	];
+	const pods: Pod[] = slots.flatMap((slot, index) => {
+		const previous = slots[index - 1];
+		const gap =
+			previous?.card.kind === "sitting" && slot.card.kind === "sitting"
+				? monthsBetween(previous.card.entry.sitting, slot.card.entry.sitting)
+				: [];
 		return [
-			...gap.map((month): Pod => ({ kind: "gap", month })),
-			{ kind: "sitting", entry, index },
+			...gap.map(
+				(month): Pod => ({
+					kind: "gap",
+					key: `${cardKey(slot.card)}-${month}`,
+					month,
+					hidden: previous.hidden,
+				}),
+			),
+			{ kind: "card", ...slot },
 		];
 	});
 
 	return (
-		<ol className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-			{pods.map((pod) => {
-				if (pod.kind === "gap") {
+		<>
+			{collapsible && (
+				<button
+					type="button"
+					aria-expanded={showOlder}
+					aria-controls="pruefungstermine"
+					onClick={() => setShowOlder((shown) => !shown)}
+					className="mb-3 inline-flex items-center gap-1.5 text-[13px] font-medium text-ink/60 hover:text-ink cursor-pointer"
+				>
+					<ChevronDown
+						className={cn(
+							"size-4 transition-transform",
+							showOlder && "rotate-180",
+						)}
+						aria-hidden
+					/>
+					{showOlder
+						? "Ältere Veröffentlichungen ausblenden"
+						: "Ältere Veröffentlichungen anzeigen"}
+				</button>
+			)}
+			<ol
+				id="pruefungstermine"
+				className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4"
+			>
+				{pods.map((pod) => {
+					if (pod.kind === "gap") {
+						return (
+							<li
+								key={pod.key}
+								hidden={pod.hidden}
+								className="hidden rounded-xl border border-dashed border-ink/15 p-3.5 sm:block"
+							>
+								<p className="font-serif text-[18px] text-ink/50">
+									{pod.month}
+								</p>
+								<p className="mt-2 text-[13px] text-ink/45">Keine Klausuren</p>
+							</li>
+						);
+					}
+					if (pod.card.kind === "release") {
+						return (
+							<li
+								key={cardKey(pod.card)}
+								hidden={pod.hidden}
+								className="flex flex-col self-start rounded-xl bg-sheet p-3.5 ring-1 ring-ink/10 opacity-50"
+							>
+								<span className="block text-[11px] text-ink/55">
+									Ergebnisse veröffentlicht am
+								</span>
+								<span className="font-serif text-[15px] text-ink/55">
+									{dayMonthYear(pod.card.date, currentYear)} ✓
+								</span>
+							</li>
+						);
+					}
+					const { entry } = pod.card;
+					const open = entry.phase === "läuft" || entry.phase === "anstehend";
+					const current = entry === firstOpen;
+					const status =
+						entry.phase === "veröffentlicht" || entry.phase === "ausstehend"
+							? { text: "geschrieben", seal: false }
+							: entry.phase === "läuft"
+								? { text: "läuft gerade", seal: true }
+								: current && !running
+									? { text: "nächster Durchgang", seal: true }
+									: null;
 					return (
 						<li
-							key={pod.month}
-							className="hidden rounded-xl border border-dashed border-ink/15 p-3.5 sm:block"
+							key={cardKey(pod.card)}
+							hidden={pod.hidden}
+							className={cn(
+								"flex flex-col rounded-xl bg-sheet p-3.5 ring-1 ring-ink/10",
+								entry.phase === "veröffentlicht" && "opacity-50",
+								current && "ring-2 ring-seal",
+							)}
 						>
-							<p className="font-serif text-[18px] text-ink/50">{pod.month}</p>
-							<p className="mt-2 text-[13px] text-ink/45">Keine Klausuren</p>
+							<p className="font-serif text-[18px] leading-tight">
+								{formatSittingMonth(entry.sitting, currentYear)}
+							</p>
+							{status && (
+								<p
+									className={cn(
+										LABEL,
+										"mt-1",
+										status.seal ? "text-seal" : "text-ink/50",
+									)}
+								>
+									{status.text}
+								</p>
+							)}
+							<ExamDays entry={entry} today={today} />
+							<div className="mt-auto flex flex-col items-start pt-3 text-[12px]">
+								<div className="w-full border-t border-ink/10 pt-2.5">
+									<ResultsLine
+										{...entry}
+										currentYear={currentYear}
+										highlight={entry === firstExpected}
+									/>
+								</div>
+								{open && (
+									<CalendarLink jpaSlug={jpaSlug} sitting={entry.sitting} />
+								)}
+							</div>
 						</li>
 					);
-				}
-				const { entry, index } = pod;
-				const open = entry.phase === "läuft" || entry.phase === "anstehend";
-				const current = index === firstOpen;
-				const status =
-					entry.phase === "veröffentlicht" || entry.phase === "ausstehend"
-						? { text: "geschrieben", seal: false }
-						: entry.phase === "läuft"
-							? { text: "läuft gerade", seal: true }
-							: current && !running
-								? { text: "nächster Durchgang", seal: true }
-								: null;
-				return (
-					<li
-						key={entry.sitting.days[0].date}
-						className={cn(
-							"flex flex-col rounded-xl bg-sheet p-3.5 ring-1 ring-ink/10",
-							entry.phase === "veröffentlicht" && "opacity-50",
-							current && "ring-2 ring-seal",
-						)}
-					>
-						<p className="font-serif text-[18px] leading-tight">
-							{formatSittingMonth(entry.sitting, currentYear)}
-						</p>
-						{status && (
-							<p
-								className={cn(
-									LABEL,
-									"mt-1",
-									status.seal ? "text-seal" : "text-ink/50",
-								)}
-							>
-								{status.text}
-							</p>
-						)}
-						<ExamDays entry={entry} today={today} />
-						<div className="mt-auto flex flex-col items-start pt-3 text-[12px]">
-							<div className="w-full border-t border-ink/10 pt-2.5">
-								<ResultsLine
-									{...entry}
-									currentYear={currentYear}
-									highlight={index === firstExpected}
-								/>
-							</div>
-							{open && (
-								<CalendarLink jpaSlug={jpaSlug} sitting={entry.sitting} />
-							)}
-						</div>
-					</li>
-				);
-			})}
-		</ol>
+				})}
+			</ol>
+		</>
 	);
 }
 
 function JpaPage() {
-	const { jpas, jpa, summary, timeline, now } = Route.useLoaderData();
-	const [jpaId, setJpaId] = useState(jpa.id);
+	const loaded = Route.useLoaderData();
+	const { jpas, jpa, summary, timeline } = loaded;
+	const now = new Date(loaded.now);
+	const entries = timeline?.entries ?? [];
 	const prediction = summary?.prediction ?? null;
-	const daysUntil = summary?.daysUntil ?? null;
-	const overdue = daysUntil !== null && daysUntil < 0;
-	const meta = officePageMeta(jpa.name, summary, timeline?.entries);
-	const releases = summary ? clusterReleases(summary.dates).reverse() : [];
+	const meta = officePageMeta(jpa.name, summary, entries);
+	const status = officeStatus(summary, entries, now);
+	const older = olderReleases(jpa.slug, summary?.dates ?? [], entries);
 
 	return (
 		<>
@@ -301,130 +523,84 @@ function JpaPage() {
 						<span className="text-ink/70">{jpa.name}</span>
 					</nav>
 
-					<SectionIntro as="h1" title={meta.h1} className="mb-10 sm:mb-14">
-						{meta.intro}
+					<SectionIntro
+						as="h1"
+						title={meta.h1}
+						textClassName="text-xl sm:text-2xl leading-snug"
+					>
+						<AnswerBlock
+							status={status}
+							websiteUrl={jpa.websiteUrl}
+							currentYear={now.getFullYear()}
+						/>
 					</SectionIntro>
-
-					<div className="grid gap-6 md:grid-cols-[0.8fr_1.2fr] mb-14">
-						<Card
-							className={cn(
-								"p-6 sm:p-7",
-								overdue && "bg-seal-soft ring-seal/20",
-							)}
-						>
-							<Eyebrow className="mb-2">Nächste Veröffentlichung</Eyebrow>
-							{prediction && daysUntil !== null ? (
-								<>
-									<p className="headline text-5xl leading-none">
-										<span className={overdue ? undefined : "marker"}>
-											{formatDayMonth(prediction.date)}
-										</span>
-									</p>
-									<p
-										className={cn("font-semibold mt-3", overdue && "text-seal")}
-									>
-										{relativeLabel(daysUntil)}
-									</p>
-									{prediction.sitting && (
-										<p className="text-[13px] mt-1 text-ink/55">
-											für die Klausuren vom{" "}
-											{formatSittingRange(prediction.sitting)}
-										</p>
-									)}
-									<p className="text-[13px] mt-1 text-ink/55">
-										Wahrscheinlich zwischen dem{" "}
-										{formatDayMonthShort(prediction.windowStart)} und dem{" "}
-										{formatDayMonthShort(prediction.windowEnd)} ·{" "}
-										{CONFIDENCE_LABEL[prediction.confidence]}
-									</p>
-								</>
-							) : (
-								<p className="text-[15px] text-ink/70">
-									Für eine Prognose brauchen wir mindestens zwei
-									Veröffentlichungen.
-								</p>
-							)}
-						</Card>
-
-						<div>
-							<SignupForm
-								jpas={jpas}
-								loading={false}
-								error={false}
-								jpaId={jpaId}
-								onJpaChange={setJpaId}
-								source="jpa"
-							/>
-						</div>
-					</div>
-
-					{timeline && timeline.entries.length > 0 && (
-						<section className="mb-14">
-							<h2 className="text-2xl font-semibold leading-tight mb-2">
-								Klausurtermine beim {jpa.name}
-							</h2>
-							<p className="text-[15px] text-ink/55 mb-6">
-								Wann geschrieben wird und wann die Ergebnisse voraussichtlich
-								kommen. Die Termine gelten für alle Justizprüfungsämter in NRW.
-							</p>
-							<ExamTimelineList
-								entries={timeline.entries}
-								jpaSlug={jpa.slug}
-								now={new Date(now)}
-							/>
-							<p className="mt-4 text-[13px] text-ink/55">
-								ZR Zivilrecht · ÖR Öffentliches Recht · SR Strafrecht
-							</p>
-							<p className="mt-1 text-[13px] text-ink/55">
-								Ohne Gewähr. Quelle:{" "}
-								<a
-									href={timeline.calendar.pageUrl}
-									target="_blank"
-									rel="noopener noreferrer"
-									className="underline decoration-1 underline-offset-4 hover:decoration-2"
-								>
-									Klausurtermine des Justizprüfungsamts beim {jpa.name}
-								</a>
-								{timeline.calendar.stand &&
-									`, Stand ${formatStand(timeline.calendar.stand)}`}
-								.
-							</p>
-						</section>
+					{prediction && summary && (
+						<p className="mt-3 max-w-2xl text-[13px] text-ink/55">
+							Veröffentlicht meist{" "}
+							{monthPositionLabel(prediction.medianOffsetDays)}, gegen{" "}
+							{summary.typicalHour} Uhr. Nächster Termin wahrscheinlich zwischen
+							dem {formatDayMonthShort(prediction.windowStart)} und dem{" "}
+							{formatDayMonthShort(prediction.windowEnd)} ·{" "}
+							{CONFIDENCE_LABEL[prediction.confidence]}
+						</p>
 					)}
 
-					{releases.length > 0 && (
+					<section className="mt-8 mb-14 max-w-2xl rounded-xl bg-seal-soft p-5 sm:p-7 ring-1 ring-seal/20">
+						<h2 className="flex items-center gap-2.5 text-xl sm:text-2xl font-semibold leading-tight">
+							<BellRing className="size-5 sm:size-6 shrink-0 text-seal" />
+							Per E-Mail Bescheid bekommen
+						</h2>
+						<p className="mt-2 mb-5 text-[15px] text-ink/70 leading-relaxed">
+							Wir schicken dir eine E-Mail, sobald das {jpa.name}{" "}
+							{status.kind === "released" ? "die nächsten" : "neue"} Ergebnisse
+							veröffentlicht.
+						</p>
+						<SignupForm
+							jpas={jpas}
+							loading={false}
+							error={false}
+							jpa={{ kind: "fixed", jpaId: jpa.id }}
+							source="jpa"
+						/>
+					</section>
+
+					{(entries.length > 0 || older.length > 0) && (
 						<section className="mb-14">
 							<h2 className="text-2xl font-semibold leading-tight mb-2">
-								Bisherige Veröffentlichungen
+								{timeline ? "Klausurtermine" : "Ergebnisse"} beim {jpa.name}
 							</h2>
-							<p className="text-[15px] text-ink/55 mb-5">
-								Wann das Justizprüfungsamt beim {jpa.name} neue Ergebnisse
-								online gestellt hat, neueste zuerst.
+							<p className="text-[15px] text-ink/55 mb-6">
+								{timeline
+									? "Wann geschrieben wird und wann die Ergebnisse voraussichtlich kommen. Die Termine gelten für alle Justizprüfungsämter in NRW."
+									: `Wann das Justizprüfungsamt beim ${jpa.name} neue Ergebnisse online gestellt hat.`}
 							</p>
-							<ul className="divide-y divide-ink/10 border-y border-ink/10">
-								{releases.map((date) => (
-									<li
-										key={date.getTime()}
-										className="py-3 flex justify-between gap-4"
-									>
-										<span className="font-medium">
-											{date.toLocaleDateString("de-DE", {
-												weekday: "long",
-												day: "numeric",
-												month: "long",
-												year: "numeric",
-											})}
-										</span>
-										<span className="figures text-ink/55">
-											{date.toLocaleTimeString("de-DE", {
-												hour: "2-digit",
-												minute: "2-digit",
-											})}{" "}
-											Uhr
-										</span>
-									</li>
-								))}
-							</ul>
+							<ExamTimelineList
+								entries={entries}
+								older={older}
+								jpaSlug={jpa.slug}
+								now={now}
+							/>
+							{timeline && (
+								<>
+									<p className="mt-4 text-[13px] text-ink/55">
+										ZR Zivilrecht · ÖR Öffentliches Recht · SR Strafrecht
+									</p>
+									<p className="mt-1 text-[13px] text-ink/55">
+										Ohne Gewähr. Quelle:{" "}
+										<a
+											href={timeline.calendar.pageUrl}
+											target="_blank"
+											rel="noopener noreferrer"
+											className="underline decoration-1 underline-offset-4 hover:decoration-2"
+										>
+											Klausurtermine des Justizprüfungsamts beim {jpa.name}
+										</a>
+										{timeline.calendar.stand &&
+											`, Stand ${formatStand(timeline.calendar.stand)}`}
+										.
+									</p>
+								</>
+							)}
 						</section>
 					)}
 
@@ -432,7 +608,7 @@ function JpaPage() {
 						<h2 className="text-2xl font-semibold leading-tight mb-5">
 							Häufige Fragen
 						</h2>
-						<FaqList faqs={jpaFaqs(jpa.name, summary, timeline?.entries)} />
+						<FaqList faqs={jpaFaqs(jpa.name, summary, entries)} />
 					</section>
 
 					{jpa.websiteUrl && (

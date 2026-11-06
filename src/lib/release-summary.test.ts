@@ -1,6 +1,10 @@
 import { describe, expect, test } from "bun:test";
 import {
+	examTimeline,
 	type HistoryEntry,
+	officeStatus,
+	olderReleases,
+	type ReleaseCard,
 	relativeLabel,
 	summarizeReleases,
 } from "./release-summary";
@@ -102,5 +106,141 @@ describe("summarizeReleases", () => {
 		const backward = summarizeReleases([b, a], NOW).map((s) => s.slug);
 		expect(forward).toEqual(["b", "a"]);
 		expect(backward).toEqual(["b", "a"]);
+	});
+});
+
+const hamm = [
+	"2026-04-30T11:00:00",
+	"2026-06-01T11:00:00",
+	"2026-08-03T11:00:00",
+	"2026-09-01T11:00:00",
+	"2026-10-01T11:00:00",
+].map((d) => new Date(d));
+
+const startOf = (sitting: { days: readonly { date: string }[] }) =>
+	sitting.days[0].date;
+
+function statusAt(slug: string, dates: Date[], now: Date) {
+	const summary = summarizeReleases(
+		dates.map((d) => entry(slug, d)),
+		now,
+	)[0];
+	const entries = examTimeline(slug, dates, now)?.entries ?? [];
+	return officeStatus(summary, entries, now);
+}
+
+describe("officeStatus", () => {
+	test("a release within the past week is online", () => {
+		const status = statusAt("hamm", hamm, new Date("2026-10-05T12:00:00"));
+		expect(status).toEqual({
+			kind: "released",
+			date: new Date("2026-10-01T11:00:00"),
+		});
+	});
+
+	test("seven days after the release the office waits again", () => {
+		const release = new Date("2026-10-01T11:00:00").getTime();
+		const week = 7 * 86_400_000;
+		expect(statusAt("hamm", hamm, new Date(release + week - 1)).kind).toBe(
+			"released",
+		);
+		expect(statusAt("hamm", hamm, new Date(release + week)).kind).toBe(
+			"waiting",
+		);
+	});
+
+	test("with several sittings waiting it names the oldest one and the next exams", () => {
+		const status = statusAt("hamm", hamm, new Date("2026-11-05T12:00:00"));
+		if (status.kind !== "waiting") throw new Error(status.kind);
+		expect(startOf(status.entry.sitting)).toBe("2026-08-20");
+		expect(status.entry.results.date.toDateString()).toBe(
+			new Date("2026-12-01T00:00:00").toDateString(),
+		);
+		expect(status.next && startOf(status.next.sitting)).toBe("2026-11-19");
+	});
+
+	test("a passed expected date is overdue", () => {
+		const status = statusAt("hamm", hamm, new Date("2026-12-03T12:00:00"));
+		expect(status).toEqual({ kind: "overdue", daysUntil: -2 });
+	});
+
+	test("a sitting in progress with nothing waiting is running", () => {
+		const autumn2025 = [
+			"2025-10-31T14:00:00",
+			"2025-11-28T14:00:00",
+			"2025-12-30T14:00:00",
+		].map((d) => new Date(d));
+		const status = statusAt(
+			"hamm",
+			autumn2025,
+			new Date("2026-01-26T12:00:00"),
+		);
+		if (status.kind !== "running") throw new Error(status.kind);
+		expect(startOf(status.entry.sitting)).toBe("2026-01-22");
+		expect(status.entry.results).toMatchObject({
+			kind: "expected",
+			exact: true,
+		});
+	});
+
+	test("before the first sitting only the upcoming one is known", () => {
+		const status = statusAt("köln", [], new Date("2026-01-10T12:00:00"));
+		if (status.kind !== "upcoming") throw new Error(status.kind);
+		expect(startOf(status.entry.sitting)).toBe("2026-01-22");
+		expect(status.entry.results).toMatchObject({ exact: false });
+	});
+
+	test("an office without calendar falls back to the prediction", () => {
+		const monthly = [5, 6, 7].map((m) => lastWorkday(2026, m));
+		const status = statusAt("berlin", monthly, new Date(2026, 8, 15, 12));
+		if (status.kind !== "noCalendar") throw new Error(status.kind);
+		expect(status.prediction.date.toDateString()).toBe(
+			new Date(2026, 8, 30).toDateString(),
+		);
+	});
+
+	test("without enough history nothing is known", () => {
+		expect(statusAt("berlin", [], NOW)).toEqual({
+			kind: "unknown",
+			lastRelease: null,
+		});
+		const once = new Date(2026, 5, 30, 14);
+		expect(statusAt("berlin", [once], NOW)).toEqual({
+			kind: "unknown",
+			lastRelease: once,
+		});
+	});
+});
+
+describe("olderReleases", () => {
+	const describeCard = (card: ReleaseCard) =>
+		card.kind === "sitting"
+			? `${startOf(card.entry.sitting)} ${card.entry.phase} ${card.entry.results.date.toDateString()}`
+			: `release ${card.date.toDateString()}`;
+
+	test("lists releases the timeline doesn't show, oldest first, with their sitting", () => {
+		const dates = [
+			new Date("2025-11-28T14:00:00"),
+			...hamm,
+			new Date("2026-09-02T09:00:00"),
+		];
+		const now = new Date("2026-11-05T12:00:00");
+		const shown = examTimeline("hamm", dates, now)?.entries ?? [];
+
+		expect(olderReleases("hamm", dates, shown).map(describeCard)).toEqual([
+			`release ${new Date("2025-11-28").toDateString()}`,
+			`2026-01-22 veröffentlicht ${new Date("2026-04-30").toDateString()}`,
+			`2026-02-23 veröffentlicht ${new Date("2026-06-01").toDateString()}`,
+			`2026-04-21 veröffentlicht ${new Date("2026-08-03").toDateString()}`,
+			`2026-05-19 veröffentlicht ${new Date("2026-09-01").toDateString()}`,
+		]);
+	});
+
+	test("an office without calendar gets every release as a plain card", () => {
+		const dates = [lastWorkday(2026, 6), lastWorkday(2026, 5)];
+		expect(olderReleases("berlin", dates, []).map(describeCard)).toEqual([
+			`release ${lastWorkday(2026, 5).toDateString()}`,
+			`release ${lastWorkday(2026, 6).toDateString()}`,
+		]);
 	});
 });

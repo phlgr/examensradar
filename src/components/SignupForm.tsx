@@ -9,10 +9,13 @@ interface SignupFormProps {
 	jpas: Array<{ id: string; name: string }> | undefined;
 	loading: boolean;
 	error: boolean;
-	jpaId: string;
-	onJpaChange: (jpaId: string) => void;
+	jpa: JpaChoice;
 	source: "landing" | "subscriptions" | "jpa";
 }
+
+type JpaChoice =
+	| { kind: "pick"; jpaId: string; onChange: (jpaId: string) => void }
+	| { kind: "fixed"; jpaId: string };
 
 const heroFieldClass = cn(fieldClass, "h-12");
 
@@ -20,10 +23,10 @@ export function SignupForm({
 	jpas,
 	loading,
 	error,
-	jpaId,
-	onJpaChange,
+	jpa,
 	source,
 }: SignupFormProps) {
+	const { jpaId } = jpa;
 	const [email, setEmail] = useState("");
 	const successRef = useRef<HTMLDivElement>(null);
 
@@ -84,35 +87,37 @@ export function SignupForm({
 			}}
 		>
 			<div className="grid gap-3 sm:grid-cols-[1fr_auto]">
-				<div className="sm:col-span-2">
-					<label htmlFor="signup-jpa" className={labelClass}>
-						Dein Justizprüfungsamt
-					</label>
-					<span className="relative block">
-						<select
-							id="signup-jpa"
-							value={jpaId}
-							onChange={(event) => onJpaChange(event.target.value)}
-							disabled={loading || error || !jpas?.length}
-							className={cn(
-								heroFieldClass,
-								"appearance-none pr-10 font-medium cursor-pointer",
-							)}
-						>
-							{loading && <option value="">Wird geladen …</option>}
-							{error && <option value="">Nicht verfügbar</option>}
-							{jpas?.map((jpa) => (
-								<option key={jpa.id} value={jpa.id}>
-									{jpa.name}
-								</option>
-							))}
-						</select>
-						<ChevronDown
-							className="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-ink/50"
-							aria-hidden
-						/>
-					</span>
-				</div>
+				{jpa.kind === "pick" && (
+					<div className="sm:col-span-2">
+						<label htmlFor="signup-jpa" className={labelClass}>
+							Dein Justizprüfungsamt
+						</label>
+						<span className="relative block">
+							<select
+								id="signup-jpa"
+								value={jpaId}
+								onChange={(event) => jpa.onChange(event.target.value)}
+								disabled={loading || error || !jpas?.length}
+								className={cn(
+									heroFieldClass,
+									"appearance-none pr-10 font-medium cursor-pointer",
+								)}
+							>
+								{loading && <option value="">Wird geladen …</option>}
+								{error && <option value="">Nicht verfügbar</option>}
+								{jpas?.map((jpa) => (
+									<option key={jpa.id} value={jpa.id}>
+										{jpa.name}
+									</option>
+								))}
+							</select>
+							<ChevronDown
+								className="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-ink/50"
+								aria-hidden
+							/>
+						</span>
+					</div>
+				)}
 
 				<div>
 					<label htmlFor="signup-email" className={labelClass}>
@@ -133,7 +138,7 @@ export function SignupForm({
 				<div className="sm:self-end">
 					<button
 						type="submit"
-						disabled={!canSubmit}
+						disabled={subscribe.isPending || loading || error || jpaId === ""}
 						className="group h-12 w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-md bg-ink px-5 text-[15px] font-semibold text-sheet transition-colors hover:bg-seal disabled:cursor-not-allowed disabled:bg-ink/25 cursor-pointer"
 					>
 						{subscribe.isPending ? (

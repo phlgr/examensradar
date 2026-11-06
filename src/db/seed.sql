@@ -15,7 +15,7 @@ VALUES
   (
     'jpa-olg-duesseldorf',
     'düsseldorf',
-    'JPA bei dem OLG Düsseldorf',
+    'OLG Düsseldorf',
     'https://www.olg-duesseldorf.nrw.de/aufgaben/pruefungsamt/06aktuelles/index.php',
     'https://www.olg-duesseldorf.nrw.de/aufgaben/pruefungsamt/06aktuelles/index.php',
     'article#mainArticle',
@@ -24,7 +24,7 @@ VALUES
   (
     'jpa-olg-koeln',
     'köln',
-    'JPA bei dem OLG Köln',
+    'OLG Köln',
     'https://www.olg-koeln.nrw.de/aufgaben/justizpruefungsamt/002_aktuelles/',
     'https://www.olg-koeln.nrw.de/aufgaben/justizpruefungsamt/002_aktuelles/',
     'section.article-zwischentext:has(.titlebarTitle:contains("§ 20"))',
@@ -33,7 +33,7 @@ VALUES
   (
     'jpa-olg-hamm',
     'hamm',
-    'JPA bei dem OLG Hamm',
+    'OLG Hamm',
     'https://www.olg-hamm.nrw.de/aufgaben/justizpruefungsamt/02_staatl_pflichtfachpruefung/04_termine/01_aufsichtsarbeiten-schriftlich/05_informationen_20_Abs1_Nr_1_JAG/',
     'https://www.olg-hamm.nrw.de/aufgaben/justizpruefungsamt/02_staatl_pflichtfachpruefung/04_termine/01_aufsichtsarbeiten-schriftlich/05_informationen_20_Abs1_Nr_1_JAG/',
     'article#mainArticle',

@@ -3,7 +3,7 @@ import { check, open, waitForMail } from "../pw.ts";
 const v = await open("exam-calendar");
 const { page } = v;
 const email = `verify+cal-${v.runId}@example.test`;
-const HAMM = "JPA bei dem OLG Hamm";
+const HAMM = "OLG Hamm";
 
 try {
 	await v.visit(`${v.base}/ergebnisse/hamm`);

@@ -152,7 +152,6 @@ export interface OfficePageMeta {
 	title: string;
 	h1: string;
 	description: string;
-	intro: string;
 }
 
 export function officePageMeta(
@@ -176,17 +175,6 @@ export function officePageMeta(
 			? `${name}: ${dates.join(", ")}. Kostenlose E-Mail, sobald sie online sind.`
 			: `${prediction ? `Nächster Termin voraussichtlich am ${formatLongDate(prediction.date)}. ` : ""}Alle bisherigen Veröffentlichungen des Justizprüfungsamts beim ${name} im ersten Staatsexamen – und eine kostenlose E-Mail, sobald neue Ergebnisse online sind.`;
 
-	const results = summary
-		? nextReleaseSentence(summary)
-		: `Für das ${name} haben wir noch keine Veröffentlichung erfasst.`;
-	const lastDay = open?.sitting.days.at(-1)?.date.split("-").map(Number);
-	const datesSentence =
-		open && lastDay
-			? open.phase === "läuft"
-				? `Die aktuellen Examensklausuren beim ${name} laufen noch bis ${formatLongDate(new Date(lastDay[0], lastDay[1] - 1, lastDay[2]))}. `
-				: `Die nächsten Examensklausuren beim ${name} sind vom ${range?.replace(".–", ". bis ").replace(" – ", " bis ")}. `
-			: "";
-
 	const base = `${name}: Termine & Ergebnisse 1. Examen`;
 	const title = `${base} | Examensradar`;
 
@@ -194,6 +182,5 @@ export function officePageMeta(
 		title: title.length > 60 ? base : title,
 		h1: `${name}: Klausurtermine und Ergebnisse im 1. Examen`,
 		description,
-		intro: `${datesSentence}${results} Mit Examensradar bekommst du eine E-Mail, sobald die Ergebnisse online sind.`,
 	};
 }
