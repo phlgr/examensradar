@@ -1,6 +1,6 @@
 # Admin scraper and results mail
 
-The admin logs in at `/admin/login` and sees every JPA with its subscriber count and scraper status. "Jetzt prüfen" runs the same compare-and-swap-guarded check as the scheduler. If the watched section changed since the baseline, every confirmed subscriber of that office gets "Neue Ergebnisse: <office>", `/history` gains an entry, and a second check of the same content notifies nobody.
+The admin logs in at `/admin/login` and sees every JPA with its subscriber count and scraper status. "Jetzt prüfen" runs the same compare-and-swap-guarded check as the scheduler. If the watched section changed since the baseline, every confirmed subscriber of that office gets "Neue Ergebnisse: <office>", `/ergebnisse` shows the new release, and a second check of the same content notifies nobody.
 
 ## Sub-features
 

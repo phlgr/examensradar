@@ -143,10 +143,10 @@ export function NotificationPreview({
 							)}
 						</p>
 						<Link
-							to="/history"
+							to="/ergebnisse"
 							className="group mt-5 inline-flex items-center gap-2 h-10 px-4 rounded-full ring-1 ring-ink/20 text-sm font-semibold transition-colors hover:bg-ink hover:text-sheet hover:ring-ink"
 						>
-							Zur Historie
+							Zu den Ergebnissen
 							<ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
 						</Link>
 					</div>

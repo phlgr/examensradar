@@ -35,8 +35,8 @@ export function Footer({ jpas }: FooterProps) {
 						<span className="headline text-base text-ink/80">Examensradar</span>
 					</p>
 					<nav className="flex items-center gap-6">
-						<Link to="/history" className="hover:text-ink transition-colors">
-							Historie
+						<Link to="/ergebnisse" className="hover:text-ink transition-colors">
+							Ergebnisse
 						</Link>
 						<Link
 							to="/subscriptions"
