@@ -87,6 +87,12 @@
     scroll-padding-top: 5rem;
   }
 
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+
   body {
     @apply bg-paper text-ink font-sans m-0 antialiased;
   }
