@@ -8,6 +8,7 @@ export const getRouter = () => {
 		context: {},
 
 		scrollRestoration: true,
+		scrollRestorationBehavior: "instant",
 		defaultPreloadStaleTime: 0,
 	});
 
