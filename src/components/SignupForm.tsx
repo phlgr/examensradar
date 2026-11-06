@@ -10,7 +10,8 @@ interface SignupFormProps {
 	loading: boolean;
 	error: boolean;
 	jpaId: string;
-	onJpaChange: (jpaId: string) => void;
+	/** Omit to lock the form to `jpaId`, without an office select. */
+	onJpaChange?: (jpaId: string) => void;
 	source: "landing" | "subscriptions" | "jpa";
 }
 
@@ -84,35 +85,37 @@ export function SignupForm({
 			}}
 		>
 			<div className="grid gap-3 sm:grid-cols-[1fr_auto]">
-				<div className="sm:col-span-2">
-					<label htmlFor="signup-jpa" className={labelClass}>
-						Dein Justizprüfungsamt
-					</label>
-					<span className="relative block">
-						<select
-							id="signup-jpa"
-							value={jpaId}
-							onChange={(event) => onJpaChange(event.target.value)}
-							disabled={loading || error || !jpas?.length}
-							className={cn(
-								heroFieldClass,
-								"appearance-none pr-10 font-medium cursor-pointer",
-							)}
-						>
-							{loading && <option value="">Wird geladen …</option>}
-							{error && <option value="">Nicht verfügbar</option>}
-							{jpas?.map((jpa) => (
-								<option key={jpa.id} value={jpa.id}>
-									{jpa.name}
-								</option>
-							))}
-						</select>
-						<ChevronDown
-							className="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-ink/50"
-							aria-hidden
-						/>
-					</span>
-				</div>
+				{onJpaChange && (
+					<div className="sm:col-span-2">
+						<label htmlFor="signup-jpa" className={labelClass}>
+							Dein Justizprüfungsamt
+						</label>
+						<span className="relative block">
+							<select
+								id="signup-jpa"
+								value={jpaId}
+								onChange={(event) => onJpaChange(event.target.value)}
+								disabled={loading || error || !jpas?.length}
+								className={cn(
+									heroFieldClass,
+									"appearance-none pr-10 font-medium cursor-pointer",
+								)}
+							>
+								{loading && <option value="">Wird geladen …</option>}
+								{error && <option value="">Nicht verfügbar</option>}
+								{jpas?.map((jpa) => (
+									<option key={jpa.id} value={jpa.id}>
+										{jpa.name}
+									</option>
+								))}
+							</select>
+							<ChevronDown
+								className="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-ink/50"
+								aria-hidden
+							/>
+						</span>
+					</div>
+				)}
 
 				<div>
 					<label htmlFor="signup-email" className={labelClass}>

@@ -13,7 +13,7 @@ A visitor picks a Justizprüfungsamt, enters an email address and submits. They 
 ## How to get to it (user POV)
 
 - Landing page `/`: the form `#anmelden` in the hero.
-- Office page `/ergebnisse/<slug>`: the same form, preselected to that office.
+- Office page `/ergebnisse/<slug>`: the same form, locked to that office, without the select.
 - `/subscriptions` while signed out: the same signup form above "Link zuschicken".
 - The link in the confirm mail.
 

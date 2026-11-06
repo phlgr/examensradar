@@ -62,6 +62,11 @@ export function resultMonthIndex(sitting: ExamSitting): number {
 	return year * 12 + month + RESULT_LAG_MONTHS;
 }
 
+export function sittingEnd(sitting: ExamSitting): Date {
+	const [year, month, day] = parts(sitting.days[sitting.days.length - 1].date);
+	return new Date(year, month, day);
+}
+
 export function resultMonthName(sitting: ExamSitting): string {
 	return MONTHS[resultMonthIndex(sitting) % 12];
 }
