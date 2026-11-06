@@ -540,7 +540,7 @@ function JpaPage() {
 						</p>
 					)}
 
-					<section className="mt-10 mb-14 max-w-2xl">
+					<section className="mt-8 mb-14 max-w-2xl rounded-xl bg-seal-soft p-5 sm:p-7 ring-1 ring-seal/20">
 						<p className="text-lg sm:text-xl text-ink/70 leading-relaxed mb-5">
 							<strong className="font-semibold text-ink">
 								Schluss mit Nachschauen.
