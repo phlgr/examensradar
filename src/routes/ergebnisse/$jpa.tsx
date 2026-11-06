@@ -9,7 +9,6 @@ import { type ReactNode, useState } from "react";
 import { FaqList } from "@/components/FaqList";
 import { Footer } from "@/components/Footer";
 import { SignupForm } from "@/components/SignupForm";
-import { SectionIntro } from "@/components/ui/heading";
 import { trackEvent } from "@/lib/analytics";
 import {
 	type ExamSitting,
@@ -24,12 +23,13 @@ import {
 	SUBJECT_NAME,
 	sittingEnd,
 } from "@/lib/exam-calendar";
-import { jpaFaqs, officePageMeta } from "@/lib/faq";
+import { jpaFaqs, OFFICE_SUBTITLE, officePageMeta } from "@/lib/faq";
 import {
 	CONFIDENCE_LABEL,
 	examTimeline,
 	formatDayMonth,
 	formatDayMonthShort,
+	type JpaReleaseSummary,
 	monthPositionLabel,
 	type OfficeStatus,
 	officeStatus,
@@ -116,132 +116,290 @@ function resultsDate({ sitting, results }: TimelineEntry, currentYear: number) {
 		: dayMonthYear(results.date, currentYear);
 }
 
-function Mark({ children }: { children: ReactNode }) {
-	return <strong className="marker font-semibold">{children}</strong>;
+const MS_PER_DAY = 86_400_000;
+
+const daysFrom = (now: Date, date: Date) =>
+	Math.ceil((date.getTime() - now.getTime()) / MS_PER_DAY);
+
+type NextResults =
+	| { kind: "expected"; date: Date; exact: boolean; sitting?: ExamSitting }
+	| { kind: "overdue"; daysUntil: number }
+	| { kind: "none"; lastRelease: Date | null };
+
+function nextResults(
+	status: OfficeStatus,
+	entries: TimelineEntry[],
+	summary: JpaReleaseSummary | undefined,
+): NextResults {
+	if (status.kind === "overdue") return status;
+	const entry = entries.find((e) => e.results.kind === "expected");
+	if (entry?.results.kind === "expected") {
+		const { date, exact } = entry.results;
+		return { kind: "expected", date, exact, sitting: entry.sitting };
+	}
+	if (summary?.prediction) {
+		return { kind: "expected", date: summary.prediction.date, exact: true };
+	}
+	return { kind: "none", lastRelease: summary?.lastRelease ?? null };
 }
 
-function Expected({
+function ResultsCell({
+	next,
+	status,
+	summary,
+	websiteUrl,
+	now,
+}: {
+	next: NextResults;
+	status: OfficeStatus;
+	summary: JpaReleaseSummary | undefined;
+	websiteUrl: string | null;
+	now: Date;
+}) {
+	const year = now.getFullYear();
+	const prediction = next.kind === "expected" ? summary?.prediction : null;
+	let big: ReactNode;
+	let sub: ReactNode = null;
+	switch (next.kind) {
+		case "expected": {
+			const days = daysFrom(now, next.date);
+			const relative = next.exact
+				? relativeLabel(days)
+				: relativeLabel(days).replace(/^in /, "in ca. ");
+			big = (
+				<span className="marker">
+					{next.exact
+						? dayMonthYear(next.date, year)
+						: `Ende ${monthYear(next.date, year)}`}
+				</span>
+			);
+			sub = next.sitting
+				? `${relative} · für die Klausuren vom ${sittingRange(next.sitting, year)}`
+				: relative;
+			break;
+		}
+		case "overdue":
+			big = <span className="text-seal">Jeden Tag möglich</span>;
+			sub = `Die Ergebnisse sind ${relativeLabel(next.daysUntil)}.`;
+			break;
+		case "none":
+			big = <span className="text-ink/45">Noch offen</span>;
+			sub = next.lastRelease
+				? `Zuletzt veröffentlicht am ${dayMonthYear(next.lastRelease, year)}. Für eine Prognose fehlen noch Daten.`
+				: "Für dieses Prüfungsamt haben wir noch keine Veröffentlichung erfasst.";
+	}
+	return (
+		<div className="p-5 sm:p-6">
+			<p className={cn(LABEL, "text-ink/55")}>Nächste Ergebnisse</p>
+			<p className="headline mt-2 mb-1.5 text-[2.5rem] sm:text-5xl leading-[1.05]">
+				{big}
+			</p>
+			<p className="text-[14px] text-ink/60">{sub}</p>
+			{prediction && summary && (
+				<p className="mt-0.5 text-[14px] text-ink/60">
+					Meist {monthPositionLabel(prediction.medianOffsetDays)} gegen{" "}
+					{summary.typicalHour} Uhr · {CONFIDENCE_LABEL[prediction.confidence]}{" "}
+					zwischen {formatDayMonthShort(prediction.windowStart)} und{" "}
+					{formatDayMonthShort(prediction.windowEnd)}
+				</p>
+			)}
+			{status.kind === "released" && (
+				<p className="mt-3 inline-block rounded-2xl bg-ok-soft px-2.5 py-1 text-[13px] font-semibold text-ok">
+					Ergebnisse vom {dayMonthYear(status.date, year)} sind online
+					{websiteUrl && (
+						<>
+							{" · "}
+							<a
+								href={websiteUrl}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="inline-flex items-center gap-1 underline decoration-1 underline-offset-2 hover:decoration-2"
+							>
+								zum Prüfungsamt
+								<ExternalLink className="size-3.5 shrink-0" aria-hidden />
+							</a>
+						</>
+					)}
+				</p>
+			)}
+		</div>
+	);
+}
+
+function monthYear(date: Date, currentYear: number) {
+	const month = date.toLocaleDateString("de-DE", { month: "long" });
+	return date.getFullYear() === currentYear
+		? month
+		: `${month} ${date.getFullYear()}`;
+}
+
+function ExamsCell({
 	entry,
-	currentYear,
+	open,
+	onToggle,
+	now,
 }: {
 	entry: TimelineEntry;
-	currentYear: number;
+	open: boolean;
+	onToggle: () => void;
+	now: Date;
 }) {
-	const approximate = entry.results.kind === "expected" && !entry.results.exact;
+	const running = entry.phase === "läuft";
+	const today = localIsoDate(now);
+	const { days } = entry.sitting;
+	const written = days.filter((d) => d.date < today).length;
+	const sub = running
+		? `Tag ${Math.min(written + 1, days.length)} von ${days.length}`
+		: `${relativeLabel(daysFrom(now, new Date(`${days[0].date}T00:00`)))} · ${days.length} Klausuren`;
 	return (
-		<>
-			voraussichtlich {approximate ? "" : "am "}
-			<Mark>{resultsDate(entry, currentYear)}</Mark>
-		</>
+		<div className="border-t border-ink/10 p-5 sm:border-t-0 sm:border-l sm:p-6">
+			<p className={cn(LABEL, running ? "text-seal" : "text-ink/55")}>
+				{running ? "Klausuren laufen" : "Nächste Klausuren"}
+			</p>
+			<p className="headline mt-2 mb-1.5 text-[1.7rem] leading-[1.1]">
+				{sittingRange(entry.sitting, now.getFullYear())}
+			</p>
+			<p className="text-[14px] text-ink/60">{sub}</p>
+			<button
+				type="button"
+				aria-expanded={open}
+				aria-controls="klausurtage"
+				onClick={onToggle}
+				className="mt-4 inline-flex items-center gap-2 rounded-lg bg-sheet px-4 py-2.5 text-[15px] font-semibold ring-1 ring-ink/15 hover:ring-ink/30 cursor-pointer"
+			>
+				Klausurtage {open ? "ausblenden" : "zeigen"}
+				<ChevronDown
+					className={cn("size-4 transition-transform", open && "rotate-180")}
+					aria-hidden
+				/>
+			</button>
+		</div>
 	);
 }
 
-function AnswerBlock({
+function ExamDaysPanel({
+	entry,
+	open,
+	jpaSlug,
+	now,
+}: {
+	entry: TimelineEntry;
+	open: boolean;
+	jpaSlug: string;
+	now: Date;
+}) {
+	const today = localIsoDate(now);
+	return (
+		<div
+			id="klausurtage"
+			inert={!open}
+			className={cn(
+				"grid transition-[grid-template-rows] duration-200",
+				open ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+			)}
+		>
+			<div className="min-h-0 overflow-hidden">
+				<div className="mt-3 rounded-2xl bg-sheet p-4 sm:p-5 ring-1 ring-ink/10">
+					<div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+						<p className="font-semibold">
+							{entry.phase === "läuft"
+								? "Klausuren laufen"
+								: "Nächste Klausuren"}
+							: {sittingRange(entry.sitting, now.getFullYear())}
+						</p>
+						<a
+							href="#pruefungstermine"
+							className="text-[14px] text-ink/55 underline decoration-1 underline-offset-4 hover:text-ink"
+						>
+							Alle Klausurtermine ↓
+						</a>
+					</div>
+					<ul className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
+						{entry.sitting.days.map((day) => (
+							<li
+								key={day.date}
+								className={cn(
+									"flex justify-between rounded-lg px-3 py-2 text-[14px] ring-1 ring-inset ring-ink/10",
+									day.date < today && "opacity-45",
+									day.date === today && "ring-2 ring-seal",
+								)}
+							>
+								<span className="figures">
+									<span className="text-ink/55">
+										{formatExamDay(day.date).split(" ")[0]}
+									</span>{" "}
+									{formatExamDay(day.date).split(" ")[1]}
+								</span>
+								<abbr
+									title={SUBJECT_NAME[day.subject]}
+									className="font-semibold no-underline"
+								>
+									{day.subject}
+								</abbr>
+							</li>
+						))}
+					</ul>
+					<div className="mt-3 flex flex-wrap items-center justify-between gap-x-4 text-[12px] text-ink/55">
+						<span>ZR Zivilrecht · ÖR Öffentliches Recht · SR Strafrecht</span>
+						<CalendarLink jpaSlug={jpaSlug} sitting={entry.sitting} />
+					</div>
+				</div>
+			</div>
+		</div>
+	);
+}
+
+function StatusBoard({
 	status,
+	entries,
+	summary,
 	websiteUrl,
-	currentYear,
+	jpaSlug,
+	now,
 }: {
 	status: OfficeStatus;
+	entries: TimelineEntry[];
+	summary: JpaReleaseSummary | undefined;
 	websiteUrl: string | null;
-	currentYear: number;
+	jpaSlug: string;
+	now: Date;
 }) {
-	const { lead, detail } = answerLines(status, websiteUrl, currentYear);
+	const [open, setOpen] = useState(false);
+	const exams = entries.find(
+		(e) => e.phase === "läuft" || e.phase === "anstehend",
+	);
 	return (
 		<>
-			<span className="block text-ink">{lead}</span>
-			{detail && <span className="block mt-1">{detail}</span>}
+			<div
+				className={cn(
+					"mt-6 grid overflow-hidden rounded-2xl bg-sheet shadow-paper ring-1 ring-ink/10",
+					exams && "sm:grid-cols-[1.35fr_1fr]",
+				)}
+			>
+				<ResultsCell
+					next={nextResults(status, entries, summary)}
+					status={status}
+					summary={summary}
+					websiteUrl={websiteUrl}
+					now={now}
+				/>
+				{exams && (
+					<ExamsCell
+						entry={exams}
+						open={open}
+						onToggle={() => {
+							if (!open) trackEvent("exam_days_open", { jpa: jpaSlug });
+							setOpen(!open);
+						}}
+						now={now}
+					/>
+				)}
+			</div>
+			{exams && (
+				<ExamDaysPanel entry={exams} open={open} jpaSlug={jpaSlug} now={now} />
+			)}
 		</>
 	);
-}
-
-function answerLines(
-	status: OfficeStatus,
-	websiteUrl: string | null,
-	year: number,
-): { lead: ReactNode; detail?: ReactNode } {
-	switch (status.kind) {
-		case "released":
-			return {
-				lead: (
-					<>
-						Die Ergebnisse vom <Mark>{dayMonthYear(status.date, year)}</Mark>{" "}
-						sind online.
-					</>
-				),
-				detail: websiteUrl && (
-					<a
-						href={websiteUrl}
-						target="_blank"
-						rel="noopener noreferrer"
-						className="font-medium text-seal inline-flex items-center gap-1 underline decoration-1 underline-offset-4 hover:decoration-2"
-					>
-						Zur Website des Prüfungsamts
-						<ExternalLink className="w-4 h-4 shrink-0" />
-					</a>
-				),
-			};
-		case "overdue":
-			return {
-				lead: (
-					<span className="text-seal">
-						Die Ergebnisse sind {relativeLabel(status.daysUntil)}.
-					</span>
-				),
-				detail: "Sie können jeden Tag kommen.",
-			};
-		case "waiting":
-			return {
-				lead: (
-					<>
-						Ergebnisse für die Klausuren vom{" "}
-						{sittingRange(status.entry.sitting, year)}{" "}
-						<Expected entry={status.entry} currentYear={year} />.
-					</>
-				),
-				detail:
-					status.next &&
-					(status.next.phase === "läuft"
-						? `Gerade laufen die Klausuren vom ${sittingRange(status.next.sitting, year)}.`
-						: `Nächste Klausuren: ${sittingRange(status.next.sitting, year)}.`),
-			};
-		case "running":
-			return {
-				lead: `Die Klausuren laufen noch bis ${dayMonthYear(sittingEnd(status.entry.sitting), year)}.`,
-				detail: (
-					<>
-						Ergebnisse <Expected entry={status.entry} currentYear={year} />.
-					</>
-				),
-			};
-		case "upcoming":
-			return {
-				lead: `Nächste Klausuren ${sittingRange(status.entry.sitting, year)}.`,
-				detail: (
-					<>
-						Ergebnisse dafür{" "}
-						<Expected entry={status.entry} currentYear={year} />.
-					</>
-				),
-			};
-		case "noCalendar":
-			return {
-				lead: (
-					<>
-						Die nächsten Ergebnisse erwarten wir am{" "}
-						<Mark>{dayMonthYear(status.prediction.date, year)}</Mark>.
-					</>
-				),
-			};
-		case "unknown":
-			return status.lastRelease
-				? {
-						lead: `Zuletzt veröffentlicht am ${dayMonthYear(status.lastRelease, year)}.`,
-						detail: "Für eine Prognose fehlen noch Daten.",
-					}
-				: {
-						lead: "Für dieses Prüfungsamt haben wir noch keine Veröffentlichung erfasst.",
-					};
-	}
 }
 
 function ResultsLine({
@@ -502,8 +660,6 @@ function JpaPage() {
 	const { jpas, jpa, summary, timeline } = loaded;
 	const now = new Date(loaded.now);
 	const entries = timeline?.entries ?? [];
-	const prediction = summary?.prediction ?? null;
-	const meta = officePageMeta(jpa.name, summary, entries);
 	const status = officeStatus(summary, entries, now);
 	const older = olderReleases(jpa.slug, summary?.dates ?? [], entries);
 
@@ -523,29 +679,25 @@ function JpaPage() {
 						<span className="text-ink/70">{jpa.name}</span>
 					</nav>
 
-					<SectionIntro
-						as="h1"
-						title={meta.h1}
-						textClassName="text-xl sm:text-2xl leading-snug"
-					>
-						<AnswerBlock
-							status={status}
-							websiteUrl={jpa.websiteUrl}
-							currentYear={now.getFullYear()}
-						/>
-					</SectionIntro>
-					{prediction && summary && (
-						<p className="mt-3 max-w-2xl text-[13px] text-ink/55">
-							Veröffentlicht meist{" "}
-							{monthPositionLabel(prediction.medianOffsetDays)}, gegen{" "}
-							{summary.typicalHour} Uhr. Nächster Termin wahrscheinlich zwischen
-							dem {formatDayMonthShort(prediction.windowStart)} und dem{" "}
-							{formatDayMonthShort(prediction.windowEnd)} ·{" "}
-							{CONFIDENCE_LABEL[prediction.confidence]}
-						</p>
-					)}
+					<h1 lang="de">
+						<span className="headline block text-[2.6rem] sm:text-6xl leading-[1.02] break-words [hyphens:auto] sm:[hyphens:manual]">
+							{jpa.name}
+							<span className="opacity-0 select-none">:</span>
+						</span>{" "}
+						<span className="mt-2 block text-[15px] font-medium text-ink/60">
+							{OFFICE_SUBTITLE}
+						</span>
+					</h1>
+					<StatusBoard
+						status={status}
+						entries={entries}
+						summary={summary}
+						websiteUrl={jpa.websiteUrl}
+						jpaSlug={jpa.slug}
+						now={now}
+					/>
 
-					<section className="mt-8 mb-14 max-w-2xl rounded-xl bg-seal-soft p-5 sm:p-7 ring-1 ring-seal/20">
+					<section className="mt-10 mb-14 max-w-2xl rounded-xl bg-seal-soft p-5 sm:p-7 ring-1 ring-seal/20">
 						<h2 className="flex items-center gap-2.5 text-xl sm:text-2xl font-semibold leading-tight">
 							<BellRing className="size-5 sm:size-6 shrink-0 text-seal" />
 							Per E-Mail Bescheid bekommen

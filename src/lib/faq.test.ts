@@ -32,9 +32,6 @@ describe("officePageMeta", () => {
 		expect(meta.title).toBe(
 			"OLG Hamm: Termine & Ergebnisse 1. Examen | Examensradar",
 		);
-		expect(meta.h1).toBe(
-			"OLG Hamm: Klausurtermine und Ergebnisse im 1. Examen",
-		);
 		expect(meta.description).toContain("19.–27. November 2026");
 		expect(meta.description).toContain("1. Dezember 2026");
 		expect(meta.description.indexOf("1. Dezember 2026")).toBeLessThan(

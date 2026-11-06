@@ -148,9 +148,10 @@ export function jpaFaqs(
 	return faqs;
 }
 
+export const OFFICE_SUBTITLE = "Klausurtermine und Ergebnisse im 1. Examen";
+
 export interface OfficePageMeta {
 	title: string;
-	h1: string;
 	description: string;
 }
 
@@ -180,7 +181,6 @@ export function officePageMeta(
 
 	return {
 		title: title.length > 60 ? base : title,
-		h1: `${name}: Klausurtermine und Ergebnisse im 1. Examen`,
 		description,
 	};
 }
