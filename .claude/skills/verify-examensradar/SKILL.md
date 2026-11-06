@@ -46,6 +46,7 @@ bun $V/journeys/manage-subscriptions.ts myrun
 bun $V/journeys/admin-scraper.ts myrun
 bun $V/journeys/unsubscribe.ts myrun           # last: it ends the subscriber's mail
 bun $V/journeys/exam-calendar.ts myrun         # independent: its own Hamm signup, any order
+bun $V/journeys/oral-exams.ts myrun            # independent, read-only: fetches the live NRW oral exam lists
 ```
 
 `manage-subscriptions`, `admin-scraper` and `unsubscribe` continue with the subscriber that `subscribe-confirm` created (`verify+<run-id>@example.test`), so run them in this order on one instance. `exam-calendar` signs up its own `verify+cal-<run-id>@example.test` on Hamm and needs nothing else. To rerun the set, launch a fresh instance: the second `manage-subscriptions` run on the same instance hits that address's mail throttle at the resend step.

@@ -3,6 +3,7 @@ User-agent: *
 Allow: /
 Disallow: /admin
 Disallow: /api/
+Disallow: /_serverFn/
 Disallow: /confirm/
 Disallow: /unsubscribe/
 # /subscriptions is not disallowed: Google must crawl it to see its noindex.

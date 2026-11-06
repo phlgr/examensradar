@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import {
 	BellRing,
@@ -5,11 +6,12 @@ import {
 	ChevronDown,
 	ExternalLink,
 } from "lucide-react";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { FaqList } from "@/components/FaqList";
 import { Footer } from "@/components/Footer";
 import { SignupForm } from "@/components/SignupForm";
 import { SectionIntro } from "@/components/ui/heading";
+import { fieldClass, labelClass } from "@/components/ui/input";
 import { trackEvent } from "@/lib/analytics";
 import {
 	type ExamSitting,
@@ -18,6 +20,7 @@ import {
 	formatSittingRange,
 	formatStand,
 	localIsoDate,
+	MONTHS,
 	monthsBetween,
 	resultMonthIndex,
 	resultMonthName,
@@ -25,6 +28,8 @@ import {
 	sittingEnd,
 } from "@/lib/exam-calendar";
 import { jpaFaqs, officePageMeta } from "@/lib/faq";
+import { normalizeKennziffer, type OralExamAssignment } from "@/lib/kennziffer";
+import type { OralExamSchedule } from "@/lib/oral-exams";
 import {
 	CONFIDENCE_LABEL,
 	examTimeline,
@@ -41,19 +46,31 @@ import {
 } from "@/lib/release-summary";
 import { faqJsonLd, jpaParam, jpaPath, jsonLd, SITE_URL, seo } from "@/lib/seo";
 import { cn } from "@/lib/utils";
-import { getPublicData } from "@/server/public-data";
+import {
+	getOralExamAssignments,
+	getOralExams,
+	getPublicData,
+} from "@/server/public-data";
 
 export const Route = createFileRoute("/ergebnisse/$jpa")({
 	loader: async ({ params }) => {
 		const { jpas, history } = await getPublicData();
 		const jpa = jpas.find((j) => jpaParam(j.slug) === params.jpa);
 		if (!jpa) throw notFound();
+		const oralExams = await getOralExams({ data: jpa.slug });
 		const now = new Date();
 		const summary = summarizeReleases(history, now).find(
 			(s) => s.slug === jpa.slug,
 		);
 		const timeline = examTimeline(jpa.slug, summary?.dates ?? [], now);
-		return { jpas, jpa, summary, timeline, now: now.toISOString() };
+		return {
+			jpas,
+			jpa,
+			summary,
+			timeline,
+			oralExams,
+			now: now.toISOString(),
+		};
 	},
 	head: ({ loaderData }) => {
 		if (!loaderData) return {};
@@ -497,9 +514,183 @@ function ExamTimelineList({
 	);
 }
 
+type LookupResult =
+	| { kind: "idle" | "loading" | "error" | "missing" }
+	| { kind: "found"; assignment: OralExamAssignment };
+
+/**
+ * The Kennziffern load only once the field is first used and the typed number is
+ * matched right here: it is in no URL, request, storage or analytics event.
+ */
+function useKennzifferLookup(jpaSlug: string, available: boolean) {
+	const [input, setInput] = useState("");
+	const [requested, setRequested] = useState(false);
+	const assignments = useQuery({
+		queryKey: ["oral-exam-assignments", jpaSlug],
+		queryFn: () => getOralExamAssignments({ data: jpaSlug }),
+		enabled: available && requested,
+		staleTime: Number.POSITIVE_INFINITY,
+		retry: 1,
+	});
+	const key = normalizeKennziffer(input);
+	const assignment = key ? assignments.data?.[key] : undefined;
+	const result: LookupResult = !key
+		? { kind: "idle" }
+		: assignments.isError
+			? { kind: "error" }
+			: !assignments.data
+				? { kind: "loading" }
+				: assignment
+					? { kind: "found", assignment }
+					: { kind: "missing" };
+
+	const tracked = useRef(false);
+	const settled = result.kind === "found" || result.kind === "missing";
+	useEffect(() => {
+		if (!settled || tracked.current) return;
+		tracked.current = true;
+		trackEvent("kennziffer_lookup", { jpa: jpaSlug, found: !!assignment });
+	}, [settled, assignment, jpaSlug]);
+
+	return {
+		input,
+		result,
+		change: (value: string) => {
+			setInput(value);
+			setRequested(true);
+		},
+		activate: () => setRequested(true),
+	};
+}
+
+function KennzifferLookup({
+	lookup,
+}: {
+	lookup: ReturnType<typeof useKennzifferLookup>;
+}) {
+	const { result } = lookup;
+	return (
+		<div className="mb-6 max-w-sm">
+			<label htmlFor="kennziffer" className={labelClass}>
+				Deine Kennziffer
+			</label>
+			<input
+				id="kennziffer"
+				type="text"
+				autoComplete="off"
+				autoCapitalize="off"
+				spellCheck={false}
+				placeholder="z. B. 1234/26"
+				value={lookup.input}
+				onFocus={lookup.activate}
+				onChange={(event) => lookup.change(event.target.value)}
+				className={fieldClass}
+			/>
+			<div role="status" className="mt-2 text-[15px] leading-snug">
+				{result.kind === "loading" && (
+					<p className="text-ink/55">Wird geladen …</p>
+				)}
+				{result.kind === "error" && (
+					<p className="text-ink/70">
+						Die Termine konnten gerade nicht geladen werden. Bitte versuch es
+						später noch einmal.
+					</p>
+				)}
+				{result.kind === "missing" && (
+					<p className="text-ink/70">
+						Für diese Kennziffer ist noch kein Termin veröffentlicht. Die Ladung
+						kommt etwa drei Wochen vor der Prüfung.
+					</p>
+				)}
+				{result.kind === "found" && (
+					<p className="rounded-lg bg-seal-soft p-3.5 ring-1 ring-seal/20">
+						<Mark>{formatExamDay(result.assignment.date)}</Mark>
+						{" · "}
+						{result.assignment.place}
+						{result.assignment.start &&
+							` · ab ca. ${result.assignment.start} Uhr`}
+					</p>
+				)}
+			</div>
+			<p className="mt-2 text-[13px] text-ink/55">
+				Deine Kennziffer bleibt in deinem Browser. Wir speichern und senden sie
+				nicht.
+			</p>
+		</div>
+	);
+}
+
+function formatOralDay(date: string, withYear: boolean): string {
+	const [year, month, day] = date.split("-").map(Number);
+	return `${day}. ${MONTHS[month - 1]}${withYear ? ` ${year}` : ""}`;
+}
+
+function OralExamSection({
+	schedule,
+	jpaSlug,
+	jpaName,
+	now,
+}: {
+	schedule: OralExamSchedule;
+	jpaSlug: string;
+	jpaName: string;
+	now: Date;
+}) {
+	const lookup = useKennzifferLookup(jpaSlug, schedule.lookup);
+	const today = localIsoDate(now);
+	const upcoming = schedule.days.filter((day) => day.date >= today);
+	if (upcoming.length === 0) return null;
+	const from = upcoming[0].date;
+	const to = upcoming[upcoming.length - 1].date;
+	const sameYear = from.slice(0, 4) === to.slice(0, 4);
+
+	return (
+		<section className="mb-14">
+			<h2 className="text-2xl font-semibold leading-tight mb-2">
+				Mündliche Prüfungen beim {jpaName}
+			</h2>
+			<p className="text-[17px] leading-relaxed mb-1">
+				Die nächsten mündlichen Prüfungen finden{" "}
+				{from === to ? (
+					<>
+						am <Mark>{formatOralDay(from, true)}</Mark>
+					</>
+				) : (
+					<>
+						vom <Mark>{formatOralDay(from, !sameYear)}</Mark> bis zum{" "}
+						<Mark>{formatOralDay(to, true)}</Mark>
+					</>
+				)}{" "}
+				statt.
+			</p>
+			<p className="text-[15px] text-ink/55 mb-6">
+				{schedule.lookup
+					? "Gib deine Kennziffer ein, dann zeigen wir dir deinen Tag und Ort."
+					: "Das Prüfungsamt veröffentlicht nicht, welche Kennziffer an welchem Tag geprüft wird. Deinen Tag teilt es dir per E-Mail mit."}{" "}
+				Die mündliche Prüfung liegt in der Regel im fünften Monat nach den
+				Klausuren, die Ladung kommt etwa drei Wochen vorher.
+			</p>
+			{schedule.lookup && <KennzifferLookup lookup={lookup} />}
+			<p className="mt-4 text-[13px] text-ink/55">
+				Ohne Gewähr. Quelle:{" "}
+				<a
+					href={schedule.sourceUrl}
+					target="_blank"
+					rel="noopener noreferrer"
+					className="underline decoration-1 underline-offset-4 hover:decoration-2"
+				>
+					Mündliche Prüfungstermine des Justizprüfungsamts beim {jpaName}
+				</a>
+				, abgerufen am {formatStand(localIsoDate(new Date(schedule.fetchedAt)))}
+				.
+			</p>
+		</section>
+	);
+}
+
 function JpaPage() {
 	const loaded = Route.useLoaderData();
-	const { jpas, jpa, summary, timeline } = loaded;
+	const { jpas, jpa, summary, timeline, oralExams } = loaded;
 	const now = new Date(loaded.now);
 	const entries = timeline?.entries ?? [];
 	const prediction = summary?.prediction ?? null;
@@ -602,6 +793,15 @@ function JpaPage() {
 								</>
 							)}
 						</section>
+					)}
+
+					{oralExams && (
+						<OralExamSection
+							schedule={oralExams}
+							jpaSlug={jpa.slug}
+							jpaName={jpa.name}
+							now={now}
+						/>
 					)}
 
 					<section className="mb-14">
