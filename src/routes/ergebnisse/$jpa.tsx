@@ -366,6 +366,8 @@ function CalendarLink({
 	);
 }
 
+const VISIBLE_UPCOMING = 6;
+
 interface Slot {
 	card: ReleaseCard;
 	hidden: boolean;
@@ -400,12 +402,16 @@ function ExamTimelineList({
 	const firstExpected = entries.find((e) => e.results.kind === "expected");
 	const running = entries.some((e) => e.phase === "läuft");
 	const collapsible = older.length > 0 && entries.length > 0;
+	const [showLater, setShowLater] = useState(false);
+	const upcoming = entries.filter((e) => e.phase === "anstehend");
+	const later = new Set(upcoming.slice(VISIBLE_UPCOMING));
+	const lastSitting = upcoming.at(-1)?.sitting;
 
 	const slots: Slot[] = [
 		...older.map((card) => ({ card, hidden: collapsible && !showOlder })),
 		...entries.map((entry) => ({
 			card: { kind: "sitting", entry } as const,
-			hidden: false,
+			hidden: later.has(entry) && !showLater,
 		})),
 	];
 	const pods: Pod[] = slots.flatMap((slot, index) => {
@@ -420,7 +426,7 @@ function ExamTimelineList({
 					kind: "gap",
 					key: `${cardKey(slot.card)}-${month}`,
 					month,
-					hidden: previous.hidden,
+					hidden: previous.hidden || slot.hidden,
 				}),
 			),
 			{ kind: "card", ...slot },
@@ -536,6 +542,26 @@ function ExamTimelineList({
 					);
 				})}
 			</ol>
+			{later.size > 0 && lastSitting && (
+				<button
+					type="button"
+					aria-expanded={showLater}
+					aria-controls="pruefungstermine"
+					onClick={() => setShowLater((shown) => !shown)}
+					className="mt-4 inline-flex items-center gap-2 rounded-lg bg-sheet px-4 py-2.5 text-[15px] font-semibold ring-1 ring-ink/15 hover:ring-ink/30 cursor-pointer"
+				>
+					{showLater
+						? "Weniger Termine anzeigen"
+						: `Alle Termine bis ${formatSittingMonth(lastSitting, currentYear)} anzeigen`}
+					<ChevronDown
+						className={cn(
+							"size-4 transition-transform",
+							showLater && "rotate-180",
+						)}
+						aria-hidden
+					/>
+				</button>
+			)}
 		</>
 	);
 }
