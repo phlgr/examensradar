@@ -163,7 +163,6 @@ export type ReleaseCard =
 	| { kind: "sitting"; entry: TimelineEntry }
 	| { kind: "release"; date: Date };
 
-/** Releases the timeline doesn't already show, oldest first. A release that belongs to a calendar sitting comes with that sitting. */
 export function olderReleases(
 	slug: string,
 	releaseDates: Date[],

@@ -559,7 +559,7 @@ function JpaPage() {
 							jpas={jpas}
 							loading={false}
 							error={false}
-							jpaId={jpa.id}
+							jpa={{ kind: "fixed", jpaId: jpa.id }}
 							source="jpa"
 						/>
 					</section>

@@ -299,8 +299,7 @@ function Signup({
 				jpas={jpasQuery.data}
 				loading={jpasQuery.isLoading}
 				error={jpasQuery.isError}
-				jpaId={jpaId}
-				onJpaChange={setJpaId}
+				jpa={{ kind: "pick", jpaId, onChange: setJpaId }}
 				source="subscriptions"
 			/>
 			{signedOut && <ResendManageLink />}

@@ -9,11 +9,13 @@ interface SignupFormProps {
 	jpas: Array<{ id: string; name: string }> | undefined;
 	loading: boolean;
 	error: boolean;
-	jpaId: string;
-	/** Omit to lock the form to `jpaId`, without an office select. */
-	onJpaChange?: (jpaId: string) => void;
+	jpa: JpaChoice;
 	source: "landing" | "subscriptions" | "jpa";
 }
+
+type JpaChoice =
+	| { kind: "pick"; jpaId: string; onChange: (jpaId: string) => void }
+	| { kind: "fixed"; jpaId: string };
 
 const heroFieldClass = cn(fieldClass, "h-12");
 
@@ -21,10 +23,10 @@ export function SignupForm({
 	jpas,
 	loading,
 	error,
-	jpaId,
-	onJpaChange,
+	jpa,
 	source,
 }: SignupFormProps) {
+	const { jpaId } = jpa;
 	const [email, setEmail] = useState("");
 	const successRef = useRef<HTMLDivElement>(null);
 
@@ -85,7 +87,7 @@ export function SignupForm({
 			}}
 		>
 			<div className="grid gap-3 sm:grid-cols-[1fr_auto]">
-				{onJpaChange && (
+				{jpa.kind === "pick" && (
 					<div className="sm:col-span-2">
 						<label htmlFor="signup-jpa" className={labelClass}>
 							Dein Justizprüfungsamt
@@ -94,7 +96,7 @@ export function SignupForm({
 							<select
 								id="signup-jpa"
 								value={jpaId}
-								onChange={(event) => onJpaChange(event.target.value)}
+								onChange={(event) => jpa.onChange(event.target.value)}
 								disabled={loading || error || !jpas?.length}
 								className={cn(
 									heroFieldClass,
