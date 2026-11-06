@@ -75,7 +75,7 @@ function AdminPage() {
 	const [editingJpa, setEditingJpa] = useState<string | null>(null);
 	const [showCreateForm, setShowCreateForm] = useState(false);
 
-	const jpasQuery = trpc.jpa.getAll.useQuery();
+	const jpasQuery = trpc.jpa.adminList.useQuery();
 	const subscriptionCountsQuery = trpc.jpa.getSubscriptionCounts.useQuery();
 	const scrapeStatesQuery = trpc.jpa.getScrapeStates.useQuery();
 

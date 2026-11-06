@@ -1,8 +1,8 @@
 import { formatSittingRange, resultMonthName } from "@/lib/exam-calendar";
 import {
 	CONFIDENCE_LABEL,
-	type JpaReleaseSummary,
 	monthPositionLabel,
+	type PublicReleaseSummary,
 	type TimelineEntry,
 } from "@/lib/release-summary";
 import { type Faq, formatLongDate } from "@/lib/seo";
@@ -12,7 +12,7 @@ function listNames(names: string[]): string {
 	return `${names.slice(0, -1).join(", ")} und ${names.at(-1)}`;
 }
 
-function predictionPhrase(summary: JpaReleaseSummary): string | null {
+function predictionPhrase(summary: PublicReleaseSummary): string | null {
 	const { prediction } = summary;
 	if (!prediction) return null;
 	const sameDay =
@@ -23,7 +23,7 @@ function predictionPhrase(summary: JpaReleaseSummary): string | null {
 	return `am ${formatLongDate(prediction.date)}${window}`;
 }
 
-export function nextReleaseSentence(summary: JpaReleaseSummary): string {
+export function nextReleaseSentence(summary: PublicReleaseSummary): string {
 	const next = predictionPhrase(summary);
 	if (!next) {
 		return `${summary.name} hat zuletzt am ${formatLongDate(summary.lastRelease)} Ergebnisse veröffentlicht; für eine Prognose fehlen noch Daten.`;
@@ -33,7 +33,7 @@ export function nextReleaseSentence(summary: JpaReleaseSummary): string {
 
 export function landingFaqs(
 	jpaNames: string[],
-	summaries: JpaReleaseSummary[],
+	summaries: PublicReleaseSummary[],
 ): Faq[] {
 	const byDate = new Map<string, string[]>();
 	for (const s of summaries) {
@@ -98,7 +98,7 @@ export function resultsPhrase({ sitting, results }: TimelineEntry): string {
 
 export function jpaFaqs(
 	name: string,
-	summary: JpaReleaseSummary | undefined,
+	summary: PublicReleaseSummary | undefined,
 	entries: TimelineEntry[] = [],
 ) {
 	const faqs: Faq[] = [];
@@ -157,7 +157,7 @@ export interface OfficePageMeta {
 
 export function officePageMeta(
 	name: string,
-	summary: JpaReleaseSummary | undefined,
+	summary: PublicReleaseSummary | undefined,
 	entries: TimelineEntry[] = [],
 ): OfficePageMeta {
 	const open = entries.find(

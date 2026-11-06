@@ -16,7 +16,6 @@ import { Eyebrow, SectionIntro } from "@/components/ui/heading";
 import { Input } from "@/components/ui/input";
 import { PageSpinner } from "@/components/ui/spinner";
 import { trackEvent } from "@/lib/analytics";
-import { summarizeReleases } from "@/lib/release-summary";
 import { noindex } from "@/lib/seo";
 import { trpc } from "@/lib/trpc";
 import type { AppRouter } from "@/server/routers/_app";
@@ -69,7 +68,7 @@ function SubscriptionsPage() {
 	// share the batched request with `me` instead of waiting for it, and no
 	// second observer mounts later to refetch the then-stale data.
 	const jpasQuery = trpc.jpa.getAll.useQuery();
-	const historyQuery = trpc.jpa.getHistory.useQuery();
+	const summariesQuery = trpc.jpa.getSummaries.useQuery();
 
 	if (meQuery.isLoading || manage) return <PageSpinner />;
 
@@ -111,7 +110,7 @@ function SubscriptionsPage() {
 						email={me.email}
 						jpaIds={me.jpas.map((jpa) => jpa.jpaId)}
 						jpasQuery={jpasQuery}
-						historyQuery={historyQuery}
+						summariesQuery={summariesQuery}
 					/>
 				)}
 			</div>
@@ -124,18 +123,20 @@ type JpasQuery = {
 	isLoading: boolean;
 	isError: boolean;
 };
-type HistoryQuery = { data: RouterOutputs["jpa"]["getHistory"] | undefined };
+type SummariesQuery = {
+	data: RouterOutputs["jpa"]["getSummaries"] | undefined;
+};
 
 function Managing({
 	email,
 	jpaIds,
 	jpasQuery,
-	historyQuery,
+	summariesQuery,
 }: {
 	email: string;
 	jpaIds: string[];
 	jpasQuery: JpasQuery;
-	historyQuery: HistoryQuery;
+	summariesQuery: SummariesQuery;
 }) {
 	const utils = trpc.useUtils();
 
@@ -143,10 +144,7 @@ function Managing({
 	const search = useJpaSearch(jpas);
 	const subscribedJpaIds = new Set(jpaIds);
 	const summaryBySlug = new Map(
-		summarizeReleases(historyQuery.data ?? [], new Date()).map((summary) => [
-			summary.slug,
-			summary,
-		]),
+		(summariesQuery.data ?? []).map((summary) => [summary.slug, summary]),
 	);
 
 	const jpaNameById = (id: string) =>

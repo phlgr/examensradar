@@ -5,7 +5,7 @@ import {
 	CONFIDENCE_LABEL,
 	formatDayMonth,
 	formatDayMonthShort,
-	type JpaReleaseSummary,
+	type PublicReleaseSummary,
 	relativeLabel,
 } from "@/lib/release-summary";
 import { cn } from "@/lib/utils";
@@ -13,11 +13,11 @@ import { cn } from "@/lib/utils";
 const MAX_ROWS = 3;
 
 interface UpcomingReleasesProps {
-	summaries: JpaReleaseSummary[];
+	summaries: PublicReleaseSummary[];
 	loading: boolean;
 }
 
-function CalendarLeaf({ summary }: { summary: JpaReleaseSummary }) {
+function CalendarLeaf({ summary }: { summary: PublicReleaseSummary }) {
 	const { prediction, daysUntil } = summary;
 	if (!prediction || daysUntil === null) return null;
 	const overdue = daysUntil < 0;

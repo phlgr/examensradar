@@ -33,15 +33,6 @@ export const getJpas = async (): Promise<JPA[]> => {
 	return db.select().from(schema.jpa).all();
 };
 
-export const getJpaBySlug = async (slug: string): Promise<JPA | null> => {
-	const result = await db
-		.select()
-		.from(schema.jpa)
-		.where(eq(schema.jpa.slug, slug))
-		.get();
-	return result || null;
-};
-
 export const getJpaById = async (id: string): Promise<JPA | null> => {
 	const result = await db
 		.select()

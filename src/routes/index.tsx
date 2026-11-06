@@ -7,7 +7,6 @@ import { Reveal } from "@/components/landing/Reveal";
 import { UpcomingReleases } from "@/components/landing/UpcomingReleases";
 import { SignupForm } from "@/components/SignupForm";
 import { landingFaqs } from "@/lib/faq";
-import { summarizeReleases } from "@/lib/release-summary";
 import { faqJsonLd, seo } from "@/lib/seo";
 import { getPublicData } from "@/server/public-data";
 
@@ -23,7 +22,7 @@ export const Route = createFileRoute("/")({
 		if (!loaderData) return page;
 		const faqs = landingFaqs(
 			loaderData.jpas.map((jpa) => jpa.name),
-			summarizeReleases(loaderData.history, new Date()),
+			loaderData.summaries,
 		);
 		return { ...page, scripts: [faqJsonLd(faqs)] };
 	},
@@ -57,11 +56,10 @@ function Keycap({ children }: { children: string }) {
 }
 
 function LandingPage() {
-	const { jpas, history } = Route.useLoaderData();
+	const { jpas, summaries } = Route.useLoaderData();
 	const [jpaId, setJpaId] = useState(jpas[0]?.id ?? "");
 
 	const selectedJpa = jpas.find((jpa) => jpa.id === jpaId);
-	const summaries = summarizeReleases(history, new Date());
 	const faqs = landingFaqs(
 		jpas.map((jpa) => jpa.name),
 		summaries,
