@@ -27,34 +27,24 @@ import {
 import { jpaFaqs, OFFICE_SUBTITLE, officePageMeta } from "@/lib/faq";
 import {
 	CONFIDENCE_LABEL,
-	examTimeline,
 	formatDayMonth,
 	formatDayMonthShort,
-	type JpaReleaseSummary,
 	monthPositionLabel,
 	type OfficeStatus,
-	officeStatus,
-	olderReleases,
+	type PublicReleaseSummary,
 	type ReleaseCard,
 	relativeLabel,
-	summarizeReleases,
 	type TimelineEntry,
 } from "@/lib/release-summary";
 import { faqJsonLd, jpaParam, jpaPath, jsonLd, SITE_URL, seo } from "@/lib/seo";
 import { cn } from "@/lib/utils";
-import { getPublicData } from "@/server/public-data";
+import { getOfficeData } from "@/server/public-data";
 
 export const Route = createFileRoute("/ergebnisse/$jpa")({
 	loader: async ({ params }) => {
-		const { jpas, history } = await getPublicData();
-		const jpa = jpas.find((j) => jpaParam(j.slug) === params.jpa);
-		if (!jpa) throw notFound();
-		const now = new Date();
-		const summary = summarizeReleases(history, now).find(
-			(s) => s.slug === jpa.slug,
-		);
-		const timeline = examTimeline(jpa.slug, summary?.dates ?? [], now);
-		return { jpas, jpa, summary, timeline, now: now.toISOString() };
+		const office = await getOfficeData({ data: params.jpa });
+		if (!office) throw notFound();
+		return office;
 	},
 	head: ({ loaderData }) => {
 		if (!loaderData) return {};
@@ -130,7 +120,7 @@ type NextResults =
 function nextResults(
 	status: OfficeStatus,
 	entries: TimelineEntry[],
-	summary: JpaReleaseSummary | undefined,
+	summary: PublicReleaseSummary | undefined,
 ): NextResults {
 	if (status.kind === "overdue") return status;
 	const entry = entries.find((e) => e.results.kind === "expected");
@@ -153,7 +143,7 @@ function ResultsCell({
 }: {
 	next: NextResults;
 	status: OfficeStatus;
-	summary: JpaReleaseSummary | undefined;
+	summary: PublicReleaseSummary | undefined;
 	websiteUrl: string | null;
 	now: Date;
 }) {
@@ -271,7 +261,7 @@ function StatusBoard({
 }: {
 	status: OfficeStatus;
 	entries: TimelineEntry[];
-	summary: JpaReleaseSummary | undefined;
+	summary: PublicReleaseSummary | undefined;
 	websiteUrl: string | null;
 	now: Date;
 }) {
@@ -552,11 +542,9 @@ function ExamTimelineList({
 
 function JpaPage() {
 	const loaded = Route.useLoaderData();
-	const { jpas, jpa, summary, timeline } = loaded;
+	const { jpas, jpa, summary, timeline, older, status } = loaded;
 	const now = new Date(loaded.now);
 	const entries = timeline?.entries ?? [];
-	const status = officeStatus(summary, entries, now);
-	const older = olderReleases(jpa.slug, summary?.dates ?? [], entries);
 
 	return (
 		<>

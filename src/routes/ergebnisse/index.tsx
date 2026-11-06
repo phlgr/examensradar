@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { PredictionNote } from "@/components/ui/date-chip";
 import { SectionIntro } from "@/components/ui/heading";
 import { historyFaqs } from "@/lib/faq";
-import { formatDayMonth, summarizeReleases } from "@/lib/release-summary";
+import { formatDayMonth } from "@/lib/release-summary";
 import { faqJsonLd, jpaParam, jsonLd, SITE_URL, seo } from "@/lib/seo";
 import { getPublicData } from "@/server/public-data";
 
@@ -44,8 +44,7 @@ export const Route = createFileRoute("/ergebnisse/")({
 });
 
 function ResultsIndexPage() {
-	const { jpas, history } = Route.useLoaderData();
-	const summaries = summarizeReleases(history, new Date());
+	const { jpas, summaries } = Route.useLoaderData();
 	const rows = [...jpas]
 		.sort((a, b) => a.name.localeCompare(b.name, "de"))
 		.map((jpa) => ({

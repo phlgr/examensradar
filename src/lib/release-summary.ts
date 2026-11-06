@@ -35,6 +35,14 @@ export interface JpaReleaseSummary {
 	daysUntil: number | null;
 }
 
+/** What may leave the server: the raw release timestamps stay behind. */
+export type PublicReleaseSummary = Omit<JpaReleaseSummary, "dates">;
+
+export const publicSummary = ({
+	dates: _dates,
+	...summary
+}: JpaReleaseSummary): PublicReleaseSummary => summary;
+
 const MS_PER_DAY = 86_400_000;
 
 function median(values: number[]): number {

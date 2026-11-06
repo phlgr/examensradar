@@ -5,22 +5,27 @@ import {
 	deleteJpa,
 	dropScrapeBaseline,
 	getJpaById,
-	getJpaBySlug,
 	getJpas,
 	getNotificationHistory,
 	getScrapeStates,
 	getSubscriptionCountsByJpa,
 	updateJpa,
 } from "@/db";
+import { publicSummary, summarizeReleases } from "@/lib/release-summary";
 import { checkJpa } from "../scraper";
 import { adminProcedure, publicProcedure, router } from "../trpc";
 
 export const jpaRouter = router({
-	getAll: publicProcedure.query(() => getJpas()),
+	getAll: publicProcedure.query(async () =>
+		(await getJpas()).map(({ id, slug, name, websiteUrl }) => ({
+			id,
+			slug,
+			name,
+			websiteUrl,
+		})),
+	),
 
-	getBySlug: publicProcedure
-		.input(z.object({ slug: z.string() }))
-		.query(({ input }) => getJpaBySlug(input.slug)),
+	adminList: adminProcedure.query(() => getJpas()),
 
 	getById: adminProcedure
 		.input(z.object({ id: z.string() }))
@@ -104,5 +109,9 @@ export const jpaRouter = router({
 			return checkJpa(jpa);
 		}),
 
-	getHistory: publicProcedure.query(() => getNotificationHistory()),
+	getSummaries: publicProcedure.query(async () =>
+		summarizeReleases(await getNotificationHistory(), new Date()).map(
+			publicSummary,
+		),
+	),
 });
