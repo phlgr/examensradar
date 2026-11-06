@@ -29,7 +29,7 @@ import {
 } from "@/lib/exam-calendar";
 import { jpaFaqs, officePageMeta } from "@/lib/faq";
 import { normalizeKennziffer, type OralExamAssignment } from "@/lib/kennziffer";
-import type { OralExamDay, OralExamSchedule } from "@/lib/oral-exams";
+import type { OralExamSchedule } from "@/lib/oral-exams";
 import {
 	CONFIDENCE_LABEL,
 	examTimeline,
@@ -620,6 +620,11 @@ function KennzifferLookup({
 	);
 }
 
+function formatOralDay(date: string, withYear: boolean): string {
+	const [year, month, day] = date.split("-").map(Number);
+	return `${day}. ${MONTHS[month - 1]}${withYear ? ` ${year}` : ""}`;
+}
+
 function OralExamSection({
 	schedule,
 	jpaSlug,
@@ -632,58 +637,40 @@ function OralExamSection({
 	now: Date;
 }) {
 	const lookup = useKennzifferLookup(jpaSlug, schedule.lookup);
-	const foundDate =
-		lookup.result.kind === "found" ? lookup.result.assignment.date : undefined;
 	const today = localIsoDate(now);
-	const months = new Map<string, OralExamDay[]>();
-	for (const day of schedule.days) {
-		if (day.date < today) continue;
-		const key = day.date.slice(0, 7);
-		months.set(key, [...(months.get(key) ?? []), day]);
-	}
-	if (months.size === 0) return null;
+	const upcoming = schedule.days.filter((day) => day.date >= today);
+	if (upcoming.length === 0) return null;
+	const from = upcoming[0].date;
+	const to = upcoming[upcoming.length - 1].date;
+	const sameYear = from.slice(0, 4) === to.slice(0, 4);
 
 	return (
 		<section className="mb-14">
 			<h2 className="text-2xl font-semibold leading-tight mb-2">
 				Mündliche Prüfungen beim {jpaName}
 			</h2>
+			<p className="text-[17px] leading-relaxed mb-1">
+				Die nächsten mündlichen Prüfungen finden{" "}
+				{from === to ? (
+					<>
+						am <Mark>{formatOralDay(from, true)}</Mark>
+					</>
+				) : (
+					<>
+						vom <Mark>{formatOralDay(from, !sameYear)}</Mark> bis zum{" "}
+						<Mark>{formatOralDay(to, true)}</Mark>
+					</>
+				)}{" "}
+				statt.
+			</p>
 			<p className="text-[15px] text-ink/55 mb-6">
-				An welchen Tagen und wo mündlich geprüft wird. Die mündliche Prüfung
-				findet in der Regel im fünften Monat nach den Klausuren statt, die
-				persönliche Ladung kommt etwa drei Wochen vorher.
+				{schedule.lookup
+					? "Gib deine Kennziffer ein, dann zeigen wir dir deinen Tag und Ort."
+					: "Das Prüfungsamt veröffentlicht nicht, welche Kennziffer an welchem Tag geprüft wird. Deinen Tag teilt es dir per E-Mail mit."}{" "}
+				Die mündliche Prüfung liegt in der Regel im fünften Monat nach den
+				Klausuren, die Ladung kommt etwa drei Wochen vorher.
 			</p>
 			{schedule.lookup && <KennzifferLookup lookup={lookup} />}
-			<ol className="grid gap-3 sm:grid-cols-2">
-				{[...months].map(([key, days]) => (
-					<li
-						key={key}
-						className="rounded-xl bg-sheet p-3.5 ring-1 ring-ink/10"
-					>
-						<p className="font-serif text-[18px] leading-tight">
-							{MONTHS[Number(key.slice(5)) - 1]}
-							{key.startsWith(`${now.getFullYear()}-`)
-								? ""
-								: ` ${key.slice(0, 4)}`}
-						</p>
-						<ul className="mt-3 space-y-0.5 text-[14px]">
-							{days.map((day) => (
-								<li key={day.date} className="flex gap-2">
-									<span
-										className={cn(
-											"figures shrink-0 text-ink/55",
-											day.date === foundDate && "marker text-ink",
-										)}
-									>
-										{formatExamDay(day.date)}
-									</span>
-									<span>{day.places.join(", ")}</span>
-								</li>
-							))}
-						</ul>
-					</li>
-				))}
-			</ol>
 			<p className="mt-4 text-[13px] text-ink/55">
 				Ohne Gewähr. Quelle:{" "}
 				<a

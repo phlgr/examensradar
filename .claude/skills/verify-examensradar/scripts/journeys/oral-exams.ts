@@ -65,11 +65,14 @@ try {
 		const section = page.locator("section", {
 			has: page.getByRole("heading", { name: new RegExp(`^${HEADING}`) }),
 		});
-		const days = await section.locator("ol > li li").allInnerTexts();
-		check(days.length > 0, `${param}: ${days.length} upcoming oral exam days render`);
+		const range = await section.getByText(/^Die nächsten mündlichen Prüfungen finden /).innerText();
 		check(
-			days.every((d) => /^[A-Z][a-z] \d{2}\.\d{2}\.\s+\S/.test(d)),
-			`${param}: every day shows a date and a place`,
+			/(vom \d{1,2}\. \S+( \d{4})? bis zum|am) \d{1,2}\. \S+ \d{4} statt\.$/.test(range),
+			`${param}: the date range is stated (${range})`,
+		);
+		check(
+			(await section.locator("ol").count()) === 0,
+			`${param}: no per-day list without a Kennziffer`,
 		);
 		check(
 			(await section.getByText("im fünften Monat nach den Klausuren").count()) === 1,
@@ -77,7 +80,7 @@ try {
 		);
 		await section.scrollIntoViewIfNeeded();
 		await v.proof(`oral-${param}`);
-		v.note(`oral-${param}`, { days });
+		v.note(`oral-${param}`, { range });
 
 		const field = section.locator("#kennziffer");
 		if (!lookup) {
@@ -139,11 +142,6 @@ try {
 			(await status.innerText()).replace(/^[A-Z][a-z] /, "") === wanted,
 			`${param}: typing a Kennziffer shows its day, place${expected.start ? " and start" : " (no start published)"}`,
 		);
-		const marked = await section.locator("ol > li li .marker").allInnerTexts();
-		check(
-			marked.length === 1 && marked[0].endsWith(when),
-			`${param}: the day is highlighted in the month cards`,
-		);
 		await section.scrollIntoViewIfNeeded();
 		await v.proof(`oral-${param}-found`);
 
@@ -153,7 +151,6 @@ try {
 				(await status.innerText()).includes("etwa drei Wochen"),
 			`${param}: an unknown Kennziffer shows the not-published message`,
 		);
-		check((await section.locator("ol > li li .marker").count()) === 0, `${param}: nothing is highlighted then`);
 		await v.proof(`oral-${param}-missing`);
 
 		await field.fill(kennziffer);
