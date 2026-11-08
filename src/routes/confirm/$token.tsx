@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { CheckCircle, Loader2, MailCheck, MailX } from "lucide-react";
+import { ShareInvite } from "@/components/ShareInvite";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PageSpinner } from "@/components/ui/spinner";
@@ -53,6 +54,7 @@ function ConfirmPage() {
 						Willkommens-E-Mail.
 					</p>
 				)}
+				<ShareInvite />
 			</StatusPage>
 		);
 	}
