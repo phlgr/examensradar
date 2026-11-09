@@ -89,8 +89,8 @@ function SubscriptionsPage() {
 					{me === null
 						? "Wir schicken dir eine E-Mail, sobald dein Prüfungsamt neue Ergebnisse veröffentlicht."
 						: me.unsubscribed
-							? "Du hast alle Benachrichtigungen abbestellt. Wenn du wieder informiert werden möchtest, melde dich hier einfach neu an."
-							: "Wähle aus, über welche Prüfungsämter du informiert werden möchtest. Sobald eines davon neue Ergebnisse veröffentlicht, bekommst du eine E-Mail."}
+							? "Du hast alle Benachrichtigungen abbestellt."
+							: "Wähle aus, über welche Prüfungsämter du informiert werden möchtest."}
 				</SectionIntro>
 
 				{showInvalidLink && (
