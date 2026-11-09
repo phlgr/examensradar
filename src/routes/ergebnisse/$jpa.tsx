@@ -358,7 +358,11 @@ function CalendarLink({
 			href={`/api/kalender/${jpaParam(jpaSlug)}/${start}`}
 			download
 			onClick={() =>
-				trackEvent("calendar_download", { jpa: jpaName, sitting: start })
+				trackEvent("calendar_download", {
+					jpa: jpaName,
+					sitting: start,
+					month: start.slice(0, 7),
+				})
 			}
 			className="mt-2 inline-flex items-center gap-1.5 text-[12px] text-ink/55 hover:text-ink"
 		>
