@@ -18,10 +18,14 @@ export type SentMail = {
 	headers?: Record<string, string>;
 };
 export const sentMails: SentMail[] = [];
+/** Errors the mocked transport throws for a recipient, one per send, in order. */
+export const sendFailures = new Map<string, unknown[]>();
 mock.module("nodemailer", () => ({
 	default: {
 		createTransport: () => ({
 			sendMail: async (mail: SentMail) => {
+				const failure = sendFailures.get(mail.to)?.shift();
+				if (failure) throw failure;
 				sentMails.push(mail);
 				return { messageId: "test" };
 			},

@@ -12,12 +12,11 @@ import {
 	fetchPage,
 	hashContent,
 } from "@/lib/scraper";
-import { queueResultsNotifications } from "./notify-results";
+import { kickMailOutbox } from "./mail-outbox";
 
 const DEFAULT_INTERVAL_MS = 5 * 60_000;
 
 type Jpa = Awaited<ReturnType<typeof getScrapableJpas>>[number];
-type Notify = typeof queueResultsNotifications;
 
 export type CheckOutcome =
 	| { result: "not-configured" }
@@ -30,7 +29,7 @@ export type CheckOutcome =
 
 export async function checkJpa(
 	jpa: Jpa,
-	notify: Notify = queueResultsNotifications,
+	kick: () => void = kickMailOutbox,
 ): Promise<CheckOutcome> {
 	if (!jpa.scrapeUrl || !jpa.scrapeSelector)
 		return { result: "not-configured" };
@@ -62,29 +61,32 @@ export async function checkJpa(
 		return { result: "unchanged" };
 	}
 
-	const claimed =
-		state.contentHash === null
-			? await claimScrapeBaseline(jpa.id, hash)
-			: await claimScrapeChange(jpa.id, state.contentHash, hash);
-	if (!claimed) {
-		console.log(`[scraper] ${jpa.slug}: change already claimed elsewhere`);
-		return { result: "already-claimed" };
-	}
-
 	if (state.contentHash === null) {
+		if (!(await claimScrapeBaseline(jpa.id, hash))) {
+			console.log(`[scraper] ${jpa.slug}: change already claimed elsewhere`);
+			return { result: "already-claimed" };
+		}
 		console.log(`[scraper] ${jpa.slug}: baseline stored`);
 		return { result: "baseline" };
 	}
 
-	const outcome = await notify(jpa);
-	console.log(
-		outcome.status === "disabled"
-			? `[scraper] ${jpa.slug}: changed, but notifications are paused`
-			: `[scraper] ${jpa.slug}: changed — queued ${outcome.mail} mail`,
-	);
-	return outcome.status === "disabled"
-		? { result: "paused" }
-		: { result: "notified", mail: outcome.mail };
+	const claim = await claimScrapeChange(jpa.id, state.contentHash, hash, {
+		notify: !jpa.notificationsDisabled,
+	});
+	switch (claim.kind) {
+		case "lost":
+			console.log(`[scraper] ${jpa.slug}: change already claimed elsewhere`);
+			return { result: "already-claimed" };
+		case "paused":
+			console.log(
+				`[scraper] ${jpa.slug}: changed, but notifications are paused`,
+			);
+			return { result: "paused" };
+		case "queued":
+			console.log(`[scraper] ${jpa.slug}: changed — queued ${claim.mail} mail`);
+			kick();
+			return { result: "notified", mail: claim.mail };
+	}
 }
 
 async function runScrapeCycle(): Promise<void> {
@@ -107,6 +109,7 @@ export function startScraper(): void {
 		cycleInFlight = true;
 		try {
 			await runScrapeCycle();
+			kickMailOutbox();
 		} catch (error) {
 			console.error("[scraper] cycle crashed", error);
 		} finally {
@@ -115,6 +118,7 @@ export function startScraper(): void {
 	};
 
 	console.log(`[scraper] started, checking every ${intervalMs / 1000}s`);
+	kickMailOutbox();
 	void tick();
 	setInterval(tick, intervalMs);
 }

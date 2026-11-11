@@ -10,7 +10,7 @@
  * check the German providers before trusting a real results drop — t-online.de
  * in particular refuses mail from sender IPs it does not recognise.
  */
-import { sendBatchMails, sendMail } from "@/lib/mail";
+import { sendMail } from "@/lib/mail";
 import {
 	calendarOffers,
 	type MailContent,
@@ -76,15 +76,14 @@ const content = render();
 
 console.log(`\nSending "${name}" to ${recipients.join(", ")} ...`);
 
-if (recipients.length === 1) {
-	const ok = await sendMail({ ...content, to: recipients[0] as string });
-	console.log(ok ? "sent" : "FAILED — see the error above");
-	process.exit(ok ? 0 : 1);
+let failed = 0;
+for (const to of recipients) {
+	if (!(await sendMail({ ...content, to }))) failed++;
 }
 
-const { sent, failed } = await sendBatchMails(
-	recipients.map((to) => ({ ...content, to })),
+console.log(
+	failed > 0
+		? `FAILED for ${failed} of ${recipients.length} — see the errors above`
+		: "sent",
 );
-
-console.log(`sent ${sent}, failed ${failed}`);
 process.exit(failed > 0 ? 1 : 0);

@@ -1,18 +1,13 @@
 import { afterAll, expect, mock, test } from "bun:test";
 import {
-	addEmailSubscription,
 	claimScrapeBaseline,
 	claimScrapeChange,
-	confirmSubscriber,
 	createJpa,
 	dropScrapeBaseline,
 	ensureScrapeState,
 	recordScrapeError,
 	recordScrapeSuccess,
-	upsertPendingSubscriber,
 } from "../db/index.ts";
-import { sentMails } from "../test-setup.ts";
-import { queueResultsNotifications } from "./notify-results.ts";
 import { checkJpa } from "./scraper.ts";
 
 const realFetch = globalThis.fetch;
@@ -38,22 +33,15 @@ const scrapableJpa = () =>
 		scrapeSelector: "article#main",
 	});
 
-const notifyMock = () =>
-	mock(async () => ({
-		status: "queued" as const,
-		mail: 0,
-		total: 0,
-	}));
-
 test("first scrape stores a baseline and never notifies", async () => {
 	const jpa = await scrapableJpa();
-	const notify = notifyMock();
+	const kick = mock(() => {});
 
 	serveHtml(page("Ergebnisse Mai 2026"));
-	const outcome = await checkJpa(jpa, notify);
+	const outcome = await checkJpa(jpa, kick);
 
 	expect(outcome.result).toBe("baseline");
-	expect(notify).not.toHaveBeenCalled();
+	expect(kick).not.toHaveBeenCalled();
 	const state = await ensureScrapeState(jpa.id);
 	expect(state.contentHash).not.toBeNull();
 	expect(state.lastChangedAt).toBeNull();
@@ -61,43 +49,43 @@ test("first scrape stores a baseline and never notifies", async () => {
 
 test("unchanged content notifies nobody", async () => {
 	const jpa = await scrapableJpa();
-	const notify = notifyMock();
+	const kick = mock(() => {});
 
 	serveHtml(page("nichts Neues"));
-	await checkJpa(jpa, notify);
-	await checkJpa(jpa, notify);
+	await checkJpa(jpa, kick);
+	await checkJpa(jpa, kick);
 
-	expect(notify).not.toHaveBeenCalled();
+	expect(kick).not.toHaveBeenCalled();
 });
 
 test("changed content notifies exactly once", async () => {
 	const jpa = await scrapableJpa();
-	const notify = notifyMock();
+	const kick = mock(() => {});
 
 	serveHtml(page("alte Meldung"));
-	await checkJpa(jpa, notify);
+	await checkJpa(jpa, kick);
 
 	serveHtml(page("Neue Ergebnisse!"));
-	expect((await checkJpa(jpa, notify)).result).toBe("notified");
-	expect((await checkJpa(jpa, notify)).result).toBe("unchanged");
+	expect((await checkJpa(jpa, kick)).result).toBe("notified");
+	expect((await checkJpa(jpa, kick)).result).toBe("unchanged");
 
-	expect(notify).toHaveBeenCalledTimes(1);
+	expect(kick).toHaveBeenCalledTimes(1);
 	const state = await ensureScrapeState(jpa.id);
 	expect(state.lastChangedAt).not.toBeNull();
 });
 
 test("a vanished selector records an error instead of notifying", async () => {
 	const jpa = await scrapableJpa();
-	const notify = notifyMock();
+	const kick = mock(() => {});
 
 	serveHtml(page("Basislinie"));
-	await checkJpa(jpa, notify);
+	await checkJpa(jpa, kick);
 
 	serveHtml("<html><body><main>alles neu</main></body></html>");
-	await checkJpa(jpa, notify);
-	await checkJpa(jpa, notify);
+	await checkJpa(jpa, kick);
+	await checkJpa(jpa, kick);
 
-	expect(notify).not.toHaveBeenCalled();
+	expect(kick).not.toHaveBeenCalled();
 	const state = await ensureScrapeState(jpa.id);
 	expect(state.errorCount).toBe(2);
 	expect(state.lastError).toContain("selector matched nothing");
@@ -105,16 +93,16 @@ test("a vanished selector records an error instead of notifying", async () => {
 
 test("a reset baseline turns the next differing content into a new baseline, not a notification", async () => {
 	const jpa = await scrapableJpa();
-	const notify = notifyMock();
+	const kick = mock(() => {});
 
 	serveHtml(page("Inhalt unter altem Selektor"));
-	await checkJpa(jpa, notify);
+	await checkJpa(jpa, kick);
 
 	await dropScrapeBaseline(jpa.id);
 
 	serveHtml(page("völlig anderer Inhalt unter neuem Selektor"));
-	expect((await checkJpa(jpa, notify)).result).toBe("baseline");
-	expect(notify).not.toHaveBeenCalled();
+	expect((await checkJpa(jpa, kick)).result).toBe("baseline");
+	expect(kick).not.toHaveBeenCalled();
 });
 
 test("baseline and change claims each let exactly one concurrent claim win", async () => {
@@ -125,10 +113,11 @@ test("baseline and change claims each let exactly one concurrent claim win", asy
 	expect(await claimScrapeBaseline(jpa.id, "other")).toBe(false);
 
 	const claims = await Promise.all([
-		claimScrapeChange(jpa.id, "baseline", "next-a"),
-		claimScrapeChange(jpa.id, "baseline", "next-b"),
+		claimScrapeChange(jpa.id, "baseline", "next-a", { notify: true }),
+		claimScrapeChange(jpa.id, "baseline", "next-b", { notify: true }),
 	]);
-	expect(claims.filter(Boolean)).toHaveLength(1);
+	expect(claims.filter((claim) => claim.kind === "queued")).toHaveLength(1);
+	expect(claims.filter((claim) => claim.kind === "lost")).toHaveLength(1);
 });
 
 test("errors accumulate until a success resets them", async () => {
@@ -144,54 +133,4 @@ test("errors accumulate until a success resets them", async () => {
 	state = await ensureScrapeState(jpa.id);
 	expect(state.errorCount).toBe(0);
 	expect(state.lastError).toBeNull();
-});
-
-test("a published change mails confirmed subscribers once, through the real fan-out", async () => {
-	const jpa = await scrapableJpa();
-
-	const confirmed = await upsertPendingSubscriber(
-		"confirmed@example.org",
-		null,
-	);
-	await addEmailSubscription(confirmed.id, jpa.id);
-	await confirmSubscriber(confirmed.confirmToken);
-
-	const pending = await upsertPendingSubscriber("pending@example.org", null);
-	await addEmailSubscription(pending.id, jpa.id);
-
-	const mailsTo = () =>
-		sentMails.filter((mail) => mail.subject === `Neue Ergebnisse: ${jpa.name}`);
-
-	serveHtml(page("alte Meldung"));
-	expect((await checkJpa(jpa)).result).toBe("baseline");
-
-	serveHtml(page("Neue Ergebnisse!"));
-	expect(await checkJpa(jpa)).toEqual({
-		result: "notified",
-		mail: 1,
-	});
-	expect((await checkJpa(jpa)).result).toBe("unchanged");
-
-	for (let i = 0; i < 50 && mailsTo().length === 0; i++) await Bun.sleep(10);
-	await Bun.sleep(50);
-
-	expect(mailsTo().map((mail) => mail.to)).toEqual(["confirmed@example.org"]);
-	expect(mailsTo()[0].headers?.["List-Unsubscribe-Post"]).toBe(
-		"List-Unsubscribe=One-Click",
-	);
-});
-
-test("queueResultsNotifications respects the notifications pause", async () => {
-	const jpa = await scrapableJpa();
-	const outcome = await queueResultsNotifications({
-		...jpa,
-		notificationsDisabled: true,
-	});
-	expect(outcome).toEqual({ status: "disabled" });
-});
-
-test("queueResultsNotifications with no subscribers queues nothing", async () => {
-	const jpa = await scrapableJpa();
-	const outcome = await queueResultsNotifications(jpa);
-	expect(outcome).toEqual({ status: "queued", mail: 0, total: 0 });
 });

@@ -1,5 +1,16 @@
 import { Database } from "bun:sqlite";
-import { and, desc, eq, isNotNull, isNull, sql } from "drizzle-orm";
+import {
+	and,
+	asc,
+	desc,
+	eq,
+	inArray,
+	isNotNull,
+	isNull,
+	lte,
+	min,
+	sql,
+} from "drizzle-orm";
 import { type BunSQLiteDatabase, drizzle } from "drizzle-orm/bun-sqlite";
 import { normalizeEmail } from "@/lib/email";
 import { CONFIRM_TTL_HOURS } from "@/lib/mail-templates";
@@ -148,31 +159,81 @@ export const claimScrapeBaseline = async (
 	return claimed.length > 0;
 };
 
+export type ScrapeChangeClaim =
+	| { kind: "lost" }
+	| { kind: "paused" }
+	| { kind: "queued"; releaseId: string; mail: number };
+
+/**
+ * Wins the compare-and-swap on the content hash and, in the same transaction,
+ * records the release and queues one mail per active subscriber. A crash can
+ * therefore neither lose a claimed change nor leave a release half-queued.
+ */
 export const claimScrapeChange = async (
 	jpaId: string,
 	oldHash: string,
 	newHash: string,
-): Promise<boolean> => {
-	const now = new Date();
-	const claimed = await db
-		.update(schema.scrapeState)
-		.set({
-			contentHash: newHash,
-			lastCheckedAt: now,
-			lastChangedAt: now,
-			errorCount: 0,
-			lastError: null,
-		})
-		.where(
-			and(
-				eq(schema.scrapeState.jpaId, jpaId),
-				eq(schema.scrapeState.contentHash, oldHash),
-			),
-		)
-		.returning()
-		.all();
+	{ notify }: { notify: boolean },
+): Promise<ScrapeChangeClaim> => {
+	return db.transaction((tx) => {
+		const now = new Date();
+		const claimed = tx
+			.update(schema.scrapeState)
+			.set({
+				contentHash: newHash,
+				lastCheckedAt: now,
+				lastChangedAt: now,
+				errorCount: 0,
+				lastError: null,
+			})
+			.where(
+				and(
+					eq(schema.scrapeState.jpaId, jpaId),
+					eq(schema.scrapeState.contentHash, oldHash),
+				),
+			)
+			.returning()
+			.all();
 
-	return claimed.length > 0;
+		if (claimed.length === 0) return { kind: "lost" };
+		if (!notify) return { kind: "paused" };
+
+		const recipients = tx
+			.select({ id: schema.subscriber.id })
+			.from(schema.emailSubscription)
+			.innerJoin(
+				schema.subscriber,
+				eq(schema.emailSubscription.subscriberId, schema.subscriber.id),
+			)
+			.where(and(eq(schema.emailSubscription.jpaId, jpaId), activeSubscriber))
+			.all();
+
+		const releaseId = crypto.randomUUID();
+		tx.insert(schema.notificationLog)
+			.values({
+				id: releaseId,
+				jpaId,
+				sentAt: now,
+				subscriberCount: recipients.length,
+			})
+			.run();
+
+		if (recipients.length > 0) {
+			tx.insert(schema.mailOutbox)
+				.values(
+					recipients.map(({ id }) => ({
+						id: crypto.randomUUID(),
+						releaseId,
+						subscriberId: id,
+						nextAttemptAt: now,
+						createdAt: now,
+					})),
+				)
+				.run();
+		}
+
+		return { kind: "queued", releaseId, mail: recipients.length };
+	});
 };
 
 export const dropScrapeBaseline = async (jpaId: string): Promise<void> => {
@@ -488,20 +549,133 @@ export const getNotificationHistory = async () => {
 		.all();
 };
 
-export const logNotification = async (
-	jpaId: string,
-	subscriberCount: number,
-	publishedAt: Date = new Date(),
-): Promise<void> => {
-	await db
-		.insert(schema.notificationLog)
-		.values({
-			id: crypto.randomUUID(),
-			jpaId,
-			sentAt: publishedAt,
-			subscriberCount,
+/**
+ * Pushes the due rows' next attempt past the lease in the same statement that
+ * picks them, so a second process (an old and a new container overlapping
+ * during a deploy) cannot take the same mail. A worker that dies mid-lease
+ * leaves its rows due again once the lease runs out.
+ */
+export const leaseDueMails = async (
+	now: Date,
+	limit: number,
+	leaseMs: number,
+) => {
+	const due = and(
+		eq(schema.mailOutbox.status, "pending"),
+		lte(schema.mailOutbox.nextAttemptAt, now),
+	);
+	const leased = await db
+		.update(schema.mailOutbox)
+		.set({ nextAttemptAt: new Date(now.getTime() + leaseMs) })
+		.where(
+			and(
+				due,
+				inArray(
+					schema.mailOutbox.id,
+					db
+						.select({ id: schema.mailOutbox.id })
+						.from(schema.mailOutbox)
+						.where(due)
+						.orderBy(asc(schema.mailOutbox.nextAttemptAt))
+						.limit(limit),
+				),
+			),
+		)
+		.returning({ id: schema.mailOutbox.id })
+		.all();
+
+	if (leased.length === 0) return [];
+
+	const rows = await db
+		.select({
+			id: schema.mailOutbox.id,
+			attempts: schema.mailOutbox.attempts,
+			email: schema.subscriber.email,
+			manageToken: schema.subscriber.manageToken,
+			unsubscribeToken: schema.subscriber.unsubscribeToken,
+			confirmedAt: schema.subscriber.confirmedAt,
+			unsubscribedAt: schema.subscriber.unsubscribedAt,
+			bouncedAt: schema.subscriber.bouncedAt,
+			jpaName: schema.jpa.name,
+			websiteUrl: schema.jpa.websiteUrl,
 		})
-		.run();
+		.from(schema.mailOutbox)
+		.innerJoin(
+			schema.subscriber,
+			eq(schema.mailOutbox.subscriberId, schema.subscriber.id),
+		)
+		.innerJoin(
+			schema.notificationLog,
+			eq(schema.mailOutbox.releaseId, schema.notificationLog.id),
+		)
+		.leftJoin(schema.jpa, eq(schema.notificationLog.jpaId, schema.jpa.id))
+		.where(
+			inArray(
+				schema.mailOutbox.id,
+				leased.map(({ id }) => id),
+			),
+		)
+		.all();
+
+	return rows.map(({ confirmedAt, unsubscribedAt, bouncedAt, ...row }) => ({
+		...row,
+		active:
+			subscriberStatus({ confirmedAt, unsubscribedAt, bouncedAt }) === "active",
+	}));
+};
+
+export type MailOutcome =
+	| { kind: "sent" }
+	| { kind: "skipped" }
+	| { kind: "retry"; at: Date; error: string }
+	| { kind: "failed"; error: string };
+
+/** Only touches rows still pending, so settling twice is a no-op. */
+export const settleMail = async (
+	id: string,
+	outcome: MailOutcome,
+): Promise<void> => {
+	const attempted = { attempts: sql`${schema.mailOutbox.attempts} + 1` };
+
+	const change = (() => {
+		switch (outcome.kind) {
+			case "sent":
+				return { ...attempted, status: "sent", sentAt: new Date() } as const;
+			case "skipped":
+				return { status: "skipped" } as const;
+			case "retry":
+				return {
+					...attempted,
+					nextAttemptAt: outcome.at,
+					lastError: outcome.error,
+				};
+			case "failed":
+				return {
+					...attempted,
+					status: "failed",
+					lastError: outcome.error,
+				} as const;
+		}
+	})();
+
+	await db
+		.update(schema.mailOutbox)
+		.set(change)
+		.where(
+			and(
+				eq(schema.mailOutbox.id, id),
+				eq(schema.mailOutbox.status, "pending"),
+			),
+		);
+};
+
+export const getNextMailAttemptAt = async (): Promise<Date | null> => {
+	const row = await db
+		.select({ at: min(schema.mailOutbox.nextAttemptAt) })
+		.from(schema.mailOutbox)
+		.where(eq(schema.mailOutbox.status, "pending"))
+		.get();
+	return row?.at ?? null;
 };
 
 export const createAdminSession = async (

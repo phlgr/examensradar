@@ -13,15 +13,7 @@ export interface Mail {
 	unsubscribeUrl?: string;
 }
 
-export interface BatchOptions {
-	budgetMs?: number;
-	maxAttempts?: number;
-}
-
-const CONCURRENCY = 5;
-const DEFAULT_MAX_ATTEMPTS = 3;
-const DEFAULT_BUDGET_MS = 60_000;
-const MAX_BACKOFF_MS = 30_000;
+export const MAIL_CONCURRENCY = 5;
 
 let cached: Transporter | null = null;
 
@@ -45,7 +37,7 @@ function transport(): Transporter {
 		secure: port === 465 || port === 2465,
 		auth: { user, pass },
 		pool: true,
-		maxConnections: CONCURRENCY,
+		maxConnections: MAIL_CONCURRENCY,
 	});
 
 	return cached;
@@ -95,70 +87,25 @@ async function deliver(mail: Mail): Promise<void> {
 	});
 }
 
-export async function sendMail(mail: Mail): Promise<boolean> {
+export type SendResult =
+	| { ok: true }
+	| { ok: false; retryable: boolean; error: string };
+
+export async function trySend(mail: Mail): Promise<SendResult> {
 	try {
 		await deliver(mail);
-		return true;
+		return { ok: true };
 	} catch (error) {
-		console.error(`mail to ${mail.to} failed: ${describe(error)}`);
-		return false;
+		return {
+			ok: false,
+			retryable: isRetryable(error),
+			error: describe(error),
+		};
 	}
 }
 
-async function sendWithRetry(
-	mail: Mail,
-	deadline: number,
-	maxAttempts: number,
-): Promise<boolean> {
-	for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-		try {
-			await deliver(mail);
-			return true;
-		} catch (error) {
-			if (!isRetryable(error) || attempt === maxAttempts) {
-				console.error(
-					`mail to ${mail.to} failed after ${attempt} attempt(s): ${describe(error)}`,
-				);
-				return false;
-			}
-
-			const backoff = Math.min(1000 * 2 ** (attempt - 1), MAX_BACKOFF_MS);
-
-			if (Date.now() + backoff > deadline) {
-				console.error(
-					`mail to ${mail.to} gave up, no time left in batch budget: ${describe(error)}`,
-				);
-				return false;
-			}
-
-			await Bun.sleep(backoff);
-		}
-	}
-
-	return false;
-}
-
-export async function sendBatchMails(
-	mails: Mail[],
-	options: BatchOptions = {},
-): Promise<{ sent: number; failed: number }> {
-	const { budgetMs = DEFAULT_BUDGET_MS, maxAttempts = DEFAULT_MAX_ATTEMPTS } =
-		options;
-
-	const deadline = Date.now() + budgetMs;
-	const queue = [...mails];
-	let sent = 0;
-
-	const workers = Array.from(
-		{ length: Math.min(CONCURRENCY, queue.length) },
-		async () => {
-			for (let next = queue.pop(); next; next = queue.pop()) {
-				if (await sendWithRetry(next, deadline, maxAttempts)) sent++;
-			}
-		},
-	);
-
-	await Promise.all(workers);
-
-	return { sent, failed: mails.length - sent };
+export async function sendMail(mail: Mail): Promise<boolean> {
+	const result = await trySend(mail);
+	if (!result.ok) console.error(`mail to ${mail.to} failed: ${result.error}`);
+	return result.ok;
 }
