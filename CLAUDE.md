@@ -46,7 +46,7 @@ src/
 **Key patterns:**
 - No user accounts: subscribers manage their subscriptions via a magic-link manage cookie
 - Three tRPC procedure types: `publicProcedure`, `manageProcedure` (requires manage cookie), `adminProcedure` (requires admin session)
-- In-app scraper (`src/server/scraper.ts`, booted at server start by the nitro plugin in `src/server/plugins/scraper.ts`) polls each JPA's `scrapeUrl`/`scrapeSelector` and fans out via `src/server/notify-results.ts`; a compare-and-swap on `scrape_state.content_hash` guarantees a change is only notified once even with overlapping instances. Manual triggering goes through the admin page's "Jetzt prüfen" (`jpa.scrapeNow`), which runs the same CAS-guarded check
+- In-app scraper (`src/server/scraper.ts`, booted at server start by the nitro plugin in `src/server/plugins/scraper.ts`) polls each JPA's `scrapeUrl`/`scrapeSelector` and, in the same transaction as the compare-and-swap on `scrape_state.content_hash` (a change is claimed once even with overlapping instances), records the release in `notification_log` and queues one `mail_outbox` row per active subscriber; `src/server/mail-outbox.ts` drains the outbox with retries/backoff, leases rows so overlapping instances never take the same mail, and picks up leftovers after a restart. Manual triggering goes through the admin page's "Jetzt prüfen" (`jpa.scrapeNow`), which runs the same CAS-guarded check
 - Notifications sent via mail (see `src/lib/mail.ts`). The `subscription` table is a legacy ntfy archive — nothing reads or writes it
 
 **Database:** Bun SQLite with Drizzle ORM. Path: `./data/examensradar.db`

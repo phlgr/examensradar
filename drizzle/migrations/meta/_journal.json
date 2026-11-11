@@ -43,6 +43,13 @@
       "when": 1791925510284,
       "tag": "0005_drop-email-subscription-device-id",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1794383903273,
+      "tag": "0006_mail-outbox",
+      "breakpoints": true
     }
   ]
 }

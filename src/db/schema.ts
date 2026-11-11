@@ -102,6 +102,42 @@ export const notificationLog = sqliteTable("notification_log", {
 	subscriberCount: integer("subscriber_count"),
 });
 
+const MAIL_STATUSES = ["pending", "sent", "failed", "skipped"] as const;
+export type MailStatus = (typeof MAIL_STATUSES)[number];
+
+export const mailOutbox = sqliteTable(
+	"mail_outbox",
+	{
+		id: text("id").primaryKey(),
+		releaseId: text("release_id")
+			.notNull()
+			.references(() => notificationLog.id, { onDelete: "cascade" }),
+		subscriberId: text("subscriber_id")
+			.notNull()
+			.references(() => subscriber.id, { onDelete: "cascade" }),
+		status: text("status", { enum: MAIL_STATUSES })
+			.notNull()
+			.default("pending"),
+		attempts: integer("attempts").notNull().default(0),
+		nextAttemptAt: integer("next_attempt_at", {
+			mode: "timestamp_ms",
+		}).notNull(),
+		lastError: text("last_error"),
+		sentAt: integer("sent_at", { mode: "timestamp_ms" }),
+		createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+	},
+	(table) => [
+		unique("mail_outbox_release_subscriber_unq").on(
+			table.releaseId,
+			table.subscriberId,
+		),
+		index("mail_outbox_status_next_attempt_idx").on(
+			table.status,
+			table.nextAttemptAt,
+		),
+	],
+);
+
 export const adminSession = sqliteTable("admin_session", {
 	id: text("id").primaryKey(),
 	token: text("token").notNull().unique(),
@@ -148,6 +184,7 @@ export const schema = {
 	subscriber,
 	emailSubscription,
 	notificationLog,
+	mailOutbox,
 	adminSession,
 	scrapeState,
 };
