@@ -1,7 +1,7 @@
 import { Database } from "bun:sqlite";
 import { check, confirmedSubscriber, mails, open, waitForMail } from "../pw.ts";
 
-const v = await open("release-mode");
+const v = await open("missing-element");
 const { page } = v;
 const { email } = confirmedSubscriber(v.runId);
 const db = new Database(v.env.DB, { readonly: true });
@@ -24,19 +24,16 @@ try {
 
 	await testJpa().getByRole("button", { name: "Bearbeiten" }).click();
 	await page.getByLabel("CSS-Selektor (optional)").fill(RELEASE_SELECTOR);
-	await page.getByLabel("Selektor erscheint nur bei neuen Ergebnissen").check();
 	await v.proof("edit-form");
 	await page.getByRole("button", { name: "Speichern" }).click();
-	await testJpa().getByText("Selektor erscheint nur bei neuen Ergebnissen.").waitFor();
-	await v.proof("saved-release-mode");
+	await testJpa().getByText(RELEASE_SELECTOR, { exact: true }).waitFor();
+	await testJpa().getByText("Element noch nie gefunden.").waitFor();
+	await v.proof("saved-missing-selector");
 
 	const jpaRow = db
-		.query("select scrape_mode, scrape_selector from jpa where id = 'jpa-verify-test'")
-		.get() as { scrape_mode: string; scrape_selector: string };
-	check(
-		jpaRow.scrape_mode === "release" && jpaRow.scrape_selector === RELEASE_SELECTOR,
-		"admin form saved release mode and selector",
-	);
+		.query("select scrape_selector from jpa where id = 'jpa-verify-test'")
+		.get() as { scrape_selector: string };
+	check(jpaRow.scrape_selector === RELEASE_SELECTOR, "admin form saved the selector");
 	const baseline = scrapeState();
 	check(
 		baseline.content_hash === "absent" && baseline.error_count === 0 && baseline.last_error === null,
@@ -52,6 +49,7 @@ try {
 	await setFixture('<p class="ergebnis">Ergebnisse 2026/II</p>');
 	await checkNow();
 	await testJpa().getByText(/Änderung erkannt — 1 Mails? in Zustellung\./).waitFor();
+	await testJpa().getByText(/Element zuletzt gefunden: .*\(heute\)/).waitFor();
 	await v.proof("appeared-notified");
 	const resultsMail = await waitForMail(v.runId, email, /Neue Ergebnisse: JPA Verifikation/);
 	await Bun.sleep(1_000);
@@ -73,10 +71,10 @@ try {
 	check(mails(v.runId).length === mailCount + 1, "identical content reappearing sent no mail");
 
 	await v.note("result", { email, jpaRow, baseline, resultsMail, finalState: scrapeState() });
-	console.log("PASS release-mode");
+	console.log("PASS missing-element");
 } catch (error) {
 	await v.proof("failure").catch(() => {});
-	console.error("FAIL release-mode:", error);
+	console.error("FAIL missing-element:", error);
 	process.exitCode = 1;
 } finally {
 	db.close();

@@ -1,0 +1,1 @@
+ALTER TABLE `scrape_state` ADD `last_matched_at` integer;
