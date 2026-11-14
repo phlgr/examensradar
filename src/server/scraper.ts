@@ -19,11 +19,7 @@ const DEFAULT_INTERVAL_MS = 5 * 60_000;
 
 type Jpa = Awaited<ReturnType<typeof getScrapableJpas>>[number];
 
-/**
- * Baseline of a JPA whose selector has never matched: nothing is published
- * yet, so the first match is a release, not a silent baseline.
- */
-const ABSENT_HASH = "absent";
+const NOTHING_PUBLISHED_HASH = "absent";
 
 export type CheckOutcome =
 	| { result: "not-configured" }
@@ -54,18 +50,17 @@ export async function checkJpa(
 		return { result: "error", message };
 	}
 
-	if (extraction.matched) {
-		await recordSelectorMatch(jpa.id);
-	} else if (state.contentHash !== null) {
-		// Removal is not a release. Keeping the last hash also means identical
-		// content reappearing is not news.
+	const missingAfterBaseline =
+		!extraction.matched && state.contentHash !== null;
+	if (missingAfterBaseline) {
 		await recordScrapeSuccess(jpa.id);
 		return { result: "unchanged" };
 	}
+	if (extraction.matched) await recordSelectorMatch(jpa.id);
 
 	const hash = extraction.matched
 		? hashContent(extraction.content)
-		: ABSENT_HASH;
+		: NOTHING_PUBLISHED_HASH;
 
 	if (hash === state.contentHash) {
 		await recordScrapeSuccess(jpa.id);

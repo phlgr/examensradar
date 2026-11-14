@@ -1,8 +1,3 @@
--- First-exam offices outside NRW (refs #317). Selectors were tested against
--- the live pages and archived results-day snapshots. Baden-Württemberg, Bayern
--- and Thüringen only render their element on results day; the scraper treats
--- the missing element as "nothing published".
--- Keyed on slug so re-running or a manually created row is a no-op.
 INSERT INTO `jpa` (`id`, `slug`, `name`, `land`, `website_url`, `scrape_url`, `scrape_selector`, `created_at`)
 VALUES
 	(
