@@ -453,16 +453,17 @@ function ExamTimelineList({
 			previous?.card.kind === "sitting" && slot.card.kind === "sitting"
 				? monthsBetween(previous.card.entry.sitting, slot.card.entry.sitting)
 				: [];
+		const card: Pod = { kind: "card", ...slot };
+		if (gap.length === 0) return [card];
+		const month = gap.length === 1 ? gap[0] : `${gap[0]} – ${gap.at(-1)}`;
 		return [
-			...gap.map(
-				(month): Pod => ({
-					kind: "gap",
-					key: `${cardKey(slot.card)}-${month}`,
-					month,
-					hidden: previous.hidden || slot.hidden,
-				}),
-			),
-			{ kind: "card", ...slot },
+			{
+				kind: "gap",
+				key: `${cardKey(slot.card)}-gap`,
+				month,
+				hidden: previous.hidden || slot.hidden,
+			},
+			card,
 		];
 	});
 
