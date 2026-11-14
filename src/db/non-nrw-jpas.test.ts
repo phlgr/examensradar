@@ -7,23 +7,21 @@ import { getJpas } from "./index.ts";
 const MIGRATION = "./drizzle/migrations/0009_add-non-nrw-jpas.sql";
 
 const expected = [
-	["berlin-brandenburg", "Berlin", "standing", ".modul-download__left"],
-	["schleswig-holstein", "Schleswig-Holstein", "standing", "main .s-richtext"],
-	["bremen", "Bremen", "standing", "main"],
-	["niedersachsen", "Niedersachsen", "standing", "#articleContent_158132"],
+	["berlin-brandenburg", "Berlin", ".modul-download__left"],
+	["schleswig-holstein", "Schleswig-Holstein", "main .s-richtext"],
+	["bremen", "Bremen", "main"],
+	["niedersachsen", "Niedersachsen", "#articleContent_158132"],
 	[
 		"baden-württemberg",
 		"Baden-Württemberg",
-		"release",
 		'.article__section:has(a[href$=".pdf"])',
 	],
 	[
 		"bayern",
 		"Bayern",
-		"release",
 		'dt:contains("Aktuelles / Weiteres") + dd li:has(a[href$="mdl.htm"]) strong',
 	],
-	["thüringen", "Thüringen", "release", "main section.th-box .th-media h2"],
+	["thüringen", "Thüringen", "main section.th-box .th-media h2"],
 ] as const;
 
 const migratedRows = async () => {
@@ -31,13 +29,11 @@ const migratedRows = async () => {
 	return (await getJpas()).filter((jpa) => slugs.has(jpa.slug));
 };
 
-test("the migration seeds the seven non-NRW offices with their land, mode and selector", async () => {
+test("the migration seeds the seven non-NRW offices with their land and selector", async () => {
 	const rows = await migratedRows();
 
 	expect(
-		rows
-			.map((jpa) => [jpa.slug, jpa.land, jpa.scrapeMode, jpa.scrapeSelector])
-			.sort(),
+		rows.map((jpa) => [jpa.slug, jpa.land, jpa.scrapeSelector]).sort(),
 	).toEqual(expected.map((row) => [...row]).sort());
 	for (const jpa of rows) {
 		expect(jpa.scrapeUrl).toBe(jpa.websiteUrl);
@@ -47,7 +43,7 @@ test("the migration seeds the seven non-NRW offices with their land, mode and se
 });
 
 test("every migrated selector is valid for the scraper's selector engine", () => {
-	for (const [, , , selector] of expected) {
+	for (const [, , selector] of expected) {
 		expect(extractContent("<html><body></body></html>", selector)).toEqual({
 			matched: false,
 		});

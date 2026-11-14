@@ -103,28 +103,28 @@
         "email_subscription_subscriber_id_subscriber_id_fk": {
           "name": "email_subscription_subscriber_id_subscriber_id_fk",
           "tableFrom": "email_subscription",
+          "tableTo": "subscriber",
           "columnsFrom": [
             "subscriber_id"
           ],
-          "tableTo": "subscriber",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         },
         "email_subscription_jpa_id_jpa_id_fk": {
           "name": "email_subscription_jpa_id_jpa_id_fk",
           "tableFrom": "email_subscription",
+          "tableTo": "jpa",
           "columnsFrom": [
             "jpa_id"
           ],
-          "tableTo": "jpa",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -175,14 +175,6 @@
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
-        },
-        "scrape_mode": {
-          "name": "scrape_mode",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "'standing'"
         },
         "land": {
           "name": "land",
@@ -294,15 +286,15 @@
         "subscription_jpa_id_jpa_id_fk": {
           "name": "subscription_jpa_id_jpa_id_fk",
           "tableFrom": "subscription",
+          "tableTo": "jpa",
           "columnsFrom": [
             "jpa_id"
           ],
-          "tableTo": "jpa",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -400,28 +392,28 @@
         "mail_outbox_release_id_notification_log_id_fk": {
           "name": "mail_outbox_release_id_notification_log_id_fk",
           "tableFrom": "mail_outbox",
+          "tableTo": "notification_log",
           "columnsFrom": [
             "release_id"
           ],
-          "tableTo": "notification_log",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         },
         "mail_outbox_subscriber_id_subscriber_id_fk": {
           "name": "mail_outbox_subscriber_id_subscriber_id_fk",
           "tableFrom": "mail_outbox",
+          "tableTo": "subscriber",
           "columnsFrom": [
             "subscriber_id"
           ],
-          "tableTo": "subscriber",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -465,15 +457,15 @@
         "notification_log_jpa_id_jpa_id_fk": {
           "name": "notification_log_jpa_id_jpa_id_fk",
           "tableFrom": "notification_log",
+          "tableTo": "jpa",
           "columnsFrom": [
             "jpa_id"
           ],
-          "tableTo": "jpa",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -511,6 +503,13 @@
           "notNull": false,
           "autoincrement": false
         },
+        "last_matched_at": {
+          "name": "last_matched_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "error_count": {
           "name": "error_count",
           "type": "integer",
@@ -532,15 +531,15 @@
         "scrape_state_jpa_id_jpa_id_fk": {
           "name": "scrape_state_jpa_id_jpa_id_fk",
           "tableFrom": "scrape_state",
+          "tableTo": "jpa",
           "columnsFrom": [
             "jpa_id"
           ],
-          "tableTo": "jpa",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
