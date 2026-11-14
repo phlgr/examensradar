@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { FaqList } from "@/components/FaqList";
-import { Footer } from "@/components/Footer";
 import { NotificationPreview } from "@/components/landing/NotificationPreview";
 import { Reveal } from "@/components/landing/Reveal";
 import { UpcomingReleases } from "@/components/landing/UpcomingReleases";
@@ -190,8 +189,6 @@ function LandingPage() {
 					<FaqList faqs={faqs} />
 				</div>
 			</section>
-
-			<Footer jpas={jpas} />
 		</div>
 	);
 }

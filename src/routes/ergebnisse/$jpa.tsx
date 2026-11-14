@@ -8,7 +8,6 @@ import {
 } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { FaqList } from "@/components/FaqList";
-import { Footer } from "@/components/Footer";
 import { SignupForm } from "@/components/SignupForm";
 import { trackEvent } from "@/lib/analytics";
 import {
@@ -585,122 +584,119 @@ function JpaPage() {
 	const entries = timeline?.entries ?? [];
 
 	return (
-		<>
-			<div className="flex-1 py-12 sm:py-20 px-4 sm:px-6">
-				<div className="max-w-4xl mx-auto">
-					<nav aria-label="Brotkrumen" className="text-sm text-ink/50 mb-6">
-						<Link to="/" className="hover:text-ink">
-							Examensradar
-						</Link>
-						{" / "}
-						<Link to="/ergebnisse" className="hover:text-ink">
-							Ergebnisse
-						</Link>
-						{" / "}
-						<span className="text-ink/70">{jpa.name}</span>
-					</nav>
+		<div className="flex-1 py-12 sm:py-20 px-4 sm:px-6">
+			<div className="max-w-4xl mx-auto">
+				<nav aria-label="Brotkrumen" className="text-sm text-ink/50 mb-6">
+					<Link to="/" className="hover:text-ink">
+						Examensradar
+					</Link>
+					{" / "}
+					<Link to="/ergebnisse" className="hover:text-ink">
+						Ergebnisse
+					</Link>
+					{" / "}
+					<span className="text-ink/70">{jpa.name}</span>
+				</nav>
 
-					<h1 lang="de">
-						<span className="headline block text-[2.6rem] sm:text-6xl leading-[1.02] break-words [hyphens:auto] sm:[hyphens:manual]">
-							{jpa.name}
-							<span className="opacity-0 select-none">:</span>
-						</span>{" "}
-						<span className="mt-2 block text-[15px] font-medium text-ink/60">
-							{OFFICE_SUBTITLE}
-						</span>
-					</h1>
-					<StatusBoard
-						status={status}
-						entries={entries}
-						summary={summary}
-						websiteUrl={jpa.websiteUrl}
-						now={now}
+				<h1 lang="de">
+					<span className="headline block text-[2.6rem] sm:text-6xl leading-[1.02] break-words [hyphens:auto] sm:[hyphens:manual]">
+						{jpa.name}
+						<span className="opacity-0 select-none">:</span>
+					</span>{" "}
+					<span className="mt-2 block text-[15px] font-medium text-ink/60">
+						{OFFICE_SUBTITLE}
+					</span>
+				</h1>
+				<StatusBoard
+					status={status}
+					entries={entries}
+					summary={summary}
+					websiteUrl={jpa.websiteUrl}
+					now={now}
+				/>
+
+				<section className="mt-10 mb-14 max-w-2xl rounded-xl bg-seal-soft p-5 sm:p-7 ring-1 ring-seal/20">
+					<h2 className="flex items-center gap-2.5 text-xl sm:text-2xl font-semibold leading-tight">
+						<BellRing className="size-5 sm:size-6 shrink-0 text-seal" />
+						Per E-Mail Bescheid bekommen
+					</h2>
+					<p className="mt-2 mb-5 text-[15px] text-ink/70 leading-relaxed">
+						Wir schicken dir eine E-Mail, sobald das {jpa.name}{" "}
+						{status.kind === "released" ? "die nächsten" : "neue"} Ergebnisse
+						veröffentlicht.
+					</p>
+					<SignupForm
+						jpas={jpas}
+						loading={false}
+						error={false}
+						jpa={{ kind: "fixed", jpaId: jpa.id }}
+						source="jpa"
 					/>
+				</section>
 
-					<section className="mt-10 mb-14 max-w-2xl rounded-xl bg-seal-soft p-5 sm:p-7 ring-1 ring-seal/20">
-						<h2 className="flex items-center gap-2.5 text-xl sm:text-2xl font-semibold leading-tight">
-							<BellRing className="size-5 sm:size-6 shrink-0 text-seal" />
-							Per E-Mail Bescheid bekommen
+				{(entries.length > 0 || older.length > 0) && (
+					<section id="klausurtermine" className="mb-14">
+						<h2 className="text-2xl font-semibold leading-tight mb-2">
+							{timeline ? "Klausurtermine" : "Ergebnisse"} beim {jpa.name}
 						</h2>
-						<p className="mt-2 mb-5 text-[15px] text-ink/70 leading-relaxed">
-							Wir schicken dir eine E-Mail, sobald das {jpa.name}{" "}
-							{status.kind === "released" ? "die nächsten" : "neue"} Ergebnisse
-							veröffentlicht.
+						<p className="text-[15px] text-ink/55 mb-6">
+							{timeline
+								? "Wann geschrieben wird und wann die Ergebnisse voraussichtlich kommen. Die Termine gelten für alle Justizprüfungsämter in NRW."
+								: `Wann das ${jpa.name} neue Ergebnisse online gestellt hat.`}
 						</p>
-						<SignupForm
-							jpas={jpas}
-							loading={false}
-							error={false}
-							jpa={{ kind: "fixed", jpaId: jpa.id }}
-							source="jpa"
+						<ExamTimelineList
+							entries={entries}
+							older={older}
+							jpaSlug={jpa.slug}
+							jpaName={jpa.name}
+							now={now}
 						/>
+						{timeline && (
+							<>
+								<p className="mt-4 text-[13px] text-ink/55">
+									ZR Zivilrecht · ÖR Öffentliches Recht · SR Strafrecht
+								</p>
+								<p className="mt-1 text-[13px] text-ink/55">
+									Ohne Gewähr. Quelle:{" "}
+									<a
+										href={timeline.calendar.pageUrl}
+										target="_blank"
+										rel="noopener noreferrer"
+										className="underline decoration-1 underline-offset-4 hover:decoration-2"
+									>
+										Klausurtermine beim {jpa.name}
+									</a>
+									{timeline.calendar.stand &&
+										`, Stand ${formatStand(timeline.calendar.stand)}`}
+									.
+								</p>
+							</>
+						)}
 					</section>
+				)}
 
-					{(entries.length > 0 || older.length > 0) && (
-						<section id="klausurtermine" className="mb-14">
-							<h2 className="text-2xl font-semibold leading-tight mb-2">
-								{timeline ? "Klausurtermine" : "Ergebnisse"} beim {jpa.name}
-							</h2>
-							<p className="text-[15px] text-ink/55 mb-6">
-								{timeline
-									? "Wann geschrieben wird und wann die Ergebnisse voraussichtlich kommen. Die Termine gelten für alle Justizprüfungsämter in NRW."
-									: `Wann das ${jpa.name} neue Ergebnisse online gestellt hat.`}
-							</p>
-							<ExamTimelineList
-								entries={entries}
-								older={older}
-								jpaSlug={jpa.slug}
-								jpaName={jpa.name}
-								now={now}
-							/>
-							{timeline && (
-								<>
-									<p className="mt-4 text-[13px] text-ink/55">
-										ZR Zivilrecht · ÖR Öffentliches Recht · SR Strafrecht
-									</p>
-									<p className="mt-1 text-[13px] text-ink/55">
-										Ohne Gewähr. Quelle:{" "}
-										<a
-											href={timeline.calendar.pageUrl}
-											target="_blank"
-											rel="noopener noreferrer"
-											className="underline decoration-1 underline-offset-4 hover:decoration-2"
-										>
-											Klausurtermine beim {jpa.name}
-										</a>
-										{timeline.calendar.stand &&
-											`, Stand ${formatStand(timeline.calendar.stand)}`}
-										.
-									</p>
-								</>
-							)}
-						</section>
-					)}
+				<section className="mb-14">
+					<h2 className="text-2xl font-semibold leading-tight mb-5">
+						Häufige Fragen
+					</h2>
+					<FaqList faqs={jpaFaqs(jpa.name, summary, entries)} />
+				</section>
 
-					<section className="mb-14">
-						<h2 className="text-2xl font-semibold leading-tight mb-5">
-							Häufige Fragen
-						</h2>
-						<FaqList faqs={jpaFaqs(jpa.name, summary, entries)} />
-					</section>
-
-					{jpa.websiteUrl && (
-						<p className="text-[15px] text-ink/60">
-							Verbindlich sind nur die Angaben des Prüfungsamts:{" "}
-							<a
-								href={jpa.websiteUrl}
-								target="_blank"
-								rel="noopener noreferrer"
-								className="font-medium text-seal inline-flex items-center gap-1 underline decoration-1 underline-offset-4 hover:decoration-2"
-							>
-								offizielle Website
-								<ExternalLink className="w-3.5 h-3.5 shrink-0" />
-							</a>
-						</p>
-					)}
-				</div>
+				{jpa.websiteUrl && (
+					<p className="text-[15px] text-ink/60">
+						Verbindlich sind nur die Angaben des Prüfungsamts:{" "}
+						<a
+							href={jpa.websiteUrl}
+							target="_blank"
+							rel="noopener noreferrer"
+							className="font-medium text-seal inline-flex items-center gap-1 underline decoration-1 underline-offset-4 hover:decoration-2"
+						>
+							offizielle Website
+							<ExternalLink className="w-3.5 h-3.5 shrink-0" />
+						</a>
+					</p>
+				)}
 			</div>
-			<Footer jpas={jpas} />
-		</>
+		</div>
 	);
 }

@@ -3,11 +3,16 @@ import { createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { jsonLd, SITE_NAME, SITE_URL } from "@/lib/seo";
 import { TRPCProvider } from "@/lib/trpc-provider";
+import { getFooterOffices } from "@/server/public-data";
+import { Footer } from "../components/Footer";
 import Header from "../components/Header";
 
 import appCss from "../styles.css?url";
 
 export const Route = createRootRoute({
+	// The office list only changes with a migration; load it once per visit.
+	loader: () => getFooterOffices(),
+	staleTime: Number.POSITIVE_INFINITY,
 	head: () => ({
 		meta: [
 			{
@@ -107,6 +112,8 @@ export const Route = createRootRoute({
 });
 
 function RootDocument({ children }: { children: React.ReactNode }) {
+	// Undefined when the root loader failed; the footer then omits the offices.
+	const offices = Route.useLoaderData() ?? [];
 	return (
 		<html lang="de">
 			<head>
@@ -117,6 +124,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 					<div className="min-h-screen flex flex-col">
 						<Header />
 						<main className="flex-1 flex flex-col">{children}</main>
+						<Footer jpas={offices} />
 					</div>
 				</TRPCProvider>
 				<Scripts />
