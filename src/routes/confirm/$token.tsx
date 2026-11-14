@@ -76,10 +76,6 @@ function ConfirmPage() {
 
 	return (
 		<StatusPage icon={MailCheck} tone="pending" title="Anmeldung bestätigen">
-			<p>
-				Bestätige deine E-Mail-Adresse, um Benachrichtigungen über neue
-				Examensergebnisse zu erhalten.
-			</p>
 			<Button
 				onClick={() => confirm.mutate({ token })}
 				disabled={confirm.isPending}

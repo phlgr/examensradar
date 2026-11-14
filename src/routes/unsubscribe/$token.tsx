@@ -52,9 +52,7 @@ function UnsubscribePage() {
 
 	return (
 		<StatusPage icon={MailX} tone="bad" title="Abmelden">
-			<p>
-				Möchtest du keine E-Mails über neue Examensergebnisse mehr erhalten?
-			</p>
+			<p>Du bekommst dann für keines deiner Prüfungsämter mehr E-Mails.</p>
 			<Button
 				variant="destructive"
 				size="lg"

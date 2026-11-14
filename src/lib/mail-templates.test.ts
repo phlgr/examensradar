@@ -50,6 +50,6 @@ describe("renderWelcomeMail", () => {
 		const mail = renderWelcomeMail(TOKENS);
 		expect(renderWelcomeMail(TOKENS, [])).toEqual(mail);
 		expect(mail.html).not.toContain("Kalender");
-		expect(mail.text).toContain("über den Link unten.\n\nAbo verwalten: ");
+		expect(mail.text).toContain("veröffentlicht.\n\nAbo verwalten: ");
 	});
 });

@@ -16,7 +16,7 @@ export function Eyebrow({
 interface SectionIntroProps {
 	as?: "h1" | "h2";
 	title: React.ReactNode;
-	children: React.ReactNode;
+	children?: React.ReactNode;
 	className?: string;
 	textClassName?: string;
 }
@@ -36,14 +36,16 @@ export function SectionIntro({
 			>
 				{title}
 			</Tag>
-			<p
-				className={cn(
-					"text-lg text-ink/70 leading-relaxed max-w-2xl",
-					textClassName,
-				)}
-			>
-				{children}
-			</p>
+			{children && (
+				<p
+					className={cn(
+						"text-lg text-ink/70 leading-relaxed max-w-2xl",
+						textClassName,
+					)}
+				>
+					{children}
+				</p>
+			)}
 		</div>
 	);
 }
