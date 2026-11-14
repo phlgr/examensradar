@@ -114,31 +114,26 @@ export function renderConfirmMail(token: string): MailContent {
 		text: `Nur noch ein Klick
 
 Bestätige, dass wir dir E-Mails senden dürfen, sobald eines deiner gewählten
-Prüfungsämter neue Examensergebnisse veröffentlicht. Welche Prüfungsämter du
-beobachtest, siehst du nach der Bestätigung und kannst es jederzeit anpassen.
+Prüfungsämter neue Examensergebnisse veröffentlicht.
 
 E-Mail bestätigen: ${url}
 
-Der Link ist aus Sicherheitsgründen nur ${CONFIRM_TTL_LABEL} gültig — bestätige
-am besten gleich jetzt.
+Der Link ist ${CONFIRM_TTL_LABEL} gültig.
 
 --
-Link abgelaufen? Melde dich einfach neu an, dann bekommst du sofort einen
-frischen. Du hast das nicht angefordert? Dann ignoriere diese E-Mail einfach —
-ohne Bestätigung senden wir dir nichts.
+Du hast das nicht angefordert? Dann ignoriere diese E-Mail einfach — ohne
+Bestätigung senden wir dir nichts.
 `,
 		html: layout({
 			heading: "Nur noch ein Klick",
 			body:
 				paragraph(
-					"Bestätige, dass wir dir E-Mails senden dürfen, sobald eines deiner gewählten Prüfungsämter neue Examensergebnisse veröffentlicht. Welche Prüfungsämter du beobachtest, siehst du nach der Bestätigung und kannst es jederzeit anpassen.",
+					"Bestätige, dass wir dir E-Mails senden dürfen, sobald eines deiner gewählten Prüfungsämter neue Examensergebnisse veröffentlicht.",
 				) +
-				paragraph(
-					`Der Link ist aus Sicherheitsgründen nur <strong>${CONFIRM_TTL_LABEL}</strong> gültig — bestätige am besten gleich jetzt.`,
-				),
+				paragraph(`Der Link ist <strong>${CONFIRM_TTL_LABEL}</strong> gültig.`),
 			cta: { url, label: "E-Mail bestätigen" },
 			footer:
-				"Link abgelaufen? Melde dich einfach neu an, dann bekommst du sofort einen frischen. Du hast das nicht angefordert? Dann ignoriere diese E-Mail einfach — ohne Bestätigung senden wir dir nichts.",
+				"Du hast das nicht angefordert? Dann ignoriere diese E-Mail einfach — ohne Bestätigung senden wir dir nichts.",
 		}),
 	};
 }
@@ -218,8 +213,7 @@ export function renderWelcomeMail(
 		text: `Alles bereit
 
 Wir benachrichtigen dich, sobald eines deiner Prüfungsämter neue
-Examensergebnisse veröffentlicht. Welche das sind, siehst und änderst du
-über den Link unten.
+Examensergebnisse veröffentlicht.
 
 ${calendar.text}Abo verwalten: ${manageUrl(tokens.manage)}
 
@@ -233,7 +227,7 @@ Abmelden: ${unsubscribeUrl(tokens.unsubscribe)}
 			heading: "Alles bereit",
 			body:
 				paragraph(
-					"Wir benachrichtigen dich, sobald eines deiner Prüfungsämter neue Examensergebnisse veröffentlicht. Welche das sind, siehst und änderst du über den Link unten.",
+					"Wir benachrichtigen dich, sobald eines deiner Prüfungsämter neue Examensergebnisse veröffentlicht.",
 				) + calendar.html,
 			cta: { url: manageUrl(tokens.manage), label: "Abo verwalten" },
 			footer: `Bewahre diese E-Mail auf — über den Link kannst du dein Abo jederzeit verwalten oder beenden.<br>

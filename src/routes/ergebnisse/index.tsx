@@ -62,8 +62,7 @@ function ResultsIndexPage() {
 					className="mb-10 sm:mb-14"
 				>
 					Jedes Justizprüfungsamt veröffentlicht die Ergebnisse im ersten Examen
-					nach eigenem Rhythmus. Such dir dein Amt aus und sieh, wann die
-					nächsten Ergebnisse voraussichtlich kommen.
+					nach eigenem Rhythmus.
 				</SectionIntro>
 
 				<div className="columns-1 sm:columns-2 lg:columns-3 gap-4">
