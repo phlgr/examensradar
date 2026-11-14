@@ -75,7 +75,7 @@ export function sittingCalendar({
 	now,
 }: SittingCalendarInput): string {
 	const stamp = utcStamp(now);
-	const start = sitting.days[0].date;
+	const { start } = sitting;
 	const allDay = (uid: string, date: string, props: string[]) => [
 		"BEGIN:VEVENT",
 		`UID:${uid}`,
@@ -88,7 +88,7 @@ export function sittingCalendar({
 
 	const exams = sitting.days.flatMap((day, index) =>
 		allDay(`${compactDate(day.date)}-${index + 1}@examensradar.de`, day.date, [
-			`SUMMARY:${escapeText(`Examensklausur ${SUBJECT_LABEL[day.subject]}`)}`,
+			`SUMMARY:${escapeText(day.subject ? `Examensklausur ${SUBJECT_LABEL[day.subject]}` : "Examensklausur")}`,
 			`DESCRIPTION:${escapeText(`Staatliche Pflichtfachprüfung beim ${jpaName}. Viel Erfolg wünscht dir Examensradar! Angaben ohne Gewähr.`)}`,
 		]),
 	);

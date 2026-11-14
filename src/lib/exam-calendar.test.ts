@@ -12,7 +12,7 @@ import { examTimeline } from "./release-summary.ts";
 
 const sittings = examCalendarFor("köln")?.sittings ?? [];
 const sittingStarting = (date: string) => {
-	const found = sittings.find((s) => s.days[0].date === date);
+	const found = sittings.find((s) => s.start === date);
 	if (!found) throw new Error(`no sitting starting ${date}`);
 	return found;
 };
@@ -40,9 +40,13 @@ describe("exam calendar", () => {
 		expect(between("2026-10-22", "2026-11-19")).toEqual([]);
 	});
 
-	test("covers the NRW offices and nothing else", () => {
+	test("offices of one Land share its calendar", () => {
 		expect(examCalendarFor("hamm")?.sittings).toBe(sittings);
 		expect(examCalendarFor("düsseldorf")?.sittings).toBe(sittings);
+		expect(examCalendarFor("hamm")).toMatchObject({
+			land: "Nordrhein-Westfalen",
+			shared: true,
+		});
 		expect(examCalendarFor("berlin")).toBeUndefined();
 	});
 
@@ -54,7 +58,7 @@ describe("exam calendar", () => {
 
 	test("a February sitting spilling into March still counts by its start month", () => {
 		const february = sittingStarting("2026-02-23");
-		expect(february.days.at(-1)?.date).toBe("2026-03-03");
+		expect(february.end).toBe("2026-03-03");
 		expect(resultMonthIndex(february)).toBe(2026 * 12 + 4);
 		expect(formatSittingRange(february)).toBe("23. Februar – 3. März 2026");
 	});
@@ -84,8 +88,7 @@ describe("examTimeline", () => {
 		"2026-09-01T11:00:00",
 		"2026-10-01T11:00:00",
 	].map((d) => new Date(d));
-	const startOf = (e: { sitting: { days: readonly { date: string }[] } }) =>
-		e.sitting.days[0].date;
+	const startOf = (e: { sitting: { start: string } }) => e.sitting.start;
 
 	test("shows the latest release, pending sittings and every upcoming one", () => {
 		const timeline = examTimeline(

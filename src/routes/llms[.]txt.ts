@@ -51,12 +51,10 @@ export const Route = createFileRoute("/llms.txt")({
 					.filter(isOpen)
 					.slice(0, 3)
 					.map((open) => {
-						const start = open.sitting.days[0].date;
+						const start = open.sitting.start;
 						const results = timelines
 							.map(({ name, entries }) => {
-								const entry = entries.find(
-									(e) => e.sitting.days[0].date === start,
-								);
+								const entry = entries.find((e) => e.sitting.start === start);
 								return entry && `${name} ${resultsPhrase(entry)}`;
 							})
 							.filter(Boolean);

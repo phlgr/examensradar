@@ -230,7 +230,7 @@ function ExamsCell({ entry, now }: { entry: TimelineEntry; now: Date }) {
 	const written = days.filter((d) => d.date < today).length;
 	const sub = running
 		? `Tag ${Math.min(written + 1, days.length)} von ${days.length}`
-		: `${relativeLabel(daysFrom(now, new Date(`${days[0].date}T00:00`)))} · ${days.length} Klausuren`;
+		: `${relativeLabel(daysFrom(now, new Date(`${entry.sitting.start}T00:00`)))} · ${days.length} Klausuren`;
 	return (
 		<div className="border-t border-ink/10 p-5 sm:border-t-0 sm:border-l sm:p-6">
 			<p className={cn(LABEL, running ? "text-seal" : "text-ink/55")}>
@@ -333,9 +333,11 @@ function ExamDays({ entry, today }: { entry: TimelineEntry; today: string }) {
 					)}
 				>
 					<span className="figures text-ink/55">{formatExamDay(day.date)}</span>
-					<abbr title={SUBJECT_NAME[day.subject]} className="no-underline">
-						{day.subject}
-					</abbr>
+					{day.subject && (
+						<abbr title={SUBJECT_NAME[day.subject]} className="no-underline">
+							{day.subject}
+						</abbr>
+					)}
 				</li>
 			))}
 		</ul>
@@ -351,7 +353,7 @@ function CalendarLink({
 	jpaName: string;
 	sitting: ExamSitting;
 }) {
-	const start = sitting.days[0].date;
+	const { start } = sitting;
 	return (
 		<a
 			href={`/api/kalender/${jpaParam(jpaSlug)}/${start}`}
@@ -384,7 +386,7 @@ type Pod =
 
 const cardKey = (card: ReleaseCard) =>
 	card.kind === "sitting"
-		? card.entry.sitting.days[0].date
+		? card.entry.sitting.start
 		: `release-${card.date.getTime()}`;
 
 function ExamTimelineList({

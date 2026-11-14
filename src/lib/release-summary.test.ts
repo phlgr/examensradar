@@ -117,8 +117,7 @@ const hamm = [
 	"2026-10-01T11:00:00",
 ].map((d) => new Date(d));
 
-const startOf = (sitting: { days: readonly { date: string }[] }) =>
-	sitting.days[0].date;
+const startOf = (sitting: { start: string }) => sitting.start;
 
 function statusAt(slug: string, dates: Date[], now: Date) {
 	const summary = summarizeReleases(

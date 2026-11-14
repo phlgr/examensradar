@@ -155,11 +155,11 @@ export function calendarOffers(
 	const today = berlinDate(now);
 	return jpas.flatMap(({ jpaSlug, jpaName }) => {
 		const links = (examCalendarFor(jpaSlug)?.sittings ?? [])
-			.filter((sitting) => sitting.days[0].date > today)
+			.filter((sitting) => sitting.start > today)
 			.slice(0, OFFERED_SITTINGS)
 			.map((sitting) => ({
 				label: formatSittingRange(sitting),
-				url: `${appUrl()}/api/kalender/${jpaParam(jpaSlug)}/${sitting.days[0].date}`,
+				url: `${appUrl()}/api/kalender/${jpaParam(jpaSlug)}/${sitting.start}`,
 			}));
 		return links.length > 0 ? [{ jpaName, links }] : [];
 	});

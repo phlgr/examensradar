@@ -4,7 +4,7 @@ import { sittingCalendar } from "./ics.ts";
 
 const sitting = (() => {
 	const found = examCalendarFor("hamm")?.sittings.find(
-		(s) => s.days[0].date === "2026-11-19",
+		(s) => s.start === "2026-11-19",
 	);
 	if (!found) throw new Error("no November 2026 sitting");
 	return found;
