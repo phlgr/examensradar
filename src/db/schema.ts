@@ -6,6 +6,7 @@ import {
 	text,
 	unique,
 } from "drizzle-orm/sqlite-core";
+import { LAENDER } from "../lib/laender.ts";
 
 /**
  * "standing": the selector matches on every check, a miss is an error.
@@ -25,6 +26,7 @@ export const jpa = sqliteTable("jpa", {
 	scrapeMode: text("scrape_mode", { enum: SCRAPE_MODES })
 		.notNull()
 		.default("standing"),
+	land: text("land", { enum: LAENDER }),
 	notificationsDisabled: integer("notifications_disabled", {
 		mode: "boolean",
 	})

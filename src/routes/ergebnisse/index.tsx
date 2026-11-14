@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { PredictionNote } from "@/components/ui/date-chip";
 import { SectionIntro } from "@/components/ui/heading";
 import { historyFaqs } from "@/lib/faq";
+import { groupByLand } from "@/lib/laender";
 import { formatDayMonth } from "@/lib/release-summary";
 import { faqJsonLd, jpaParam, jsonLd, SITE_URL, seo } from "@/lib/seo";
 import { getPublicData } from "@/server/public-data";
@@ -45,12 +46,13 @@ export const Route = createFileRoute("/ergebnisse/")({
 
 function ResultsIndexPage() {
 	const { jpas, summaries } = Route.useLoaderData();
-	const rows = [...jpas]
-		.sort((a, b) => a.name.localeCompare(b.name, "de"))
-		.map((jpa) => ({
+	const groups = groupByLand(jpas).map(({ heading, offices }) => ({
+		heading,
+		rows: offices.map((jpa) => ({
 			jpa,
 			summary: summaries.find((s) => s.slug === jpa.slug),
-		}));
+		})),
+	}));
 
 	return (
 		<>
@@ -66,53 +68,58 @@ function ResultsIndexPage() {
 						die nächsten Ergebnisse voraussichtlich kommen.
 					</SectionIntro>
 
-					<section>
-						<h2 className="text-2xl font-semibold leading-tight mb-5">NRW</h2>
-						<ul className="space-y-3">
-							{rows.map(({ jpa, summary }) => (
-								<li key={jpa.slug}>
-									<Card className="transition-colors hover:bg-ink/[0.02]">
-										<Link
-											to="/ergebnisse/$jpa"
-											params={{ jpa: jpaParam(jpa.slug) }}
-											className="flex items-center gap-4 px-5 py-4 sm:px-6 sm:py-5 rounded-lg"
-										>
-											<span className="flex-1 min-w-0 sm:flex sm:items-center sm:gap-5">
-												<span className="block sm:flex-1 min-w-0">
-													<span className="block text-lg font-semibold leading-tight">
-														{jpa.name}
+					{groups.map(({ heading, rows }) => (
+						<section key={heading} className="mb-12">
+							<h2 className="text-2xl font-semibold leading-tight mb-5">
+								{heading}
+							</h2>
+							<ul className="space-y-3">
+								{rows.map(({ jpa, summary }) => (
+									<li key={jpa.slug}>
+										<Card className="transition-colors hover:bg-ink/[0.02]">
+											<Link
+												to="/ergebnisse/$jpa"
+												params={{ jpa: jpaParam(jpa.slug) }}
+												className="flex items-center gap-4 px-5 py-4 sm:px-6 sm:py-5 rounded-lg"
+											>
+												<span className="flex-1 min-w-0 sm:flex sm:items-center sm:gap-5">
+													<span className="block sm:flex-1 min-w-0">
+														<span className="block text-lg font-semibold leading-tight">
+															{jpa.name}
+														</span>
+														{summary && (
+															<span className="block text-[13px] text-ink/50 mt-0.5">
+																zuletzt am {formatDayMonth(summary.lastRelease)}
+															</span>
+														)}
 													</span>
-													{summary && (
-														<span className="block text-[13px] text-ink/50 mt-0.5">
-															zuletzt am {formatDayMonth(summary.lastRelease)}
-														</span>
-													)}
+													<span className="block mt-2 sm:mt-0">
+														{summary?.prediction &&
+														summary.daysUntil !== null ? (
+															<PredictionNote
+																prediction={summary.prediction}
+																daysUntil={summary.daysUntil}
+																prefix="nächste Ergebnisse voraussichtlich"
+																detail="relative"
+															/>
+														) : (
+															<span className="text-[15px] text-ink/45">
+																noch keine Prognose
+															</span>
+														)}
+													</span>
 												</span>
-												<span className="block mt-2 sm:mt-0">
-													{summary?.prediction && summary.daysUntil !== null ? (
-														<PredictionNote
-															prediction={summary.prediction}
-															daysUntil={summary.daysUntil}
-															prefix="nächste Ergebnisse voraussichtlich"
-															detail="relative"
-														/>
-													) : (
-														<span className="text-[15px] text-ink/45">
-															noch keine Prognose
-														</span>
-													)}
-												</span>
-											</span>
-											<ChevronRight
-												className="w-5 h-5 shrink-0 text-ink/40"
-												aria-hidden
-											/>
-										</Link>
-									</Card>
-								</li>
-							))}
-						</ul>
-					</section>
+												<ChevronRight
+													className="w-5 h-5 shrink-0 text-ink/40"
+													aria-hidden
+												/>
+											</Link>
+										</Card>
+									</li>
+								))}
+							</ul>
+						</section>
+					))}
 
 					<section className="mt-16">
 						<h2 className="text-2xl font-semibold leading-tight mb-5">

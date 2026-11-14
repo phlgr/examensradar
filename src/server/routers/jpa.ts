@@ -12,6 +12,7 @@ import {
 	updateJpa,
 } from "@/db";
 import { SCRAPE_MODES } from "@/db/schema";
+import { LAENDER } from "@/lib/laender";
 import { publicSummary, summarizeReleases } from "@/lib/release-summary";
 import { checkJpa } from "../scraper";
 import { adminProcedure, publicProcedure, router } from "../trpc";
@@ -41,6 +42,7 @@ export const jpaRouter = router({
 				scrapeUrl: z.string().url().nullable().optional(),
 				scrapeSelector: z.string().min(1).nullable().optional(),
 				scrapeMode: z.enum(SCRAPE_MODES).optional(),
+				land: z.enum(LAENDER).nullable().optional(),
 			}),
 		)
 		.mutation(async ({ input }) => {
@@ -59,6 +61,7 @@ export const jpaRouter = router({
 				scrapeUrl: z.string().url().nullable().optional(),
 				scrapeSelector: z.string().min(1).nullable().optional(),
 				scrapeMode: z.enum(SCRAPE_MODES).optional(),
+				land: z.enum(LAENDER).nullable().optional(),
 				notificationsDisabled: z.boolean().optional(),
 			}),
 		)

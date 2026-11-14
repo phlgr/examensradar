@@ -1,16 +1,18 @@
-INSERT INTO jpa (id, slug, name, website_url, created_at)
+INSERT INTO jpa (id, slug, name, website_url, land, created_at)
 VALUES (
   'jpa-nrw-001',
   'nrw',
   'Justizprüfungsamt NRW',
   'https://www.jpa.nrw.de/',
+  'Nordrhein-Westfalen',
   unixepoch() * 1000
 )
 ON CONFLICT (slug) DO UPDATE SET
   name = excluded.name,
-  website_url = excluded.website_url;
+  website_url = excluded.website_url,
+  land = excluded.land;
 
-INSERT INTO jpa (id, slug, name, website_url, scrape_url, scrape_selector, created_at)
+INSERT INTO jpa (id, slug, name, website_url, scrape_url, scrape_selector, land, created_at)
 VALUES
   (
     'jpa-olg-duesseldorf',
@@ -19,6 +21,7 @@ VALUES
     'https://www.olg-duesseldorf.nrw.de/aufgaben/pruefungsamt/06aktuelles/index.php',
     'https://www.olg-duesseldorf.nrw.de/aufgaben/pruefungsamt/06aktuelles/index.php',
     'article#mainArticle',
+    'Nordrhein-Westfalen',
     unixepoch() * 1000
   ),
   (
@@ -28,6 +31,7 @@ VALUES
     'https://www.olg-koeln.nrw.de/aufgaben/justizpruefungsamt/002_aktuelles/',
     'https://www.olg-koeln.nrw.de/aufgaben/justizpruefungsamt/002_aktuelles/',
     'section.article-zwischentext:has(.titlebarTitle:contains("§ 20"))',
+    'Nordrhein-Westfalen',
     unixepoch() * 1000
   ),
   (
@@ -37,11 +41,13 @@ VALUES
     'https://www.olg-hamm.nrw.de/aufgaben/justizpruefungsamt/02_staatl_pflichtfachpruefung/04_termine/01_aufsichtsarbeiten-schriftlich/05_informationen_20_Abs1_Nr_1_JAG/',
     'https://www.olg-hamm.nrw.de/aufgaben/justizpruefungsamt/02_staatl_pflichtfachpruefung/04_termine/01_aufsichtsarbeiten-schriftlich/05_informationen_20_Abs1_Nr_1_JAG/',
     'article#mainArticle',
+    'Nordrhein-Westfalen',
     unixepoch() * 1000
   )
 ON CONFLICT (slug) DO UPDATE SET
   scrape_url = excluded.scrape_url,
-  scrape_selector = excluded.scrape_selector;
+  scrape_selector = excluded.scrape_selector,
+  land = excluded.land;
 
 INSERT INTO notification_log (id, jpa_id, sent_at, subscriber_count)
 VALUES

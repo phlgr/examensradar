@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { fieldClass, labelClass } from "@/components/ui/input";
 import type { ScrapeMode } from "@/db/schema";
+import { LAENDER, type Land } from "@/lib/laender";
 import { noindex } from "@/lib/seo";
 import { trpc } from "@/lib/trpc";
 import { cn } from "@/lib/utils";
@@ -212,6 +213,7 @@ function AdminPage() {
 											</div>
 											<p className="text-sm font-medium text-ink/60 mb-1">
 												Slug: {jpa.slug}
+												{jpa.land && ` · ${jpa.land}`}
 											</p>
 											{jpa.websiteUrl && (
 												<a
@@ -388,6 +390,7 @@ function JpaForm({
 		scrapeUrl: string | null;
 		scrapeSelector: string | null;
 		scrapeMode: ScrapeMode;
+		land: Land | null;
 	};
 	onSubmit: (data: {
 		name: string;
@@ -396,6 +399,7 @@ function JpaForm({
 		scrapeUrl: string | null;
 		scrapeSelector: string | null;
 		scrapeMode: ScrapeMode;
+		land: Land | null;
 	}) => void;
 	onCancel: () => void;
 	isLoading: boolean;
@@ -408,6 +412,7 @@ function JpaForm({
 	const [scrapeSelector, setScrapeSelector] = useState(
 		initialData?.scrapeSelector ?? "",
 	);
+	const [land, setLand] = useState<Land | null>(initialData?.land ?? null);
 	const [releaseMode, setReleaseMode] = useState(
 		initialData?.scrapeMode === "release",
 	);
@@ -421,6 +426,7 @@ function JpaForm({
 			scrapeUrl: scrapeUrl || null,
 			scrapeSelector: scrapeSelector || null,
 			scrapeMode: releaseMode ? "release" : "standing",
+			land,
 		});
 	};
 
@@ -454,6 +460,26 @@ function JpaForm({
 						className={fieldClass}
 						placeholder="z.B. bayern"
 					/>
+				</div>
+				<div>
+					<label htmlFor={`${id}-land`} className={labelClass}>
+						Bundesland
+					</label>
+					<select
+						id={`${id}-land`}
+						value={land ?? ""}
+						onChange={(e) =>
+							setLand(LAENDER.find((l) => l === e.target.value) ?? null)
+						}
+						className={fieldClass}
+					>
+						<option value="">—</option>
+						{LAENDER.map((name) => (
+							<option key={name} value={name}>
+								{name}
+							</option>
+						))}
+					</select>
 				</div>
 				<div>
 					<label htmlFor={`${id}-url`} className={labelClass}>
