@@ -23,13 +23,13 @@ Anyone can read when each office last published results and when the next releas
 
 Preconditions: baseline. The seed has mock NRW publications in `notification_log`, so NRW has history.
 
-- **Office page.** `visit(base + "/ergebnisse/nrw")`. The heading `Justizprüfungsamt NRW: Klausurtermine und Ergebnisse im 1. Examen` and `getByRole("navigation", { name: "Brotkrumen" })` are visible. NRW has no exam calendar, so there is no `Klausurtermine beim …` heading.
+- **Office page.** `visit(base + "/ergebnisse/hamm")`. The heading `OLG Hamm` and `getByRole("navigation", { name: "Brotkrumen" })` are visible. Hamm has the seeded mock releases and the NRW exam calendar, so `Klausurtermine beim OLG Hamm` is visible too.
 - **From the footer.** `visit(base)`, then in `getByRole("navigation", { name: "Examensergebnisse nach Prüfungsamt" })` click the link to an office. You land on its `/ergebnisse/<slug>`.
 - **Office without history.** `/ergebnisse/duesseldorf` shows `Für das OLG Düsseldorf haben wir noch keine Veröffentlichung erfasst.` That sentence is in the FAQ. The answer block names the oldest waiting sitting with only the month, e.g. `voraussichtlich Ende November`.
 - **Results index.** Click `page.getByRole("banner").getByRole("link", { name: "Ergebnisse" })`. A bare `getByRole("link", { name: "Ergebnisse" })` also matches the footer link. The heading `Examensergebnisse nach Prüfungsamt` is visible and each office is a link to its page.
 - **History redirect.** `fetch(base + "/history", { redirect: "manual" })` returns 301 with `location` ending in `/ergebnisse`. Same for `/history/`.
-- **SSR.** `(await fetch(base + "/ergebnisse/nrw")).text()` already contains the h1 text, so it doesn't depend on JS.
-- **Sitemap, llms and robots.** `fetch(base + "/sitemap.xml")` returns XML containing `<loc>https://examensradar.de/ergebnisse/nrw</loc>`, and the Hamm entry has a `<lastmod>`. `fetch(base + "/llms.txt")` returns 200 text containing `## Klausurtermine (NRW)`. `fetch(base + "/robots.txt")` has no `Disallow: /subscriptions`. `journeys/exam-calendar.ts` checks these three.
+- **SSR.** `(await fetch(base + "/ergebnisse/hamm")).text()` already contains the h1 text, so it doesn't depend on JS.
+- **Sitemap, llms and robots.** `fetch(base + "/sitemap.xml")` returns XML containing `<loc>https://examensradar.de/ergebnisse/hamm</loc>` with a `<lastmod>`. `fetch(base + "/llms.txt")` returns 200 text containing `## Klausurtermine (NRW)`. `fetch(base + "/robots.txt")` has no `Disallow: /subscriptions`. `journeys/exam-calendar.ts` checks these three.
 - **Proof.** Screenshots + ARIA snapshots of both pages, plus the fetched bodies saved with `note()`.
 
 ## Gotchas

@@ -6,6 +6,7 @@ import {
 	text,
 	unique,
 } from "drizzle-orm/sqlite-core";
+import { LAENDER } from "../lib/laender.ts";
 
 export const jpa = sqliteTable("jpa", {
 	id: text("id").primaryKey(),
@@ -14,6 +15,7 @@ export const jpa = sqliteTable("jpa", {
 	websiteUrl: text("website_url"),
 	scrapeUrl: text("scrape_url"),
 	scrapeSelector: text("scrape_selector"),
+	land: text("land", { enum: LAENDER }),
 	notificationsDisabled: integer("notifications_disabled", {
 		mode: "boolean",
 	})
@@ -29,6 +31,7 @@ export const scrapeState = sqliteTable("scrape_state", {
 	contentHash: text("content_hash"),
 	lastCheckedAt: integer("last_checked_at", { mode: "timestamp_ms" }).notNull(),
 	lastChangedAt: integer("last_changed_at", { mode: "timestamp_ms" }),
+	lastMatchedAt: integer("last_matched_at", { mode: "timestamp_ms" }),
 	errorCount: integer("error_count").notNull().default(0),
 	lastError: text("last_error"),
 });

@@ -50,6 +50,27 @@
       "when": 1794383903273,
       "tag": "0006_mail-outbox",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1794678112859,
+      "tag": "0007_scrape-last-matched",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1794678181775,
+      "tag": "0008_jpa-land",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1794678217727,
+      "tag": "0009_add-non-nrw-jpas",
+      "breakpoints": true
     }
   ]
 }

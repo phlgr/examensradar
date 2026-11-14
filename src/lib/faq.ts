@@ -110,7 +110,7 @@ export function jpaFaqs(
 			: `zuletzt am ${formatLongDate(summary.lastRelease)}`;
 		faqs.push({
 			question: `Wann kommen die Examensergebnisse beim ${name}?`,
-			answer: `Das Justizprüfungsamt beim ${name} veröffentlicht die Ergebnisse im ersten Examen ${pattern}. ${nextReleaseSentence(summary)}${prediction ? ` Die Prognose ist ${CONFIDENCE_LABEL[prediction.confidence]}.` : ""}`,
+			answer: `Das ${name} veröffentlicht die Ergebnisse im ersten Examen ${pattern}. ${nextReleaseSentence(summary)}${prediction ? ` Die Prognose ist ${CONFIDENCE_LABEL[prediction.confidence]}.` : ""}`,
 		});
 		faqs.push({
 			question: `Wann hat das ${name} zuletzt Ergebnisse veröffentlicht?`,
@@ -174,7 +174,7 @@ export function officePageMeta(
 	const description =
 		dates.length > 0
 			? `${name}: ${dates.join(", ")}. Kostenlose E-Mail, sobald sie online sind.`
-			: `${prediction ? `Nächster Termin voraussichtlich am ${formatLongDate(prediction.date)}. ` : ""}Alle bisherigen Veröffentlichungen des Justizprüfungsamts beim ${name} im ersten Staatsexamen – und eine kostenlose E-Mail, sobald neue Ergebnisse online sind.`;
+			: `${prediction ? `Nächster Termin voraussichtlich am ${formatLongDate(prediction.date)}. ` : ""}Alle bisherigen Veröffentlichungen im ersten Staatsexamen beim ${name} – und eine kostenlose E-Mail, sobald neue Ergebnisse online sind.`;
 
 	const base = `${name}: Termine & Ergebnisse 1. Examen`;
 	const title = `${base} | Examensradar`;

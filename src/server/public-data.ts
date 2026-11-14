@@ -16,11 +16,12 @@ async function loadPublic() {
 	]);
 	const now = new Date();
 	return {
-		jpas: jpas.map(({ id, slug, name, websiteUrl }) => ({
+		jpas: jpas.map(({ id, slug, name, websiteUrl, land }) => ({
 			id,
 			slug,
 			name,
 			websiteUrl,
+			land,
 		})),
 		summaries: summarizeReleases(history, now),
 		now,

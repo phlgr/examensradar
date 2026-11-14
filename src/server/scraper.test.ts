@@ -74,21 +74,23 @@ test("changed content notifies exactly once", async () => {
 	expect(state.lastChangedAt).not.toBeNull();
 });
 
-test("a vanished selector records an error instead of notifying", async () => {
+test("a vanished element is neither news nor an error, and keeps its last match time", async () => {
 	const jpa = await scrapableJpa();
 	const kick = mock(() => {});
 
 	serveHtml(page("Basislinie"));
 	await checkJpa(jpa, kick);
+	const matchedAt = (await ensureScrapeState(jpa.id)).lastMatchedAt;
+	expect(matchedAt).not.toBeNull();
 
 	serveHtml("<html><body><main>alles neu</main></body></html>");
-	await checkJpa(jpa, kick);
-	await checkJpa(jpa, kick);
+	expect((await checkJpa(jpa, kick)).result).toBe("unchanged");
+	expect((await checkJpa(jpa, kick)).result).toBe("unchanged");
 
 	expect(kick).not.toHaveBeenCalled();
 	const state = await ensureScrapeState(jpa.id);
-	expect(state.errorCount).toBe(2);
-	expect(state.lastError).toContain("selector matched nothing");
+	expect(state.errorCount).toBe(0);
+	expect(state.lastMatchedAt).toEqual(matchedAt);
 });
 
 test("a reset baseline turns the next differing content into a new baseline, not a notification", async () => {
@@ -133,4 +135,70 @@ test("errors accumulate until a success resets them", async () => {
 	state = await ensureScrapeState(jpa.id);
 	expect(state.errorCount).toBe(0);
 	expect(state.lastError).toBeNull();
+});
+
+const nothingPublished = "<html><body><main>noch nichts</main></body></html>";
+
+test("an element missing from the start is a “nothing published” baseline, not an error", async () => {
+	const jpa = await scrapableJpa();
+	const kick = mock(() => {});
+
+	serveHtml(nothingPublished);
+	expect((await checkJpa(jpa, kick)).result).toBe("baseline");
+	expect((await checkJpa(jpa, kick)).result).toBe("unchanged");
+	expect((await checkJpa(jpa, kick)).result).toBe("unchanged");
+
+	expect(kick).not.toHaveBeenCalled();
+	const state = await ensureScrapeState(jpa.id);
+	expect(state.errorCount).toBe(0);
+	expect(state.lastError).toBeNull();
+	expect(state.lastMatchedAt).toBeNull();
+});
+
+test("the first appearance of a missing element notifies once", async () => {
+	const jpa = await scrapableJpa();
+	const kick = mock(() => {});
+
+	serveHtml(nothingPublished);
+	await checkJpa(jpa, kick);
+
+	serveHtml(page("Ergebnisse Mai 2026"));
+	expect((await checkJpa(jpa, kick)).result).toBe("notified");
+	expect((await checkJpa(jpa, kick)).result).toBe("unchanged");
+
+	expect(kick).toHaveBeenCalledTimes(1);
+});
+
+test("different content after the old release vanished notifies again", async () => {
+	const jpa = await scrapableJpa();
+	const kick = mock(() => {});
+
+	serveHtml(nothingPublished);
+	await checkJpa(jpa, kick);
+	serveHtml(page("Ergebnisse Mai 2026"));
+	await checkJpa(jpa, kick);
+
+	serveHtml(nothingPublished);
+	expect((await checkJpa(jpa, kick)).result).toBe("unchanged");
+
+	serveHtml(page("Ergebnisse November 2026"));
+	expect((await checkJpa(jpa, kick)).result).toBe("notified");
+
+	expect(kick).toHaveBeenCalledTimes(2);
+});
+
+test("identical content reappearing after it vanished does not notify", async () => {
+	const jpa = await scrapableJpa();
+	const kick = mock(() => {});
+
+	serveHtml(page("Ergebnisse Mai 2026"));
+	await checkJpa(jpa, kick);
+
+	serveHtml(nothingPublished);
+	await checkJpa(jpa, kick);
+
+	serveHtml(page("Ergebnisse Mai 2026"));
+	expect((await checkJpa(jpa, kick)).result).toBe("unchanged");
+
+	expect(kick).not.toHaveBeenCalled();
 });

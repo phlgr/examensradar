@@ -11,6 +11,7 @@ import {
 	getSubscriptionCountsByJpa,
 	updateJpa,
 } from "@/db";
+import { LAENDER } from "@/lib/laender";
 import { publicSummary, summarizeReleases } from "@/lib/release-summary";
 import { checkJpa } from "../scraper";
 import { adminProcedure, publicProcedure, router } from "../trpc";
@@ -39,6 +40,7 @@ export const jpaRouter = router({
 				websiteUrl: z.string().url().nullable().optional(),
 				scrapeUrl: z.string().url().nullable().optional(),
 				scrapeSelector: z.string().min(1).nullable().optional(),
+				land: z.enum(LAENDER).nullable().optional(),
 			}),
 		)
 		.mutation(async ({ input }) => {
@@ -56,6 +58,7 @@ export const jpaRouter = router({
 				websiteUrl: z.string().url().nullable().optional(),
 				scrapeUrl: z.string().url().nullable().optional(),
 				scrapeSelector: z.string().min(1).nullable().optional(),
+				land: z.enum(LAENDER).nullable().optional(),
 				notificationsDisabled: z.boolean().optional(),
 			}),
 		)

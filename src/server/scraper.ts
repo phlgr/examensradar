@@ -5,6 +5,7 @@ import {
 	getScrapableJpas,
 	recordScrapeError,
 	recordScrapeSuccess,
+	recordSelectorMatch,
 } from "@/db";
 import {
 	type Extraction,
@@ -17,6 +18,8 @@ import { kickMailOutbox } from "./mail-outbox";
 const DEFAULT_INTERVAL_MS = 5 * 60_000;
 
 type Jpa = Awaited<ReturnType<typeof getScrapableJpas>>[number];
+
+const NOTHING_PUBLISHED_HASH = "absent";
 
 export type CheckOutcome =
 	| { result: "not-configured" }
@@ -47,14 +50,17 @@ export async function checkJpa(
 		return { result: "error", message };
 	}
 
-	if (!extraction.matched) {
-		const message = `selector matched nothing: ${jpa.scrapeSelector}`;
-		await recordScrapeError(jpa.id, message);
-		console.error(`[scraper] ${jpa.slug}: ${message}`);
-		return { result: "error", message };
+	const missingAfterBaseline =
+		!extraction.matched && state.contentHash !== null;
+	if (missingAfterBaseline) {
+		await recordScrapeSuccess(jpa.id);
+		return { result: "unchanged" };
 	}
+	if (extraction.matched) await recordSelectorMatch(jpa.id);
 
-	const hash = hashContent(extraction.content);
+	const hash = extraction.matched
+		? hashContent(extraction.content)
+		: NOTHING_PUBLISHED_HASH;
 
 	if (hash === state.contentHash) {
 		await recordScrapeSuccess(jpa.id);
