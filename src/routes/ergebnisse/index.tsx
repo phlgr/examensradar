@@ -46,13 +46,13 @@ export const Route = createFileRoute("/ergebnisse/")({
 
 function ResultsIndexPage() {
 	const { jpas, summaries } = Route.useLoaderData();
-	const groups = groupByLand(jpas).map(({ heading, offices }) => ({
-		heading,
-		rows: offices.map((jpa) => ({
+	const tiles = groupByLand(jpas).flatMap(({ heading, offices }) =>
+		offices.map((jpa) => ({
+			land: heading,
 			jpa,
 			summary: summaries.find((s) => s.slug === jpa.slug),
 		})),
-	}));
+	);
 
 	return (
 		<>
@@ -68,58 +68,52 @@ function ResultsIndexPage() {
 						die nächsten Ergebnisse voraussichtlich kommen.
 					</SectionIntro>
 
-					{groups.map(({ heading, rows }) => (
-						<section key={heading} className="mb-12">
-							<h2 className="text-2xl font-semibold leading-tight mb-5">
-								{heading}
-							</h2>
-							<ul className="space-y-3">
-								{rows.map(({ jpa, summary }) => (
-									<li key={jpa.slug}>
-										<Card className="transition-colors hover:bg-ink/[0.02]">
-											<Link
-												to="/ergebnisse/$jpa"
-												params={{ jpa: jpaParam(jpa.slug) }}
-												className="flex items-center gap-4 px-5 py-4 sm:px-6 sm:py-5 rounded-lg"
-											>
-												<span className="flex-1 min-w-0 sm:flex sm:items-center sm:gap-5">
-													<span className="block sm:flex-1 min-w-0">
-														<span className="block text-lg font-semibold leading-tight">
-															{jpa.name}
-														</span>
-														{summary && (
-															<span className="block text-[13px] text-ink/50 mt-0.5">
-																zuletzt am {formatDayMonth(summary.lastRelease)}
-															</span>
-														)}
-													</span>
-													<span className="block mt-2 sm:mt-0">
-														{summary?.prediction &&
-														summary.daysUntil !== null ? (
-															<PredictionNote
-																prediction={summary.prediction}
-																daysUntil={summary.daysUntil}
-																prefix="nächste Ergebnisse voraussichtlich"
-																detail="relative"
-															/>
-														) : (
-															<span className="text-[15px] text-ink/45">
-																noch keine Prognose
-															</span>
-														)}
-													</span>
+					<ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+						{tiles.map(({ land, jpa, summary }) => (
+							<li key={jpa.slug}>
+								<Card className="h-full transition-colors hover:bg-ink/[0.02]">
+									<Link
+										to="/ergebnisse/$jpa"
+										params={{ jpa: jpaParam(jpa.slug) }}
+										className="flex h-full flex-col gap-2 px-4 py-3 rounded-lg"
+									>
+										<span className="flex items-start gap-2">
+											<span className="flex-1 min-w-0">
+												<span className="block text-[11px] font-semibold uppercase tracking-wider text-ink/45">
+													{land}
 												</span>
-												<ChevronRight
-													className="w-5 h-5 shrink-0 text-ink/40"
-													aria-hidden
+												<span className="block font-semibold leading-snug">
+													{jpa.name}
+												</span>
+											</span>
+											<ChevronRight
+												className="w-4 h-4 mt-0.5 shrink-0 text-ink/40"
+												aria-hidden
+											/>
+										</span>
+										<span className="mt-auto text-sm">
+											{summary?.prediction && summary.daysUntil !== null ? (
+												<PredictionNote
+													prediction={summary.prediction}
+													daysUntil={summary.daysUntil}
+													prefix="Nächste voraussichtlich"
+													detail="relative"
+													className="text-sm"
 												/>
-											</Link>
-										</Card>
-									</li>
-								))}
-							</ul>
-						</section>
-					))}
+											) : (
+												<span className="text-ink/45">noch keine Prognose</span>
+											)}
+											{summary && (
+												<span className="block text-xs text-ink/50 mt-0.5">
+													zuletzt am {formatDayMonth(summary.lastRelease)}
+												</span>
+											)}
+										</span>
+									</Link>
+								</Card>
+							</li>
+						))}
+					</ul>
 
 					<section className="mt-16">
 						<h2 className="text-2xl font-semibold leading-tight mb-5">
