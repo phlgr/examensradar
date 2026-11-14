@@ -1,17 +1,14 @@
-import { init } from "@plausible-analytics/tracker";
+import rybbit from "@rybbit/js";
 import { StartClient } from "@tanstack/react-start/client";
 import { StrictMode, startTransition } from "react";
 import { hydrateRoot } from "react-dom/client";
-import { maskAnalyticsUrl } from "@/lib/analytics";
+import { ANALYTICS_MASK_PATTERNS } from "@/lib/analytics";
 
-init({
-	domain: "examensradar.de",
-	endpoint: "https://apps.gartz.dev/api/event",
-	transformRequest: (payload) => ({
-		...payload,
-		u: maskAnalyticsUrl(payload.u),
-		r: payload.r ? maskAnalyticsUrl(payload.r) : payload.r,
-	}),
+window.rybbit = rybbit;
+void rybbit.init({
+	analyticsHost: "https://data.gartz.dev/api",
+	siteId: "c08ec841c4c0",
+	maskPatterns: ANALYTICS_MASK_PATTERNS,
 });
 
 startTransition(() => {

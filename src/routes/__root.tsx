@@ -17,6 +17,13 @@ export const Route = createRootRoute({
 				name: "viewport",
 				content: "width=device-width, initial-scale=1",
 			},
+			// Origin-only referrers: the confirm, unsubscribe and manage URLs
+			// carry tokens, and a full-page navigation away from them would
+			// otherwise hand the full URL to the next page (and its analytics).
+			{
+				name: "referrer",
+				content: "strict-origin",
+			},
 			{
 				title: "Examensradar – Examensergebnisse per E-Mail",
 			},
