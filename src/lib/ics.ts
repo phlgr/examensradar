@@ -75,23 +75,45 @@ export function sittingCalendar({
 	now,
 }: SittingCalendarInput): string {
 	const stamp = utcStamp(now);
-	const { start } = sitting;
-	const allDay = (uid: string, date: string, props: string[]) => [
+	const { start, end, days, subjectsFrom } = sitting;
+	const allDay = (uid: string, date: string, props: string[], last = date) => [
 		"BEGIN:VEVENT",
 		`UID:${uid}`,
 		`DTSTAMP:${stamp}`,
 		`DTSTART;VALUE=DATE:${compactDate(date)}`,
-		`DTEND;VALUE=DATE:${compactDate(nextDay(date))}`,
+		`DTEND;VALUE=DATE:${compactDate(nextDay(last))}`,
 		...props,
 		"END:VEVENT",
 	];
+	const description = (note: string) =>
+		`DESCRIPTION:${escapeText(`Staatliche Pflichtfachprüfung beim ${jpaName}.${note} Viel Erfolg wünscht dir Examensradar! Angaben ohne Gewähr.`)}`;
+	const inferredNote = subjectsFrom
+		? ` Das Fach stammt aus dem gemeinsamen Terminplan (${subjectsFrom.join("/")}), das Prüfungsamt hat es nicht bestätigt.`
+		: "";
 
-	const exams = sitting.days.flatMap((day, index) =>
-		allDay(`${compactDate(day.date)}-${index + 1}@examensradar.de`, day.date, [
-			`SUMMARY:${escapeText(day.subject ? `Examensklausur ${SUBJECT_LABEL[day.subject]}` : "Examensklausur")}`,
-			`DESCRIPTION:${escapeText(`Staatliche Pflichtfachprüfung beim ${jpaName}. Viel Erfolg wünscht dir Examensradar! Angaben ohne Gewähr.`)}`,
-		]),
-	);
+	const exams =
+		days.length === 0
+			? allDay(
+					`${compactDate(start)}-${compactDate(end)}@examensradar.de`,
+					start,
+					[
+						"SUMMARY:Examensklausuren",
+						description(
+							" Die einzelnen Klausurtage nennt das Prüfungsamt nicht.",
+						),
+					],
+					end,
+				)
+			: days.flatMap((day, index) =>
+					allDay(
+						`${compactDate(day.date)}-${index + 1}@examensradar.de`,
+						day.date,
+						[
+							`SUMMARY:${escapeText(day.subject ? `Examensklausur ${SUBJECT_LABEL[day.subject]}` : "Examensklausur")}`,
+							description(day.subject ? inferredNote : ""),
+						],
+					),
+				);
 
 	const results = allDay(
 		`results-${compactDate(start)}-${jpaParam(jpaName)}@examensradar.de`,

@@ -10,11 +10,11 @@ const sitting = (() => {
 	return found;
 })();
 
-const build = (jpaName = "Justizprüfungsamt Hamm") =>
+const build = (jpaName = "Justizprüfungsamt Hamm", exams = sitting) =>
 	sittingCalendar({
 		jpaName,
 		jpaUrl: "https://examensradar.de/ergebnisse/hamm",
-		sitting,
+		sitting: exams,
 		expectedResults: new Date(2027, 2, 1),
 		now: new Date("2026-11-05T10:00:00Z"),
 	});
@@ -70,5 +70,37 @@ describe("sittingCalendar", () => {
 			`DESCRIPTION:Staatliche Pflichtfachprüfung beim ${escaped}. Viel Erfolg wünscht dir Examensradar! Angaben ohne Gewähr.`,
 		);
 		expect(ics).not.toContain("�");
+	});
+
+	test("a range-only sitting is one multi-day event", () => {
+		const all = events(
+			build("Landesjustizprüfungsamt Bayern", {
+				start: "2027-03-03",
+				end: "2027-03-10",
+				days: [],
+			}),
+		);
+		expect(all).toHaveLength(2);
+		expect(all[0]).toContain("DTSTART;VALUE=DATE:20270303\r\n");
+		expect(all[0]).toContain("DTEND;VALUE=DATE:20270311\r\n");
+		expect(all[0]).toContain("SUMMARY:Examensklausuren\r\n");
+		expect(all[0]).toContain("nennt das Prüfungsamt nicht");
+	});
+
+	test("inferred subjects are marked as not confirmed, days without one have none", () => {
+		const all = events(
+			build("JPA Schleswig-Holstein", {
+				start: "2027-01-19",
+				end: "2027-01-29",
+				days: [{ date: "2027-01-19" }, { date: "2027-01-21", subject: "SR" }],
+				subjectsFrom: ["Niedersachsen", "Nordrhein-Westfalen"],
+			}),
+		);
+		expect(all[0]).toContain("SUMMARY:Examensklausur\r\n");
+		expect(all[0]).not.toContain("Terminplan");
+		expect(all[1]).toContain("SUMMARY:Examensklausur Strafrecht (SR)");
+		expect(all[1]).toContain(
+			"Terminplan (Niedersachsen/Nordrhein-Westfalen)\\, das Prüfungsamt hat es nicht bestätigt",
+		);
 	});
 });

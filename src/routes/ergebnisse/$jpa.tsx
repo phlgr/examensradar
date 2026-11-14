@@ -226,11 +226,17 @@ function monthYear(date: Date, currentYear: number) {
 function ExamsCell({ entry, now }: { entry: TimelineEntry; now: Date }) {
 	const running = entry.phase === "läuft";
 	const today = localIsoDate(now);
-	const { days } = entry.sitting;
+	const { days, start, end } = entry.sitting;
 	const written = days.filter((d) => d.date < today).length;
-	const sub = running
-		? `Tag ${Math.min(written + 1, days.length)} von ${days.length}`
-		: `${relativeLabel(daysFrom(now, new Date(`${entry.sitting.start}T00:00`)))} · ${days.length} Klausuren`;
+	const relative = relativeLabel(daysFrom(now, new Date(`${start}T00:00`)));
+	const sub =
+		days.length === 0
+			? running
+				? `bis ${formatExamDay(end)}`
+				: relative
+			: running
+				? `Tag ${Math.min(written + 1, days.length)} von ${days.length}`
+				: `${relative} · ${days.length} Klausuren`;
 	return (
 		<div className="border-t border-ink/10 p-5 sm:border-t-0 sm:border-l sm:p-6">
 			<p className={cn(LABEL, running ? "text-seal" : "text-ink/55")}>
@@ -244,7 +250,7 @@ function ExamsCell({ entry, now }: { entry: TimelineEntry; now: Date }) {
 				href="#klausurtermine"
 				className="mt-4 inline-flex items-center gap-2 rounded-lg bg-sheet px-4 py-2.5 text-[15px] font-semibold ring-1 ring-ink/15 hover:ring-ink/30"
 			>
-				Zu den Klausurtagen
+				{days.length > 0 ? "Zu den Klausurtagen" : "Zu den Klausurterminen"}
 				<ArrowDown className="size-4" aria-hidden />
 			</a>
 		</div>
@@ -322,25 +328,43 @@ function resultMonthLabel(sitting: ExamSitting, currentYear: number) {
 }
 
 function ExamDays({ entry, today }: { entry: TimelineEntry; today: string }) {
+	const { days, subjectsFrom } = entry.sitting;
+	if (days.length === 0) {
+		return (
+			<p className="mt-3 text-[13px] text-ink/55">
+				Einzelne Klausurtage nennt das Prüfungsamt nicht.
+			</p>
+		);
+	}
 	return (
-		<ul className="mt-3 space-y-0.5 text-[14px]">
-			{entry.sitting.days.map((day) => (
-				<li
-					key={day.date}
-					className={cn(
-						"flex gap-2",
-						entry.phase === "läuft" && day.date < today && "text-ink/45",
-					)}
-				>
-					<span className="figures text-ink/55">{formatExamDay(day.date)}</span>
-					{day.subject && (
-						<abbr title={SUBJECT_NAME[day.subject]} className="no-underline">
-							{day.subject}
-						</abbr>
-					)}
-				</li>
-			))}
-		</ul>
+		<>
+			<ul className="mt-3 space-y-0.5 text-[14px]">
+				{days.map((day) => (
+					<li
+						key={day.date}
+						className={cn(
+							"flex gap-2",
+							entry.phase === "läuft" && day.date < today && "text-ink/45",
+						)}
+					>
+						<span className="figures text-ink/55">
+							{formatExamDay(day.date)}
+						</span>
+						{day.subject && (
+							<abbr title={SUBJECT_NAME[day.subject]} className="no-underline">
+								{day.subject}
+							</abbr>
+						)}
+					</li>
+				))}
+			</ul>
+			{subjectsFrom && (
+				<p className="mt-2 text-[12px] text-ink/55">
+					Fächer laut Terminplan {subjectsFrom.join("/")}, verbindlich ist deine
+					Ladung.
+				</p>
+			)}
+		</>
 	);
 }
 
@@ -643,7 +667,7 @@ function JpaPage() {
 						</h2>
 						<p className="text-[15px] text-ink/55 mb-6">
 							{timeline
-								? "Wann geschrieben wird und wann die Ergebnisse voraussichtlich kommen. Die Termine gelten für alle Justizprüfungsämter in NRW."
+								? `Wann geschrieben wird und wann die Ergebnisse voraussichtlich kommen.${timeline.calendar.shared ? ` Die Termine gelten für alle Justizprüfungsämter in ${timeline.calendar.land}.` : ""}`
 								: `Wann das ${jpa.name} neue Ergebnisse online gestellt hat.`}
 						</p>
 						<ExamTimelineList
@@ -654,11 +678,11 @@ function JpaPage() {
 							now={now}
 						/>
 						{timeline && (
-							<>
-								<p className="mt-4 text-[13px] text-ink/55">
-									ZR Zivilrecht · ÖR Öffentliches Recht · SR Strafrecht
-								</p>
-								<p className="mt-1 text-[13px] text-ink/55">
+							<div className="mt-4 space-y-1 text-[13px] text-ink/55">
+								{entries.some((e) => e.sitting.days.some((d) => d.subject)) && (
+									<p>ZR Zivilrecht · ÖR Öffentliches Recht · SR Strafrecht</p>
+								)}
+								<p>
 									Ohne Gewähr. Quelle:{" "}
 									<a
 										href={timeline.calendar.pageUrl}
@@ -672,7 +696,7 @@ function JpaPage() {
 										`, Stand ${formatStand(timeline.calendar.stand)}`}
 									.
 								</p>
-							</>
+							</div>
 						)}
 					</section>
 				)}
