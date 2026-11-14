@@ -9,13 +9,9 @@ export interface ExamDay {
 }
 
 export interface ExamSitting {
-	/** YYYY-MM-DD; the first exam day when `days` is non-empty. */
 	start: string;
-	/** YYYY-MM-DD; the last exam day when `days` is non-empty. */
 	end: string;
-	/** Empty when the office only publishes the range. */
 	days: readonly ExamDay[];
-	/** Set when the subjects were taken from other Länder's plans for the same dates. */
 	subjectsFrom?: readonly Land[];
 }
 
@@ -52,8 +48,7 @@ export const MONTHS = [
 
 export interface ExamCalendar extends OfficeSource {
 	sittings: readonly ExamSitting[];
-	/** Other offices of the same Land publish the same dates. */
-	shared: boolean;
+	sharedWithLand: boolean;
 }
 
 export function examCalendarFor(slug: string): ExamCalendar | undefined {
@@ -62,7 +57,7 @@ export function examCalendarFor(slug: string): ExamCalendar | undefined {
 	return {
 		...source,
 		sittings: SITTINGS_BY_LAND[source.land] ?? [],
-		shared: Object.entries(OFFICE_SOURCES).some(
+		sharedWithLand: Object.entries(OFFICE_SOURCES).some(
 			([other, { land }]) => other !== slug && land === source.land,
 		),
 	};

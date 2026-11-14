@@ -107,7 +107,6 @@ const COUNT = [
 	"acht",
 ];
 
-/** Names the subject mix only when the office itself states every subject. */
 function examsSentence({ days, subjectsFrom }: ExamSitting): string {
 	if (days.length === 0) return "";
 	const total = `Jeder Durchgang besteht aus ${COUNT[days.length]} Klausuren`;

@@ -45,7 +45,7 @@ describe("exam calendar", () => {
 		expect(examCalendarFor("düsseldorf")?.sittings).toBe(sittings);
 		expect(examCalendarFor("hamm")).toMatchObject({
 			land: "Nordrhein-Westfalen",
-			shared: true,
+			sharedWithLand: true,
 		});
 		expect(examCalendarFor("berlin")).toBeUndefined();
 	});

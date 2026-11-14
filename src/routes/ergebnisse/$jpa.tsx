@@ -669,7 +669,7 @@ function JpaPage() {
 						</h2>
 						<p className="text-[15px] text-ink/55 mb-6">
 							{timeline
-								? `Wann geschrieben wird und wann die Ergebnisse voraussichtlich kommen.${timeline.calendar.shared ? ` Die Termine gelten für alle Justizprüfungsämter in ${timeline.calendar.land}.` : ""}`
+								? `Wann geschrieben wird und wann die Ergebnisse voraussichtlich kommen.${timeline.calendar.sharedWithLand ? ` Die Termine gelten für alle Justizprüfungsämter in ${timeline.calendar.land}.` : ""}`
 								: `Wann das ${jpa.name} neue Ergebnisse online gestellt hat.`}
 						</p>
 						<ExamTimelineList

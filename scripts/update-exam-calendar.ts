@@ -20,7 +20,6 @@ interface Source {
 	slug: string;
 	land: Land;
 	pageUrl: string;
-	/** "page" reads the page itself; a regex picks linked documents by link text or URL, its `year` group naming the year. */
 	documents: "page" | RegExp;
 	section?: readonly [RegExp, RegExp];
 }

@@ -23,27 +23,24 @@ const DATE = "(?<day>\\d{2})\\.(?<month>\\d{2})\\.(?<year>\\d{4}|\\d{2})";
 const MONTH_YEAR = `(?<monthName>${MONTH})${SP}(?<year>\\d{4})`;
 const SUBJECT = "(?<subject>ZR|ÖR|SR)";
 
-/**
- * A date with a weekday right before it or a subject right after it is a day
- * in an exam schedule. Deadlines, "Stand" stamps and letterhead dates are not.
- */
-const EXAM_LOOKING = new RegExp(
-	`${WD}${SP}(${NUMERIC_DATE}|${TEXT_DATE})|(${NUMERIC_DATE}|${TEXT_DATE})${SP}(?:ZR|ÖR|SR)`,
+const ANY_DATE = `(${NUMERIC_DATE}|${TEXT_DATE})`;
+const DATE_AFTER_WEEKDAY = `${WD}${SP}${ANY_DATE}`;
+const DATE_BEFORE_SUBJECT = `${ANY_DATE}${SP}(?:ZR|ÖR|SR)`;
+const EXAM_DATE = new RegExp(
+	`${DATE_AFTER_WEEKDAY}|${DATE_BEFORE_SUBJECT}`,
 	"gdu",
 );
 
 interface Layout {
 	pattern: RegExp;
-	/** Repeated inside a `pattern` match, which supplies the shared month and year. */
-	item?: RegExp;
+	repeatedItem?: RegExp;
 }
 
-const layout = (pattern: string, item?: string): Layout => ({
+const layout = (pattern: string, repeatedItem?: string): Layout => ({
 	pattern: new RegExp(pattern, "gu"),
-	item: item ? new RegExp(item, "gu") : undefined,
+	repeatedItem: repeatedItem ? new RegExp(repeatedItem, "gu") : undefined,
 });
 
-/** Most specific first: a text is read by the first layout that covers all its exam-looking dates. */
 const LAYOUTS: Layout[] = [
 	// "Do 21.01.27 SR"
 	layout(`${WEEKDAY}${SP}${DATE}[ \\t]+${SUBJECT}`),
@@ -133,11 +130,13 @@ function readItem(g: Groups): Item | null {
 	};
 }
 
-function readLayout(text: string, { pattern, item }: Layout) {
+function readLayout(text: string, { pattern, repeatedItem }: Layout) {
 	const hits = [...text.matchAll(pattern)];
 	const items = hits.flatMap((hit) => {
 		const outer = hit.groups ?? {};
-		const inner = item ? [...hit[0].matchAll(item)].map((m) => m.groups) : [{}];
+		const inner = repeatedItem
+			? [...hit[0].matchAll(repeatedItem)].map((m) => m.groups)
+			: [{}];
 		return inner.flatMap((groups) => readItem({ ...outer, ...groups }) ?? []);
 	});
 	return { hits, items };
@@ -148,7 +147,7 @@ function coversEveryExamDate(text: string, hits: RegExpMatchArray[]) {
 		hit.index ?? 0,
 		(hit.index ?? 0) + hit[0].length,
 	]);
-	return [...text.matchAll(EXAM_LOOKING)].every((match) => {
+	return [...text.matchAll(EXAM_DATE)].every((match) => {
 		const [start, end] = match.indices?.[1] ?? match.indices?.[2] ?? [0, 0];
 		return spans.some(([from, to]) => from <= start && end <= to);
 	});
@@ -187,7 +186,6 @@ function checkSitting(sitting: ExamSitting, named: Map<string, string>) {
 
 const monthOf = (date: string) => date.slice(0, 7);
 
-/** Splits sorted exam days into sittings at gaps; a run too long for one sitting splits at month ends. */
 function groupDays(days: ExamDay[]): ExamDay[][] {
 	const runs: ExamDay[][] = [];
 	for (const day of days) {
@@ -223,7 +221,6 @@ function chooseLayout(text: string) {
 	throw new Error("no layout covers every exam date");
 }
 
-/** Reads one document's text into checked sittings, or throws why it cannot. */
 export function parseSittings(text: string): ExamSitting[] {
 	const chosen = chooseLayout(text);
 	const named = new Map<string, string>();
@@ -275,7 +272,6 @@ export function cutSection(
 	return end < 0 ? rest : rest.slice(0, end);
 }
 
-/** "Stand: 11.06.2026", "Letzte Aktualisierung: 12.08.2026" or "Stand Juni 2026"; the latest one wins. */
 export function parseStand(text: string): string | null {
 	const stamps = [
 		...[
@@ -295,7 +291,6 @@ export function parseStand(text: string): string | null {
 
 export interface ParsedDocument {
 	url: string;
-	/** The year the office says the document covers; null for a page without one. */
 	year: number | null;
 	result: { sittings: ExamSitting[] } | { error: string };
 }
@@ -306,11 +301,6 @@ export interface ParsedOffice {
 	documents: ParsedDocument[];
 }
 
-/**
- * Unions the sittings of a Land's offices, keyed by start. A document that
- * failed is only a warning when another office of the Land covers its year.
- * Earlier sittings from `previous` that end before the first fresh one stay.
- */
 export function mergeLand(
 	offices: readonly ParsedOffice[],
 	previous: readonly ExamSitting[] = [],
@@ -358,11 +348,6 @@ export function mergeLand(
 const hasStatedSubjects = (s: ExamSitting) =>
 	!s.subjectsFrom && s.days.length > 0 && s.days.every((d) => d.subject);
 
-/**
- * Fills the subjects of a subject-less sitting from other Länder's sittings
- * whose dates all fall on its exam days: several Länder write the same
- * centrally set exams on the same day.
- */
 export function inferSubjects(
 	byLand: Partial<Record<Land, readonly ExamSitting[]>>,
 ): Partial<Record<Land, ExamSitting[]>> {
