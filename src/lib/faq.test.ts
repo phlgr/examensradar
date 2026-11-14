@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { officePageMeta } from "./faq.ts";
+import { jpaFaqs, officePageMeta } from "./faq.ts";
 import { examTimeline, summarizeReleases } from "./release-summary.ts";
 import { officeLastmod } from "./seo.ts";
 
@@ -56,6 +56,25 @@ describe("officePageMeta", () => {
 		expect(
 			metaFor("OLG Düsseldorf", "düsseldorf").title.length,
 		).toBeLessThanOrEqual(60);
+	});
+});
+
+describe("jpaFaqs", () => {
+	const nextExams = (slug: string) =>
+		jpaFaqs(slug, undefined, examTimeline(slug, [], NOW)?.entries).find((f) =>
+			f.question.startsWith("Wann sind die nächsten"),
+		)?.answer ?? "";
+
+	test("names the subject mix only when the office states it", () => {
+		expect(nextExams("hamm")).toContain(
+			"sechs Klausuren: drei im Zivilrecht, zwei im Öffentlichen Recht und eine im Strafrecht.",
+		);
+		expect(nextExams("berlin-brandenburg")).toContain(
+			"sieben Klausuren: drei im Zivilrecht, zwei im Öffentlichen Recht und zwei im Strafrecht.",
+		);
+		expect(nextExams("bremen")).toContain("aus sechs Klausuren.");
+		expect(nextExams("bayern")).not.toContain("Klausuren:");
+		expect(nextExams("bayern")).not.toContain("Jeder Durchgang");
 	});
 });
 

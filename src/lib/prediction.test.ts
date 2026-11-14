@@ -170,7 +170,7 @@ describe("predictNextRelease with the exam calendar", () => {
 			sittings,
 		);
 		expect(prediction && ymd(prediction.date)).toBe("2026-11-30");
-		expect(prediction?.sitting?.days[0].date).toBe("2026-08-20");
+		expect(prediction?.sitting?.start).toBe("2026-08-20");
 		expect(prediction?.confidence).toBe("high");
 	});
 
@@ -200,7 +200,7 @@ describe("predictNextRelease with the exam calendar", () => {
 			d("2026-12-02T12:00:00"),
 			sittings,
 		);
-		expect(prediction?.sitting?.days[0].date).toBe("2026-10-22");
+		expect(prediction?.sitting?.start).toBe("2026-10-22");
 		expect(prediction && ymd(prediction.date)).toBe("2027-02-01");
 	});
 

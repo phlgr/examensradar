@@ -9,7 +9,7 @@ Anyone can read when each office last published results and when the next releas
 - `results-index`: `/ergebnisse` has the h1 `Examensergebnisse nach Prüfungsamt`, the group heading `NRW` and one link row per office (name, last release, next expected release), then the FAQ `Zu den Prognosen`.
 - `history-redirect`: `/history` and `/history/` answer 301 with `Location: /ergebnisse`.
 - `sitemap`: `/sitemap.xml` lists `/`, `/ergebnisse` and every `/ergebnisse/<slug>`. An office's `<lastmod>` is the later of its last release and its exam calendar's `Stand`.
-- `llms`: `/llms.txt` returns plain text describing the service and offices, with a `## Klausurtermine (NRW)` section listing the next sittings.
+- `llms`: `/llms.txt` returns plain text describing the service and offices, with a `## Klausurtermine` section listing the next sittings under one `### <Land>` heading per Land.
 - `robots`: `/robots.txt` disallows `/admin`, `/api/`, `/confirm/` and `/unsubscribe/`, but not `/subscriptions`, so crawlers can read that page's `noindex`.
 - `ssr`: the data above is in the server HTML, before JS runs.
 
@@ -23,13 +23,13 @@ Anyone can read when each office last published results and when the next releas
 
 Preconditions: baseline. The seed has mock NRW publications in `notification_log`, so NRW has history.
 
-- **Office page.** `visit(base + "/ergebnisse/hamm")`. The heading `OLG Hamm` and `getByRole("navigation", { name: "Brotkrumen" })` are visible. Hamm has the seeded mock releases and the NRW exam calendar, so `Klausurtermine beim OLG Hamm` is visible too.
+- **Office page.** `visit(base + "/ergebnisse/hamm")`. The heading `OLG Hamm` and `getByRole("navigation", { name: "Brotkrumen" })` are visible. Hamm has the seeded mock releases and the NRW exam calendar, so `Klausurtermine im 1. Examen beim OLG Hamm` is visible too.
 - **From the footer.** `visit(base)`, then in `getByRole("navigation", { name: "Examensergebnisse nach Prüfungsamt" })` click the link to an office. You land on its `/ergebnisse/<slug>`.
 - **Office without history.** `/ergebnisse/duesseldorf` shows `Für das OLG Düsseldorf haben wir noch keine Veröffentlichung erfasst.` That sentence is in the FAQ. The answer block names the oldest waiting sitting with only the month, e.g. `voraussichtlich Ende November`.
 - **Results index.** Click `page.getByRole("banner").getByRole("link", { name: "Ergebnisse" })`. A bare `getByRole("link", { name: "Ergebnisse" })` also matches the footer link. The heading `Examensergebnisse nach Prüfungsamt` is visible and each office is a link to its page.
 - **History redirect.** `fetch(base + "/history", { redirect: "manual" })` returns 301 with `location` ending in `/ergebnisse`. Same for `/history/`.
 - **SSR.** `(await fetch(base + "/ergebnisse/hamm")).text()` already contains the h1 text, so it doesn't depend on JS.
-- **Sitemap, llms and robots.** `fetch(base + "/sitemap.xml")` returns XML containing `<loc>https://examensradar.de/ergebnisse/hamm</loc>` with a `<lastmod>`. `fetch(base + "/llms.txt")` returns 200 text containing `## Klausurtermine (NRW)`. `fetch(base + "/robots.txt")` has no `Disallow: /subscriptions`. `journeys/exam-calendar.ts` checks these three.
+- **Sitemap, llms and robots.** `fetch(base + "/sitemap.xml")` returns XML containing `<loc>https://examensradar.de/ergebnisse/hamm</loc>` with a `<lastmod>`. `fetch(base + "/llms.txt")` returns 200 text containing `## Klausurtermine` and `### Nordrhein-Westfalen`. `fetch(base + "/robots.txt")` has no `Disallow: /subscriptions`. `journeys/exam-calendar.ts` checks these three.
 - **Proof.** Screenshots + ARIA snapshots of both pages, plus the fetched bodies saved with `note()`.
 
 ## Gotchas

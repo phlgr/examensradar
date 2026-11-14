@@ -1,14 +1,24 @@
-import { NRW_SITTINGS, NRW_SOURCES } from "@/lib/exam-calendar.data";
+import { OFFICE_SOURCES, SITTINGS_BY_LAND } from "@/lib/exam-calendar.data";
+import type { Land } from "@/lib/laender";
 
 export type ExamSubject = "ZR" | "ÖR" | "SR";
 
 export interface ExamDay {
 	date: string;
-	subject: ExamSubject;
+	subject?: ExamSubject;
 }
 
 export interface ExamSitting {
+	start: string;
+	end: string;
 	days: readonly ExamDay[];
+	subjectsFrom?: readonly Land[];
+}
+
+export interface OfficeSource {
+	land: Land;
+	pageUrl: string;
+	stand: string | null;
 }
 
 export type SittingStatus = "anstehend" | "läuft" | "geschrieben";
@@ -36,20 +46,21 @@ export const MONTHS = [
 	"Dezember",
 ];
 
-export interface ExamCalendar {
+export interface ExamCalendar extends OfficeSource {
 	sittings: readonly ExamSitting[];
-	pageUrl: string;
-	stand: string | null;
+	sharedWithLand: boolean;
 }
 
-const CALENDARS: Record<string, ExamCalendar> = {
-	hamm: { sittings: NRW_SITTINGS, ...NRW_SOURCES.hamm },
-	köln: { sittings: NRW_SITTINGS, ...NRW_SOURCES.köln },
-	düsseldorf: { sittings: NRW_SITTINGS, ...NRW_SOURCES.düsseldorf },
-};
-
 export function examCalendarFor(slug: string): ExamCalendar | undefined {
-	return CALENDARS[slug];
+	const source = OFFICE_SOURCES[slug];
+	if (!source) return undefined;
+	return {
+		...source,
+		sittings: SITTINGS_BY_LAND[source.land] ?? [],
+		sharedWithLand: Object.entries(OFFICE_SOURCES).some(
+			([other, { land }]) => other !== slug && land === source.land,
+		),
+	};
 }
 
 function parts(date: string): [year: number, month: number, day: number] {
@@ -58,12 +69,12 @@ function parts(date: string): [year: number, month: number, day: number] {
 }
 
 export function resultMonthIndex(sitting: ExamSitting): number {
-	const [year, month] = parts(sitting.days[0].date);
+	const [year, month] = parts(sitting.start);
 	return year * 12 + month + RESULT_LAG_MONTHS;
 }
 
 export function sittingEnd(sitting: ExamSitting): Date {
-	const [year, month, day] = parts(sitting.days[sitting.days.length - 1].date);
+	const [year, month, day] = parts(sitting.end);
 	return new Date(year, month, day);
 }
 
@@ -76,8 +87,8 @@ export function formatSittingRange(
 	sitting: ExamSitting,
 	{ year = true } = {},
 ): string {
-	const [y1, m1, d1] = parts(sitting.days[0].date);
-	const [y2, m2, d2] = parts(sitting.days[sitting.days.length - 1].date);
+	const [y1, m1, d1] = parts(sitting.start);
+	const [y2, m2, d2] = parts(sitting.end);
 	const end = year ? ` ${y2}` : "";
 	if (y1 === y2 && m1 === m2) return `${d1}.–${d2}. ${MONTHS[m2]}${end}`;
 	const start =
@@ -90,14 +101,14 @@ export function formatSittingMonth(
 	sitting: ExamSitting,
 	currentYear: number,
 ): string {
-	const [year, month] = parts(sitting.days[0].date);
+	const [year, month] = parts(sitting.start);
 	return year === currentYear ? MONTHS[month] : `${MONTHS[month]} ${year}`;
 }
 
 /** "20.–28.08." or, spilling over a month end, "22.02.–02.03.". */
 export function formatSittingRangeShort(sitting: ExamSitting): string {
-	const [, m1, d1] = parts(sitting.days[0].date);
-	const [, m2, d2] = parts(sitting.days[sitting.days.length - 1].date);
+	const [, m1, d1] = parts(sitting.start);
+	const [, m2, d2] = parts(sitting.end);
 	const pad = (n: number) => String(n).padStart(2, "0");
 	return m1 === m2
 		? `${pad(d1)}.–${pad(d2)}.${pad(m2 + 1)}.`
@@ -105,8 +116,8 @@ export function formatSittingRangeShort(sitting: ExamSitting): string {
 }
 
 export function monthsBetween(a: ExamSitting, b: ExamSitting): string[] {
-	const [y1, m1] = parts(a.days[0].date);
-	const [y2, m2] = parts(b.days[0].date);
+	const [y1, m1] = parts(a.start);
+	const [y2, m2] = parts(b.start);
 	const gap: string[] = [];
 	for (let i = y1 * 12 + m1 + 1; i < y2 * 12 + m2; i++)
 		gap.push(MONTHS[i % 12]);
@@ -142,7 +153,7 @@ export function sittingStatus(
 	sitting: ExamSitting,
 	today: string,
 ): SittingStatus {
-	if (today < sitting.days[0].date) return "anstehend";
-	if (today <= sitting.days[sitting.days.length - 1].date) return "läuft";
+	if (today < sitting.start) return "anstehend";
+	if (today <= sitting.end) return "läuft";
 	return "geschrieben";
 }

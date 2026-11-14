@@ -75,29 +75,51 @@ export function sittingCalendar({
 	now,
 }: SittingCalendarInput): string {
 	const stamp = utcStamp(now);
-	const start = sitting.days[0].date;
-	const allDay = (uid: string, date: string, props: string[]) => [
+	const { start, end, days, subjectsFrom } = sitting;
+	const allDay = (uid: string, date: string, props: string[], last = date) => [
 		"BEGIN:VEVENT",
 		`UID:${uid}`,
 		`DTSTAMP:${stamp}`,
 		`DTSTART;VALUE=DATE:${compactDate(date)}`,
-		`DTEND;VALUE=DATE:${compactDate(nextDay(date))}`,
+		`DTEND;VALUE=DATE:${compactDate(nextDay(last))}`,
 		...props,
 		"END:VEVENT",
 	];
+	const description = (note: string) =>
+		`DESCRIPTION:${escapeText(`Staatliche Pflichtfachprüfung (1. Examen) beim ${jpaName}.${note} Viel Erfolg wünscht dir Examensradar! Angaben ohne Gewähr.`)}`;
+	const inferredNote = subjectsFrom
+		? ` Das Fach stammt aus dem gemeinsamen Terminplan (${subjectsFrom.join("/")}), das Prüfungsamt hat es nicht bestätigt.`
+		: "";
 
-	const exams = sitting.days.flatMap((day, index) =>
-		allDay(`${compactDate(day.date)}-${index + 1}@examensradar.de`, day.date, [
-			`SUMMARY:${escapeText(`Examensklausur ${SUBJECT_LABEL[day.subject]}`)}`,
-			`DESCRIPTION:${escapeText(`Staatliche Pflichtfachprüfung beim ${jpaName}. Viel Erfolg wünscht dir Examensradar! Angaben ohne Gewähr.`)}`,
-		]),
-	);
+	const exams =
+		days.length === 0
+			? allDay(
+					`${compactDate(start)}-${compactDate(end)}@examensradar.de`,
+					start,
+					[
+						"SUMMARY:Klausuren 1. Examen",
+						description(
+							" Die einzelnen Klausurtage nennt das Prüfungsamt nicht.",
+						),
+					],
+					end,
+				)
+			: days.flatMap((day, index) =>
+					allDay(
+						`${compactDate(day.date)}-${index + 1}@examensradar.de`,
+						day.date,
+						[
+							`SUMMARY:${escapeText(day.subject ? `Klausur 1. Examen: ${SUBJECT_LABEL[day.subject]}` : "Klausur 1. Examen")}`,
+							description(day.subject ? inferredNote : ""),
+						],
+					),
+				);
 
 	const results = allDay(
 		`results-${compactDate(start)}-${jpaParam(jpaName)}@examensradar.de`,
 		localDate(expectedResults),
 		[
-			`SUMMARY:${escapeText(`Examensergebnisse voraussichtlich (${jpaName})`)}`,
+			`SUMMARY:${escapeText(`Ergebnisse 1. Examen voraussichtlich (${jpaName})`)}`,
 			`DESCRIPTION:${escapeText(`Voraussichtlicher Termin, ohne Gewähr. Wir drücken dir die Daumen! Den genauen Zeitpunkt erfährst du per E-Mail von Examensradar: ${jpaUrl}`)}`,
 			`URL:${jpaUrl}`,
 			"TRANSP:TRANSPARENT",
@@ -111,7 +133,7 @@ export function sittingCalendar({
 		"PRODID:-//Examensradar//Klausurtermine//DE",
 		"CALSCALE:GREGORIAN",
 		"METHOD:PUBLISH",
-		`X-WR-CALNAME:${escapeText(`Klausuren ${MONTHS[month - 1]} ${year}`)}`,
+		`X-WR-CALNAME:${escapeText(`Klausuren 1. Examen ${MONTHS[month - 1]} ${year}`)}`,
 		...exams,
 		...results,
 		"END:VCALENDAR",

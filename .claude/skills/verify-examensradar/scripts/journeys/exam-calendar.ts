@@ -14,7 +14,7 @@ try {
 		"office h1 names dates and results",
 	);
 	const section = page.locator("section", {
-		has: page.getByRole("heading", { name: `Klausurtermine beim ${HAMM}` }),
+		has: page.getByRole("heading", { name: `Klausurtermine im 1. Examen beim ${HAMM}` }),
 	});
 	check((await section.locator(":scope > ol > li").count()) > 0, "exam calendar pods render");
 	await section.scrollIntoViewIfNeeded();
@@ -41,7 +41,8 @@ try {
 	const ics = (await Bun.file(await download.path()).text()).replace(/\r\n /g, "");
 	check((ics.match(/BEGIN:VEVENT/g) ?? []).length === 7, "ics holds 6 exam days and the results event");
 	check(ics.includes("Viel Erfolg wünscht dir Examensradar!"), "exam entries wish luck");
-	check(ics.includes(`Examensergebnisse voraussichtlich (${HAMM})`), "ics has the results event");
+	check(ics.includes(`Ergebnisse 1. Examen voraussichtlich (${HAMM})`), "ics has the results event");
+	check(ics.includes("SUMMARY:Klausur 1. Examen"), "ics exam entries name the first exam");
 	const events = await page.evaluate(() => (window as unknown as { __events: unknown[] }).__events);
 	check(
 		JSON.stringify(events) ===
@@ -71,10 +72,76 @@ try {
 	const llms = await (await fetch(`${v.base}/llms.txt`)).text();
 	const robots = await (await fetch(`${v.base}/robots.txt`)).text();
 	check(/ergebnisse\/hamm<\/loc><lastmod>\d{4}-\d{2}-\d{2}<\/lastmod>/.test(sitemap), "sitemap gives Hamm a lastmod");
-	check(llms.includes("## Klausurtermine (NRW)"), "llms.txt lists the exam dates");
+	check(
+		llms.includes("## Klausurtermine") && llms.includes("### Nordrhein-Westfalen") && llms.includes("### Bayern"),
+		"llms.txt lists the exam dates per Land",
+	);
 	check(!robots.includes("Disallow: /subscriptions"), "robots.txt lets crawlers see /subscriptions' noindex");
 
-	await v.note("result", { email, href, sitting, offers, events });
+	const others: Record<string, unknown> = {};
+	const openPod = async (slug: string, name: string) => {
+		await v.visit(`${v.base}/ergebnisse/${slug}`);
+		const office = page.locator("section", {
+			has: page.getByRole("heading", { name: `Klausurtermine im 1. Examen beim ${name}` }),
+		});
+		const pod = office.locator(":scope > ol > li", { hasText: /nächster Durchgang|läuft gerade/ });
+		await pod.scrollIntoViewIfNeeded();
+		await v.proof(`calendar-${slug}`);
+		return { office, pod };
+	};
+	const downloadIcs = async (pod: typeof section, slug: string) => {
+		const [file] = await Promise.all([
+			page.waitForEvent("download"),
+			pod.getByRole("link", { name: "In den Kalender" }).click(),
+		]);
+		const saved = `${v.out}/${slug}-${file.suggestedFilename()}`;
+		await file.saveAs(saved);
+		return (await Bun.file(saved).text()).replace(/\r\n /g, "");
+	};
+
+	{
+		const { pod } = await openPod("bremen", "JPA Bremen");
+		const days = (await pod.locator("ul > li").allInnerTexts()).map((d) => d.replace(/\s+/g, " "));
+		check(days.length === 6 && days.every((d) => /(ZR|ÖR|SR)$/.test(d)), `Bremen pod lists ${days.join(", ")}`);
+		check(
+			(await pod.innerText()).includes("Fächer laut Terminplan Nordrhein-Westfalen, verbindlich ist deine Ladung."),
+			"Bremen pod names where its subjects come from",
+		);
+		const ics = await downloadIcs(pod, "bremen");
+		check((ics.match(/BEGIN:VEVENT/g) ?? []).length === 7, "Bremen ics holds 6 exam days and the results event");
+		check(ics.includes("gemeinsamen Terminplan (Nordrhein-Westfalen)"), "Bremen ics marks the subject as not confirmed");
+		others.bremen = days;
+	}
+	{
+		const { office, pod } = await openPod("bayern", "LJPA Bayern");
+		check(
+			(await pod.innerText()).includes("Einzelne Klausurtage nennt das Prüfungsamt nicht."),
+			"Bayern pod says the office names no single days",
+		);
+		check((await pod.locator("ul").count()) === 0, "Bayern pod has no day list");
+		check(!(await office.innerText()).includes("ZR Zivilrecht"), "Bayern section has no subject legend");
+		const ics = await downloadIcs(pod, "bayern");
+		const [start, end] = [/DTSTART;VALUE=DATE:(\d{8})/, /DTEND;VALUE=DATE:(\d{8})/].map((re) => ics.match(re)?.[1] ?? "");
+		const span = (Date.parse(end.replace(/(\d{4})(\d{2})(\d{2})/, "$1-$2-$3")) - Date.parse(start.replace(/(\d{4})(\d{2})(\d{2})/, "$1-$2-$3"))) / 86_400_000;
+		check((ics.match(/BEGIN:VEVENT/g) ?? []).length === 2, "Bayern ics holds one range event and the results event");
+		check(ics.includes("SUMMARY:Klausuren 1. Examen\r\n") && span >= 5 && span <= 17, `Bayern range event runs ${start} to ${end}`);
+		others.bayern = { start, end };
+	}
+	{
+		const { pod } = await openPod("berlin-brandenburg", "GJPA Berlin-Brandenburg");
+		const days = (await pod.locator("ul > li").allInnerTexts()).map((d) => d.replace(/\s+/g, " "));
+		check(days.length === 7 && days.filter((d) => d.endsWith("SR")).length === 2, `Berlin pod lists ${days.join(", ")}`);
+		others.berlin = days;
+	}
+	{
+		await v.visit(`${v.base}/ergebnisse/hamm`);
+		check(
+			(await section.innerText()).includes("ZR Zivilrecht · ÖR Öffentliches Recht · SR Strafrecht"),
+			"Hamm keeps the subject legend",
+		);
+	}
+
+	await v.note("result", { email, href, sitting, offers, events, others });
 	console.log("PASS exam-calendar");
 } catch (error) {
 	await v.proof("failure").catch(() => {});

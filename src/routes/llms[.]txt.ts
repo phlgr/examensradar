@@ -8,6 +8,7 @@ import {
 	nextReleaseSentence,
 	resultsPhrase,
 } from "@/lib/faq";
+import { LAENDER } from "@/lib/laender";
 import {
 	examTimeline,
 	summarizeReleases,
@@ -42,33 +43,42 @@ export const Route = createFileRoute("/llms.txt")({
 						now,
 					);
 					return timeline
-						? [{ name: jpa.name, entries: timeline.entries }]
+						? [
+								{
+									name: jpa.name,
+									land: timeline.calendar.land,
+									entries: timeline.entries,
+								},
+							]
 						: [];
 				});
 				const isOpen = (e: TimelineEntry) =>
 					e.phase === "läuft" || e.phase === "anstehend";
-				const nrwSittings = (timelines[0]?.entries ?? [])
-					.filter(isOpen)
-					.slice(0, 3)
-					.map((open) => {
-						const start = open.sitting.days[0].date;
-						const results = timelines
-							.map(({ name, entries }) => {
-								const entry = entries.find(
-									(e) => e.sitting.days[0].date === start,
-								);
-								return entry && `${name} ${resultsPhrase(entry)}`;
-							})
-							.filter(Boolean);
-						return `- Klausuren ${formatSittingRange(open.sitting)}: Ergebnisse voraussichtlich ${results.join(", ")}`;
-					});
+				const landSections = LAENDER.flatMap((land) => {
+					const offices = timelines.filter((t) => t.land === land);
+					const lines = (offices[0]?.entries ?? [])
+						.filter(isOpen)
+						.slice(0, 3)
+						.map((open) => {
+							const results = offices
+								.map(({ name, entries }) => {
+									const entry = entries.find(
+										(e) => e.sitting.start === open.sitting.start,
+									);
+									return entry && `${name} ${resultsPhrase(entry)}`;
+								})
+								.filter(Boolean);
+							return `- Klausuren ${formatSittingRange(open.sitting)}: Ergebnisse voraussichtlich ${results.join(", ")}`;
+						});
+					return lines.length > 0 ? [`### ${land}\n\n${lines.join("\n")}`] : [];
+				});
 				const examDates =
-					nrwSittings.length > 0
-						? `## Klausurtermine (NRW)
+					landSections.length > 0
+						? `## Klausurtermine
 
-Die nächsten Durchgänge im ersten Examen, gleich für alle NRW-Prüfungsämter (ohne Gewähr):
+Die nächsten Durchgänge im ersten Examen, gleich für alle Prüfungsämter eines Bundeslands (ohne Gewähr):
 
-${nrwSittings.join("\n")}
+${landSections.join("\n\n")}
 
 Alle Klausurtage und erwarteten Ergebnisse stehen auf den Seiten der Prüfungsämter oben.
 

@@ -21,7 +21,7 @@ export const Route = createFileRoute("/api/kalender/$jpa/$sitting")({
 				const jpa = jpas.find((j) => jpaParam(j.slug) === params.jpa);
 				const sitting = jpa
 					? examCalendarFor(jpa.slug)?.sittings.find(
-							(s) => s.days[0].date === params.sitting,
+							(s) => s.start === params.sitting,
 						)
 					: undefined;
 

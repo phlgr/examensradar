@@ -1,4 +1,9 @@
-import { formatSittingRange, resultMonthName } from "@/lib/exam-calendar";
+import {
+	type ExamSitting,
+	type ExamSubject,
+	formatSittingRange,
+	resultMonthName,
+} from "@/lib/exam-calendar";
 import {
 	CONFIDENCE_LABEL,
 	monthPositionLabel,
@@ -90,6 +95,27 @@ export const extraFaqs: Faq[] = [
 	},
 ];
 
+const COUNT = [
+	"",
+	"eine",
+	"zwei",
+	"drei",
+	"vier",
+	"fünf",
+	"sechs",
+	"sieben",
+	"acht",
+];
+
+function examsSentence({ days, subjectsFrom }: ExamSitting): string {
+	if (days.length === 0) return "";
+	const total = `Jeder Durchgang besteht aus ${COUNT[days.length]} Klausuren`;
+	if (subjectsFrom || days.some((d) => !d.subject)) return ` ${total}.`;
+	const count = (subject: ExamSubject) =>
+		COUNT[days.filter((d) => d.subject === subject).length];
+	return ` ${total}: ${count("ZR")} im Zivilrecht, ${count("ÖR")} im Öffentlichen Recht und ${count("SR")} im Strafrecht.`;
+}
+
 export function resultsPhrase({ sitting, results }: TimelineEntry): string {
 	return results.kind === "expected" && !results.exact
 		? `Ende ${resultMonthName(sitting)}`
@@ -134,8 +160,8 @@ export function jpaFaqs(
 					`${formatSittingRange(entry.sitting)} (Ergebnisse voraussichtlich ${resultsPhrase(entry)})`,
 			);
 		faqs.push({
-			question: `Wann sind die nächsten Examensklausuren beim ${name}?`,
-			answer: `Die nächsten Klausurtermine der staatlichen Pflichtfachprüfung beim ${name} sind ${listNames(list)}. Jeder Durchgang besteht aus sechs Klausuren: drei im Zivilrecht, zwei im Öffentlichen Recht und eine im Strafrecht. Die Ergebnisse folgen in der Regel etwa drei Monate nach Beginn des Durchgangs. Angaben ohne Gewähr.`,
+			question: `Wann sind die nächsten Klausuren im 1. Examen beim ${name}?`,
+			answer: `Die nächsten Klausurtermine der staatlichen Pflichtfachprüfung beim ${name} sind ${listNames(list)}.${examsSentence(nextExams[0].sitting)} Die Ergebnisse folgen in der Regel etwa drei Monate nach Beginn des Durchgangs. Angaben ohne Gewähr.`,
 		});
 	}
 

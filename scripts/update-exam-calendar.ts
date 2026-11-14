@@ -1,64 +1,105 @@
 import { load } from "cheerio";
 import { extractText, getDocumentProxy } from "unpdf";
+import type { ExamSitting, OfficeSource } from "@/lib/exam-calendar";
+import { SITTINGS_BY_LAND as PREVIOUS } from "@/lib/exam-calendar.data";
+import { LAENDER, type Land } from "@/lib/laender";
 import {
-	type ExamDay,
-	type ExamSitting,
-	type ExamSubject,
-	MONTHS,
-} from "@/lib/exam-calendar";
+	collapseLetterSpacing,
+	cutSection,
+	inferSubjects,
+	mergeLand,
+	type ParsedDocument,
+	parseSittings,
+	parseStand,
+} from "./exam-calendar/parse";
 
 const OUTPUT = "./src/lib/exam-calendar.data.ts";
 const USER_AGENT = "Mozilla/5.0";
-const WEEKDAYS = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
 
-const OFFICES = {
-	hamm: {
+interface Source {
+	slug: string;
+	land: Land;
+	pageUrl: string;
+	documents: "page" | RegExp;
+	section?: readonly [RegExp, RegExp];
+}
+
+const SOURCES: Source[] = [
+	{
+		slug: "hamm",
+		land: "Nordrhein-Westfalen",
 		pageUrl:
 			"https://www.olg-hamm.nrw.de/aufgaben/justizpruefungsamt/02_staatl_pflichtfachpruefung/04_termine/01_aufsichtsarbeiten-schriftlich/",
-		linkText: /Jahresübersicht\s+(\d{4})/,
+		documents: /Jahresübersicht\s+(?<year>\d{4})/,
 	},
-	köln: {
+	{
+		slug: "köln",
+		land: "Nordrhein-Westfalen",
 		pageUrl:
 			"https://www.olg-koeln.nrw.de/aufgaben/justizpruefungsamt/003_staatl-pflichtfachpruefung/003_aufsichtsarbeiten/002_terminuebersicht_2026/",
-		linkText: /Klausurtermine\s+(\d{4})/,
+		documents: /Klausurtermine\s+(?<year>\d{4})/,
 	},
-	düsseldorf: {
+	{
+		slug: "düsseldorf",
+		land: "Nordrhein-Westfalen",
 		pageUrl:
 			"https://www.olg-duesseldorf.nrw.de/aufgaben/pruefungsamt/06jpa-a-z/06aufsichtsarbeiten/",
-		linkText: /Klausurtermine\s+(\d{4})/,
+		documents: /Klausurtermine\s+(?<year>\d{4})/,
 	},
-};
-
-const DATE = String.raw`(?<day>\d{2})\.(?<month>\d{2})\.(?<year>\d{4}|\d{2})`;
-const SUBJECT = "(?<subject>ZR|ÖR|SR)";
-const WEEKDAY = "(?<weekday>Mo|Di|Mi|Do|Fr|Sa)[a-z]*,?";
-const STAND_DATE = `Stand:? ${DATE}`;
-
-type ExamDayGroups = {
-	day: string;
-	month: string;
-	year: string;
-	subject: ExamSubject;
-	weekday?: string;
-};
-
-const LAYOUTS = [
-	// Hamm: "Do 21.01.27 SR"
-	new RegExp(`${WEEKDAY} ${DATE} ${SUBJECT}`, "g"),
-	// Köln: "SR Donnerstag, 21.01.2027"
-	new RegExp(`${SUBJECT} ${WEEKDAY} ${DATE}`, "g"),
-	// Düsseldorf: "21.01.2027 SR"
-	new RegExp(`${DATE} ${SUBJECT}`, "g"),
+	{
+		slug: "berlin-brandenburg",
+		land: "Berlin",
+		pageUrl:
+			"https://www.berlin.de/sen/justiz/juristenausbildung/juristische-pruefungen/artikel.263624.php",
+		documents: /klausurtermine-(?<year>\d{4})-1ex\.pdf/,
+	},
+	{
+		slug: "schleswig-holstein",
+		land: "Schleswig-Holstein",
+		pageUrl:
+			"https://www.schleswig-holstein.de/DE/justiz/gerichte-und-justizbehoerden/OLG/Aufgaben/Justizpruefungsamt/Termine/Klausurtermine",
+		documents: "page",
+	},
+	{
+		slug: "bremen",
+		land: "Bremen",
+		pageUrl:
+			"https://www.oberlandesgericht.bremen.de/informationen/justizpruefungsamt/aktuelle-termine-1708",
+		documents: /Termine Aufsichtsarbeiten\s+(?<year>\d{4})/,
+	},
+	{
+		slug: "niedersachsen",
+		land: "Niedersachsen",
+		pageUrl:
+			"https://justizportal.niedersachsen.de/startseite/karriere/landesjustizprufungsamt/staatliche_pflichtfachprufung_und_erste_prufung/meldung-zum-examen-158112.html",
+		documents: /Terminplan[ _](?<year>\d{4})[ _]Neurecht/,
+	},
+	{
+		slug: "baden-württemberg",
+		land: "Baden-Württemberg",
+		pageUrl:
+			"https://jum.baden-wuerttemberg.de/de/justiz/justizpruefungsamt/juristenausbildung-und-pruefungen/staatspruefung-in-der-ersten-juristischen-pruefung",
+		documents: /Examenstermin\s+(?:Frühjahr|Herbst)\s+(?<year>\d{4})/,
+	},
+	{
+		slug: "bayern",
+		land: "Bayern",
+		pageUrl:
+			"https://www.justiz.bayern.de/landesjustizpruefungsamt/erste-juristische-staatspruefung/",
+		documents: "page",
+		section: [/Prüfungstage der schriftlichen Prüfung/, /Hinweis/],
+	},
+	{
+		slug: "thüringen",
+		land: "Thüringen",
+		pageUrl: "https://justiz.thueringen.de/jpa/pflichtfachpruefung",
+		documents: "page",
+		section: [
+			/Voraussichtliche Termine zur Anfertigung der Aufsichtsarbeiten/,
+			/Meldeschluss/,
+		],
+	},
 ];
-
-const fullYear = (year: string) => (year.length === 2 ? 2000 + +year : +year);
-
-function coversEveryDate(hits: RegExpMatchArray[], text: string): boolean {
-	const dates = text
-		.replace(new RegExp(STAND_DATE, "g"), "")
-		.matchAll(new RegExp(DATE, "g"));
-	return hits.length > 0 && hits.length === [...dates].length;
-}
 
 async function fetchBytes(url: string): Promise<Uint8Array> {
 	const response = await fetch(url, { headers: { "user-agent": USER_AGENT } });
@@ -66,114 +107,112 @@ async function fetchBytes(url: string): Promise<Uint8Array> {
 	return new Uint8Array(await response.arrayBuffer());
 }
 
-function parseSittings(url: string, text: string) {
-	// "Stand: 11.06.2026" (Düsseldorf) or "Stand Juni 2026" (Hamm)
-	const standDate = text.match(new RegExp(STAND_DATE))?.groups;
-	const standMonth = text.match(/Stand:? ([A-ZÄÖÜ][a-zäöü]+) (\d{4})/);
-	const monthIndex = standMonth ? MONTHS.indexOf(standMonth[1]) : -1;
-	const stand = standDate
-		? `${fullYear(standDate.year)}-${standDate.month}-${standDate.day}`
-		: standMonth && monthIndex >= 0
-			? `${standMonth[2]}-${String(monthIndex + 1).padStart(2, "0")}`
-			: null;
+const isPdf = (bytes: Uint8Array) =>
+	new TextDecoder().decode(bytes.slice(0, 5)) === "%PDF-";
 
-	for (const layout of LAYOUTS) {
-		const hits = [...text.matchAll(layout)];
-		if (!coversEveryDate(hits, text)) continue;
-		const days: ExamDay[] = hits
-			.map((hit) => {
-				const { day, month, year, subject, weekday } =
-					hit.groups as ExamDayGroups;
-				const date = new Date(Date.UTC(fullYear(year), +month - 1, +day));
-				const dow = date.getUTCDay();
-				if (weekday && WEEKDAYS[dow] !== weekday)
-					throw new Error(`${url}: weekday mismatch in "${hit[0]}"`);
-				if (!weekday && (dow === 0 || dow === 6))
-					throw new Error(`${url}: exam on a weekend in "${hit[0]}"`);
-				return { date: date.toISOString().slice(0, 10), subject };
-			})
-			.sort((a, b) => a.date.localeCompare(b.date));
-		if (days.length % 6 !== 0)
-			throw new Error(`${url}: ${days.length} exam days, not a multiple of 6`);
-
-		const sittings: ExamSitting[] = [];
-		for (let i = 0; i < days.length; i += 6) {
-			const group = days.slice(i, i + 6);
-			const count = (s: ExamSubject) => group.filter((d) => d.subject === s).length;
-			if (count("ZR") !== 3 || count("ÖR") !== 2 || count("SR") !== 1)
-				throw new Error(`${url}: unexpected subject mix at ${group[0].date}`);
-			sittings.push({ days: group });
-		}
-		return { sittings, stand };
+async function documentText(bytes: Uint8Array): Promise<string> {
+	if (isPdf(bytes)) {
+		const { text } = await extractText(await getDocumentProxy(bytes), {
+			mergePages: true,
+		});
+		return collapseLetterSpacing(text);
 	}
-	throw new Error(`${url}: no exam dates found in any known layout`);
+	const $ = load(new TextDecoder().decode(bytes));
+	$("script, style, noscript").remove();
+	return $("body").text().replace(/\s+/g, " ");
 }
 
-async function loadOffice(
-	key: string,
-	{ pageUrl, linkText }: (typeof OFFICES)[keyof typeof OFFICES],
-) {
-	const html = new TextDecoder().decode(await fetchBytes(pageUrl));
+function documentLinks(source: Source, pattern: RegExp, html: string) {
 	const $ = load(html);
-	const pdfs = new Map<number, string>();
+	const links: { url: string; year: number }[] = [];
 	$("a[href]").each((_, a) => {
-		const match = $(a).text().match(linkText);
-		const href = $(a).attr("href");
-		if (match && href) pdfs.set(+match[1], new URL(href, pageUrl).href);
+		const href = $(a).attr("href") ?? "";
+		const year = `${$(a).text()} ${href}`.match(pattern)?.groups?.year;
+		const url = new URL(href, source.pageUrl).href;
+		if (year && !links.some((link) => link.url === url))
+			links.push({ url, year: Number(year) });
 	});
-	if (pdfs.size === 0) throw new Error(`${key}: no calendar PDF links on ${pageUrl}`);
-
-	const byYear = new Map<number, ExamSitting[]>();
-	let stand: string | null = null;
-	for (const [year, url] of pdfs) {
-		const pdf = await getDocumentProxy(await fetchBytes(url));
-		const { text } = await extractText(pdf, { mergePages: true });
-		const parsed = parseSittings(url, text);
-		if (parsed.sittings.some((s) => !s.days[0].date.startsWith(`${year}-`)))
-			throw new Error(`${url}: sittings outside ${year}`);
-		byYear.set(year, parsed.sittings);
-		if (parsed.stand && (!stand || parsed.stand > stand)) stand = parsed.stand;
-		console.log(`${key} ${year}: ${parsed.sittings.length} sittings (${url})`);
-	}
-	return { pageUrl, stand, byYear };
+	if (links.length === 0)
+		throw new Error(`${source.slug}: no calendar links on ${source.pageUrl}`);
+	return links;
 }
 
-const offices = new Map<string, Awaited<ReturnType<typeof loadOffice>>>();
-for (const [key, office] of Object.entries(OFFICES)) {
-	offices.set(key, await loadOffice(key, office));
-}
+async function loadSource(source: Source) {
+	const page = await fetchBytes(source.pageUrl);
+	const targets =
+		source.documents === "page"
+			? [{ url: source.pageUrl, year: null }]
+			: documentLinks(source, source.documents, new TextDecoder().decode(page));
 
-const merged = new Map<number, { office: string; sittings: ExamSitting[] }>();
-for (const [key, { byYear }] of offices) {
-	for (const [year, sittings] of byYear) {
-		const seen = merged.get(year);
-		if (seen && JSON.stringify(seen.sittings) !== JSON.stringify(sittings)) {
-			console.error(`Calendar mismatch for ${year}: ${seen.office} differs from ${key}`);
-			process.exit(1);
+	const documents: ParsedDocument[] = [];
+	const stands: string[] = [];
+	for (const { url, year } of targets) {
+		const full = await documentText(
+			url === source.pageUrl ? page : await fetchBytes(url),
+		);
+		const text = source.section ? cutSection(full, source.section) : full;
+		const stand = parseStand(text);
+		if (stand) stands.push(stand);
+		const label = year ? `${source.slug} ${year}` : source.slug;
+		try {
+			const sittings = parseSittings(text);
+			const outside = sittings.find(
+				(s) => year && !s.start.startsWith(`${year}-`),
+			);
+			if (outside)
+				throw new Error(`sitting ${outside.start} is not in ${year}`);
+			documents.push({ url, year, result: { sittings } });
+			console.log(`${label}: ${sittings.length} sittings (${url})`);
+		} catch (error) {
+			const message = error instanceof Error ? error.message : String(error);
+			documents.push({ url, year, result: { error: message } });
+			console.log(`${label}: unreadable, ${message} (${url})`);
 		}
-		if (!seen) merged.set(year, { office: key, sittings });
 	}
+	return {
+		office: { slug: source.slug, land: source.land, documents },
+		stand: stands.sort().at(-1) ?? null,
+	};
 }
 
-const years = [...merged.keys()].sort((a, b) => a - b);
-const sittings = years.flatMap((year) => merged.get(year)?.sittings ?? []);
-const sources = Object.fromEntries(
-	[...offices].map(([key, { pageUrl, stand }]) => [key, { pageUrl, stand }]),
+const loaded: Awaited<ReturnType<typeof loadSource>>[] = [];
+for (const source of SOURCES) loaded.push(await loadSource(source));
+
+const merged: Partial<Record<Land, ExamSitting[]>> = {};
+for (const land of LAENDER) {
+	const offices = loaded
+		.map(({ office }) => office)
+		.filter((office) => office.land === land);
+	if (offices.length === 0) continue;
+	const { sittings, warnings } = mergeLand(offices, PREVIOUS[land]);
+	for (const warning of warnings) console.warn(`Warning: ${warning}`);
+	merged[land] = sittings;
+}
+const sittingsByLand = inferSubjects(merged);
+
+const sources: Record<string, OfficeSource> = Object.fromEntries(
+	SOURCES.map(({ slug, land, pageUrl }, i) => [
+		slug,
+		{ land, pageUrl, stand: loaded[i].stand },
+	]),
 );
 
 await Bun.write(
 	OUTPUT,
 	`// Generated by scripts/update-exam-calendar.ts (bun run calendar:update). Do not edit.
-import type { ExamSitting } from "@/lib/exam-calendar";
+import type { ExamSitting, OfficeSource } from "@/lib/exam-calendar";
+import type { Land } from "@/lib/laender";
 
-export const NRW_SITTINGS: readonly ExamSitting[] = ${JSON.stringify(sittings)};
+export const SITTINGS_BY_LAND: Partial<Record<Land, readonly ExamSitting[]>> = ${JSON.stringify(sittingsByLand)};
 
-export const NRW_SOURCES = ${JSON.stringify(sources)} as const;
+export const OFFICE_SOURCES: Record<string, OfficeSource> = ${JSON.stringify(sources)};
 `,
 );
 const format = Bun.spawnSync(["bunx", "biome", "format", "--write", OUTPUT]);
 if (format.exitCode !== 0) throw new Error(format.stderr.toString());
 
 console.log(
-	`Wrote ${sittings.length} sittings: ${years.map((y) => `${y}=${merged.get(y)?.sittings.length}`).join(" ")}`,
+	`Wrote ${Object.entries(sittingsByLand)
+		.map(([land, sittings]) => `${land}=${sittings?.length}`)
+		.join(" ")}`,
 );
