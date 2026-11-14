@@ -23,7 +23,7 @@ Anyone can read when each office last published results and when the next releas
 
 Preconditions: baseline. The seed has mock NRW publications in `notification_log`, so NRW has history.
 
-- **Office page.** `visit(base + "/ergebnisse/hamm")`. The heading `OLG Hamm` and `getByRole("navigation", { name: "Brotkrumen" })` are visible. Hamm has the seeded mock releases and the NRW exam calendar, so `Klausurtermine beim OLG Hamm` is visible too.
+- **Office page.** `visit(base + "/ergebnisse/hamm")`. The heading `OLG Hamm` and `getByRole("navigation", { name: "Brotkrumen" })` are visible. Hamm has the seeded mock releases and the NRW exam calendar, so `Klausurtermine im 1. Examen beim OLG Hamm` is visible too.
 - **From the footer.** `visit(base)`, then in `getByRole("navigation", { name: "Examensergebnisse nach Prüfungsamt" })` click the link to an office. You land on its `/ergebnisse/<slug>`.
 - **Office without history.** `/ergebnisse/duesseldorf` shows `Für das OLG Düsseldorf haben wir noch keine Veröffentlichung erfasst.` That sentence is in the FAQ. The answer block names the oldest waiting sitting with only the month, e.g. `voraussichtlich Ende November`.
 - **Results index.** Click `page.getByRole("banner").getByRole("link", { name: "Ergebnisse" })`. A bare `getByRole("link", { name: "Ergebnisse" })` also matches the footer link. The heading `Examensergebnisse nach Prüfungsamt` is visible and each office is a link to its page.

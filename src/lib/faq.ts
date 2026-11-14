@@ -161,7 +161,7 @@ export function jpaFaqs(
 					`${formatSittingRange(entry.sitting)} (Ergebnisse voraussichtlich ${resultsPhrase(entry)})`,
 			);
 		faqs.push({
-			question: `Wann sind die nächsten Examensklausuren beim ${name}?`,
+			question: `Wann sind die nächsten Klausuren im 1. Examen beim ${name}?`,
 			answer: `Die nächsten Klausurtermine der staatlichen Pflichtfachprüfung beim ${name} sind ${listNames(list)}.${examsSentence(nextExams[0].sitting)} Die Ergebnisse folgen in der Regel etwa drei Monate nach Beginn des Durchgangs. Angaben ohne Gewähr.`,
 		});
 	}

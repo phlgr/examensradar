@@ -32,7 +32,7 @@ describe("sittingCalendar", () => {
 		expect(all).toHaveLength(7);
 		expect(all[0]).toContain("DTSTART;VALUE=DATE:20261119\r\n");
 		expect(all[0]).toContain("DTEND;VALUE=DATE:20261120\r\n");
-		expect(all[0]).toContain("SUMMARY:Examensklausur Zivilrecht (ZR)");
+		expect(all[0]).toContain("SUMMARY:Klausur 1. Examen: Zivilrecht (ZR)");
 		expect(all[0]).toContain("UID:20261119-1@examensradar.de");
 		expect(all[0]).toContain("Viel Erfolg wünscht dir Examensradar!");
 		expect(all[6]).toContain("DTSTART;VALUE=DATE:20270301\r\n");
@@ -51,7 +51,7 @@ describe("sittingCalendar", () => {
 	test("is a CRLF calendar with the required header", () => {
 		const ics = build();
 		expect(ics.startsWith("BEGIN:VCALENDAR\r\nVERSION:2.0\r\n")).toBe(true);
-		expect(ics).toContain("X-WR-CALNAME:Klausuren November 2026");
+		expect(ics).toContain("X-WR-CALNAME:Klausuren 1. Examen November 2026");
 		expect(ics.endsWith("END:VCALENDAR\r\n")).toBe(true);
 		expect(ics.replaceAll("\r\n", "").includes("\n")).toBe(false);
 	});
@@ -67,7 +67,7 @@ describe("sittingCalendar", () => {
 			.replaceAll(";", String.raw`\;`)
 			.replaceAll(",", String.raw`\,`);
 		expect(unfold(ics)).toContain(
-			`DESCRIPTION:Staatliche Pflichtfachprüfung beim ${escaped}. Viel Erfolg wünscht dir Examensradar! Angaben ohne Gewähr.`,
+			`DESCRIPTION:Staatliche Pflichtfachprüfung (1. Examen) beim ${escaped}. Viel Erfolg wünscht dir Examensradar! Angaben ohne Gewähr.`,
 		);
 		expect(ics).not.toContain("�");
 	});
@@ -83,7 +83,7 @@ describe("sittingCalendar", () => {
 		expect(all).toHaveLength(2);
 		expect(all[0]).toContain("DTSTART;VALUE=DATE:20270303\r\n");
 		expect(all[0]).toContain("DTEND;VALUE=DATE:20270311\r\n");
-		expect(all[0]).toContain("SUMMARY:Examensklausuren\r\n");
+		expect(all[0]).toContain("SUMMARY:Klausuren 1. Examen\r\n");
 		expect(all[0]).toContain("nennt das Prüfungsamt nicht");
 	});
 
@@ -96,9 +96,9 @@ describe("sittingCalendar", () => {
 				subjectsFrom: ["Niedersachsen", "Nordrhein-Westfalen"],
 			}),
 		);
-		expect(all[0]).toContain("SUMMARY:Examensklausur\r\n");
+		expect(all[0]).toContain("SUMMARY:Klausur 1. Examen\r\n");
 		expect(all[0]).not.toContain("Terminplan");
-		expect(all[1]).toContain("SUMMARY:Examensklausur Strafrecht (SR)");
+		expect(all[1]).toContain("SUMMARY:Klausur 1. Examen: Strafrecht (SR)");
 		expect(all[1]).toContain(
 			"Terminplan (Niedersachsen/Nordrhein-Westfalen)\\, das Prüfungsamt hat es nicht bestätigt",
 		);

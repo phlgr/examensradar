@@ -39,7 +39,9 @@ describe("renderWelcomeMail", () => {
 	test("lists the calendar links in html and text", () => {
 		const mail = renderWelcomeMail(TOKENS, offers);
 		for (const part of [mail.html, mail.text]) {
-			expect(part).toContain("Klausurtermine in deinen Kalender");
+			expect(part).toContain(
+				"Klausurtermine fürs 1. Examen in deinen Kalender",
+			);
 			expect(part).toContain("/api/kalender/hamm/2026-11-19");
 			expect(part).toContain("19.–27. November 2026");
 			expect(part).toContain("Ohne Gewähr.");

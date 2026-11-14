@@ -664,7 +664,8 @@ function JpaPage() {
 				{(entries.length > 0 || older.length > 0) && (
 					<section id="klausurtermine" className="mb-14">
 						<h2 className="text-2xl font-semibold leading-tight mb-2">
-							{timeline ? "Klausurtermine" : "Ergebnisse"} beim {jpa.name}
+							{timeline ? "Klausurtermine" : "Ergebnisse"} im 1. Examen beim{" "}
+							{jpa.name}
 						</h2>
 						<p className="text-[15px] text-ink/55 mb-6">
 							{timeline

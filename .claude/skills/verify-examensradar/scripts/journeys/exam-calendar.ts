@@ -14,7 +14,7 @@ try {
 		"office h1 names dates and results",
 	);
 	const section = page.locator("section", {
-		has: page.getByRole("heading", { name: `Klausurtermine beim ${HAMM}` }),
+		has: page.getByRole("heading", { name: `Klausurtermine im 1. Examen beim ${HAMM}` }),
 	});
 	check((await section.locator(":scope > ol > li").count()) > 0, "exam calendar pods render");
 	await section.scrollIntoViewIfNeeded();
@@ -41,7 +41,8 @@ try {
 	const ics = (await Bun.file(await download.path()).text()).replace(/\r\n /g, "");
 	check((ics.match(/BEGIN:VEVENT/g) ?? []).length === 7, "ics holds 6 exam days and the results event");
 	check(ics.includes("Viel Erfolg wünscht dir Examensradar!"), "exam entries wish luck");
-	check(ics.includes(`Examensergebnisse voraussichtlich (${HAMM})`), "ics has the results event");
+	check(ics.includes(`Ergebnisse 1. Examen voraussichtlich (${HAMM})`), "ics has the results event");
+	check(ics.includes("SUMMARY:Klausur 1. Examen"), "ics exam entries name the first exam");
 	const events = await page.evaluate(() => (window as unknown as { __events: unknown[] }).__events);
 	check(
 		JSON.stringify(events) ===
@@ -81,7 +82,7 @@ try {
 	const openPod = async (slug: string, name: string) => {
 		await v.visit(`${v.base}/ergebnisse/${slug}`);
 		const office = page.locator("section", {
-			has: page.getByRole("heading", { name: `Klausurtermine beim ${name}` }),
+			has: page.getByRole("heading", { name: `Klausurtermine im 1. Examen beim ${name}` }),
 		});
 		const pod = office.locator(":scope > ol > li", { hasText: /nächster Durchgang|läuft gerade/ });
 		await pod.scrollIntoViewIfNeeded();
@@ -123,7 +124,7 @@ try {
 		const [start, end] = [/DTSTART;VALUE=DATE:(\d{8})/, /DTEND;VALUE=DATE:(\d{8})/].map((re) => ics.match(re)?.[1] ?? "");
 		const span = (Date.parse(end.replace(/(\d{4})(\d{2})(\d{2})/, "$1-$2-$3")) - Date.parse(start.replace(/(\d{4})(\d{2})(\d{2})/, "$1-$2-$3"))) / 86_400_000;
 		check((ics.match(/BEGIN:VEVENT/g) ?? []).length === 2, "Bayern ics holds one range event and the results event");
-		check(ics.includes("SUMMARY:Examensklausuren\r\n") && span >= 5 && span <= 17, `Bayern range event runs ${start} to ${end}`);
+		check(ics.includes("SUMMARY:Klausuren 1. Examen\r\n") && span >= 5 && span <= 17, `Bayern range event runs ${start} to ${end}`);
 		others.bayern = { start, end };
 	}
 	{

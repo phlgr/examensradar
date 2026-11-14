@@ -190,9 +190,9 @@ function calendarSection(offers: CalendarOffer[]): {
 		.join("\n\n");
 
 	return {
-		html: `<p style="margin:0 0 6px;font-family:${SERIF};font-size:20px;line-height:1.3;color:${INK}">Klausurtermine in deinen Kalender</p>
+		html: `<p style="margin:0 0 6px;font-family:${SERIF};font-size:20px;line-height:1.3;color:${INK}">Klausurtermine fürs 1. Examen in deinen Kalender</p>
 <p style="margin:0 0 24px;color:#45433f">${html}<br><span style="font-size:13px;color:${MUTED}">Ohne Gewähr.</span></p>`,
-		text: `Klausurtermine in deinen Kalender
+		text: `Klausurtermine fürs 1. Examen in deinen Kalender
 
 ${text}
 
