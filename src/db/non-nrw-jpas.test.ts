@@ -42,6 +42,22 @@ test("the migration seeds the seven non-NRW offices with their land and selector
 	}
 });
 
+test("the offices carry the short JPA / LJPA name", async () => {
+	const names = Object.fromEntries(
+		(await migratedRows()).map((jpa) => [jpa.slug, jpa.name]),
+	);
+
+	expect(names).toEqual({
+		"berlin-brandenburg": "GJPA Berlin-Brandenburg",
+		"schleswig-holstein": "JPA Schleswig-Holstein",
+		bremen: "JPA Bremen",
+		niedersachsen: "LJPA Niedersachsen",
+		"baden-württemberg": "LJPA Baden-Württemberg",
+		bayern: "LJPA Bayern",
+		thüringen: "JPA Thüringen",
+	});
+});
+
 test("every migrated selector is valid for the scraper's selector engine", () => {
 	for (const [, , selector] of expected) {
 		expect(extractContent("<html><body></body></html>", selector)).toEqual({
