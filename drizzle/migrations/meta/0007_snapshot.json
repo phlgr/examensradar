@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "51464f3e-ee56-4a2d-a031-6c0e75a17f2c",
+  "id": "e9426448-99d4-4e6c-bc7b-46e7ba6cb918",
   "prevId": "93b2e312-1d69-4974-807d-0e24e40d0242",
   "tables": {
     "admin_session": {
@@ -175,14 +175,6 @@
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
-        },
-        "scrape_mode": {
-          "name": "scrape_mode",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "'standing'"
         },
         "notifications_disabled": {
           "name": "notifications_disabled",
@@ -499,6 +491,13 @@
         },
         "last_changed_at": {
           "name": "last_changed_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "last_matched_at": {
+          "name": "last_matched_at",
           "type": "integer",
           "primaryKey": false,
           "notNull": false,

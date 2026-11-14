@@ -14,7 +14,6 @@ import {
 import { type BunSQLiteDatabase, drizzle } from "drizzle-orm/bun-sqlite";
 import { normalizeEmail } from "@/lib/email";
 import { CONFIRM_TTL_HOURS } from "@/lib/mail-templates";
-import type { ScrapeMode } from "./schema.ts";
 import * as schema from "./schema.ts";
 
 type JPA = typeof schema.jpa.$inferSelect;
@@ -60,7 +59,6 @@ export const createJpa = async (data: {
 	websiteUrl?: string | null;
 	scrapeUrl?: string | null;
 	scrapeSelector?: string | null;
-	scrapeMode?: ScrapeMode;
 }): Promise<JPA> => {
 	const jpa = {
 		id: crypto.randomUUID(),
@@ -69,7 +67,6 @@ export const createJpa = async (data: {
 		websiteUrl: data.websiteUrl ?? null,
 		scrapeUrl: data.scrapeUrl ?? null,
 		scrapeSelector: data.scrapeSelector ?? null,
-		scrapeMode: data.scrapeMode ?? "standing",
 		notificationsDisabled: false,
 		createdAt: new Date(),
 	};
@@ -85,7 +82,6 @@ export const updateJpa = async (
 		websiteUrl?: string | null;
 		scrapeUrl?: string | null;
 		scrapeSelector?: string | null;
-		scrapeMode?: ScrapeMode;
 		notificationsDisabled?: boolean;
 	},
 ): Promise<JPA | null> => {
@@ -250,6 +246,13 @@ export const recordScrapeSuccess = async (jpaId: string): Promise<void> => {
 	await db
 		.update(schema.scrapeState)
 		.set({ lastCheckedAt: new Date(), errorCount: 0, lastError: null })
+		.where(eq(schema.scrapeState.jpaId, jpaId));
+};
+
+export const recordSelectorMatch = async (jpaId: string): Promise<void> => {
+	await db
+		.update(schema.scrapeState)
+		.set({ lastMatchedAt: new Date() })
 		.where(eq(schema.scrapeState.jpaId, jpaId));
 };
 

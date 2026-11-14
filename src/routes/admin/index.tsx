@@ -14,7 +14,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { fieldClass, labelClass } from "@/components/ui/input";
-import type { ScrapeMode } from "@/db/schema";
 import { noindex } from "@/lib/seo";
 import { trpc } from "@/lib/trpc";
 import { cn } from "@/lib/utils";
@@ -235,11 +234,6 @@ function AdminPage() {
 														<code className="block text-xs bg-ink/[0.04] px-2 py-1 font-mono rounded-md ring-1 ring-ink/10 truncate">
 															{jpa.scrapeSelector}
 														</code>
-														{jpa.scrapeMode === "release" && (
-															<p className="text-xs text-ink/60">
-																Selektor erscheint nur bei neuen Ergebnissen.
-															</p>
-														)}
 														<ScrapeStatus state={scrapeStates[jpa.id]} />
 														<div className="flex items-center gap-2 pt-1">
 															<Button
@@ -339,6 +333,12 @@ function AdminPage() {
 	);
 }
 
+const daysAgo = (date: Date) => {
+	const days = Math.floor((Date.now() - new Date(date).getTime()) / 86_400_000);
+	if (days === 0) return "heute";
+	return days === 1 ? "vor 1 Tag" : `vor ${days} Tagen`;
+};
+
 function ScrapeStatus({
 	state,
 }: {
@@ -346,6 +346,7 @@ function ScrapeStatus({
 		contentHash: string | null;
 		lastCheckedAt: Date;
 		lastChangedAt: Date | null;
+		lastMatchedAt: Date | null;
 		errorCount: number;
 		lastError: string | null;
 	};
@@ -366,6 +367,11 @@ function ScrapeStatus({
 					{new Date(state.lastChangedAt).toLocaleString("de-DE")}
 				</p>
 			)}
+			<p>
+				{state.lastMatchedAt
+					? `Element zuletzt gefunden: ${new Date(state.lastMatchedAt).toLocaleString("de-DE")} (${daysAgo(state.lastMatchedAt)})`
+					: "Element noch nie gefunden."}
+			</p>
 			{state.errorCount > 0 && (
 				<p className="text-seal font-semibold">
 					{state.errorCount} Fehler in Folge: {state.lastError}
@@ -387,7 +393,6 @@ function JpaForm({
 		websiteUrl: string | null;
 		scrapeUrl: string | null;
 		scrapeSelector: string | null;
-		scrapeMode: ScrapeMode;
 	};
 	onSubmit: (data: {
 		name: string;
@@ -395,7 +400,6 @@ function JpaForm({
 		websiteUrl: string | null;
 		scrapeUrl: string | null;
 		scrapeSelector: string | null;
-		scrapeMode: ScrapeMode;
 	}) => void;
 	onCancel: () => void;
 	isLoading: boolean;
@@ -408,9 +412,6 @@ function JpaForm({
 	const [scrapeSelector, setScrapeSelector] = useState(
 		initialData?.scrapeSelector ?? "",
 	);
-	const [releaseMode, setReleaseMode] = useState(
-		initialData?.scrapeMode === "release",
-	);
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
@@ -420,7 +421,6 @@ function JpaForm({
 			websiteUrl: websiteUrl || null,
 			scrapeUrl: scrapeUrl || null,
 			scrapeSelector: scrapeSelector || null,
-			scrapeMode: releaseMode ? "release" : "standing",
 		});
 	};
 
@@ -495,24 +495,6 @@ function JpaForm({
 					/>
 					<p className="text-xs text-ink/60 mt-1">
 						Überwacht wird nur, wenn Scrape-URL und Selektor gesetzt sind.
-					</p>
-				</div>
-				<div>
-					<label
-						htmlFor={`${id}-scrape-mode`}
-						className="flex items-center gap-2 text-sm font-medium"
-					>
-						<input
-							id={`${id}-scrape-mode`}
-							type="checkbox"
-							checked={releaseMode}
-							onChange={(e) => setReleaseMode(e.target.checked)}
-						/>
-						Selektor erscheint nur bei neuen Ergebnissen
-					</label>
-					<p className="text-xs text-ink/60 mt-1">
-						Fehlt das Element, gilt das als „noch nichts veröffentlicht“ statt
-						als Fehler.
 					</p>
 				</div>
 				<div className="flex gap-2">
