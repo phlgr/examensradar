@@ -54,8 +54,10 @@ try {
 		const w = window as unknown as { __events: unknown[]; __shared: unknown[] };
 		w.__events = [];
 		w.__shared = [];
-		window.plausible = (event, options) => {
-			w.__events.push({ event, options });
+		window.rybbit = {
+			event: (event, properties) => {
+				w.__events.push({ event, properties });
+			},
 		};
 		Object.defineProperty(navigator, "share", {
 			configurable: true,
@@ -127,9 +129,9 @@ try {
 	check(
 		JSON.stringify(shareEvents) ===
 			JSON.stringify(
-				["native", "whatsapp", "whatsapp", "copy"].map((method) => ({ event: "share", options: { props: { method } } })),
+				["native", "whatsapp", "whatsapp", "copy"].map((method) => ({ event: "share", properties: { method } })),
 			),
-		"plausible got share for native, both WhatsApp fallbacks and copy, nothing for the cancel",
+		"rybbit got share for native, both WhatsApp fallbacks and copy, nothing for the cancel",
 	);
 
 	await v.note("result", { email, pending, confirmed, confirmMail, welcome, shared, waText, shareEvents });
