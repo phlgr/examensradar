@@ -1,0 +1,75 @@
+name: Exam calendar
+
+on:
+  schedule:
+    - cron: "0 5 * * 1"
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - .github/workflows/exam-calendar.yml
+      - scripts/update-exam-calendar.ts
+      - scripts/exam-calendar/**
+
+concurrency:
+  group: exam-calendar
+  cancel-in-progress: false
+
+env:
+  BRANCH: chore/exam-calendar-update
+
+jobs:
+  update:
+    name: Update exam dates
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile --ignore-scripts
+
+      - name: Read the offices' sources
+        shell: bash
+        run: bun run calendar:update 2>&1 | tee "$RUNNER_TEMP/calendar.log"
+
+      - name: Show changes
+        id: diff
+        run: |
+          git diff --stat
+          if git diff --quiet; then echo "changed=false" >> "$GITHUB_OUTPUT"; else echo "changed=true" >> "$GITHUB_OUTPUT"; fi
+
+      # Pull requests only prove the sources are readable from CI; schedule and manual runs open the PR.
+      - name: Open or update the pull request
+        if: steps.diff.outputs.changed == 'true' && github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$BRANCH"
+          git commit -am "chore(calendar): update exam dates from the offices' sources"
+          git push --force origin "$BRANCH"
+          {
+            echo "\`bun run calendar:update\` found new or changed exam dates. Check the diff against the offices' pages before merging."
+            echo
+            echo '```'
+            grep -v '^Warning: TT' "$RUNNER_TEMP/calendar.log"
+            echo '```'
+          } > "$RUNNER_TEMP/body.md"
+          if gh pr view "$BRANCH" --json state --jq .state 2>/dev/null | grep -q OPEN; then
+            gh pr edit "$BRANCH" --body-file "$RUNNER_TEMP/body.md"
+          else
+            gh pr create --base main --head "$BRANCH" --title "chore(calendar): update exam dates" --body-file "$RUNNER_TEMP/body.md"
+          fi
+          # A push with the workflow token starts no other workflows, so run the checks on the branch explicitly.
+          gh workflow run check.yml --ref "$BRANCH"

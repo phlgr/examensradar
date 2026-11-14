@@ -103,7 +103,12 @@ const SOURCES: Source[] = [
 ];
 
 async function fetchBytes(url: string): Promise<Uint8Array> {
-	const response = await fetch(url, { headers: { "user-agent": USER_AGENT } });
+	const response = await fetch(url, {
+		headers: { "user-agent": USER_AGENT },
+		signal: AbortSignal.timeout(30_000),
+	}).catch((error) => {
+		throw new Error(`${url}: ${error}`);
+	});
 	if (!response.ok) throw new Error(`${url}: HTTP ${response.status}`);
 	return new Uint8Array(await response.arrayBuffer());
 }
