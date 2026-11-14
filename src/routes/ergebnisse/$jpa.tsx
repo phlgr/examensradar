@@ -644,7 +644,7 @@ function JpaPage() {
 							<p className="text-[15px] text-ink/55 mb-6">
 								{timeline
 									? "Wann geschrieben wird und wann die Ergebnisse voraussichtlich kommen. Die Termine gelten für alle Justizprüfungsämter in NRW."
-									: `Wann das Justizprüfungsamt beim ${jpa.name} neue Ergebnisse online gestellt hat.`}
+									: `Wann das ${jpa.name} neue Ergebnisse online gestellt hat.`}
 							</p>
 							<ExamTimelineList
 								entries={entries}
@@ -666,7 +666,7 @@ function JpaPage() {
 											rel="noopener noreferrer"
 											className="underline decoration-1 underline-offset-4 hover:decoration-2"
 										>
-											Klausurtermine des Justizprüfungsamts beim {jpa.name}
+											Klausurtermine beim {jpa.name}
 										</a>
 										{timeline.calendar.stand &&
 											`, Stand ${formatStand(timeline.calendar.stand)}`}
@@ -693,7 +693,7 @@ function JpaPage() {
 								rel="noopener noreferrer"
 								className="font-medium text-seal inline-flex items-center gap-1 underline decoration-1 underline-offset-4 hover:decoration-2"
 							>
-								Website des Justizprüfungsamts beim {jpa.name}
+								offizielle Website
 								<ExternalLink className="w-3.5 h-3.5 shrink-0" />
 							</a>
 						</p>

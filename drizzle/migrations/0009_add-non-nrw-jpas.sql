@@ -8,7 +8,7 @@ VALUES
 	(
 		'jpa-berlin-brandenburg',
 		'berlin-brandenburg',
-		'Prüfungsamt Berlin-Brandenburg',
+		'GJPA Berlin-Brandenburg',
 		'Berlin',
 		'https://www.berlin.de/sen/justiz/juristenausbildung/juristische-pruefungen/artikel.435227.php',
 		'https://www.berlin.de/sen/justiz/juristenausbildung/juristische-pruefungen/artikel.435227.php',
@@ -68,7 +68,7 @@ VALUES
 	(
 		'jpa-thueringen',
 		'thüringen',
-		'Justizprüfungsamt Thüringen',
+		'Thüringer Justizprüfungsamt',
 		'Thüringen',
 		'https://justiz.thueringen.de/jpa/pflichtfachpruefung/ergebnisse-schriftlicher-teil-der-staatspruefung',
 		'https://justiz.thueringen.de/jpa/pflichtfachpruefung/ergebnisse-schriftlicher-teil-der-staatspruefung',
