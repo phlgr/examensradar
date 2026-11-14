@@ -45,7 +45,7 @@ try {
 	const events = await page.evaluate(() => (window as unknown as { __events: unknown[] }).__events);
 	check(
 		JSON.stringify(events) ===
-			JSON.stringify([{ event: "calendar_download", properties: { jpa: HAMM, sitting } }]),
+			JSON.stringify([{ event: "calendar_download", properties: { jpa: HAMM, sitting, month: sitting.slice(0, 7) } }]),
 		`rybbit got calendar_download for ${sitting}`,
 	);
 	check((await fetch(`${v.base}/api/kalender/hamm/1999-01-01`)).status === 404, "unknown sitting is 404");
