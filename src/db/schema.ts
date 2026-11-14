@@ -7,6 +7,14 @@ import {
 	unique,
 } from "drizzle-orm/sqlite-core";
 
+/**
+ * "standing": the selector matches on every check, a miss is an error.
+ * "release": the selector only exists once results are out, a miss means
+ * "nothing published yet".
+ */
+export const SCRAPE_MODES = ["standing", "release"] as const;
+export type ScrapeMode = (typeof SCRAPE_MODES)[number];
+
 export const jpa = sqliteTable("jpa", {
 	id: text("id").primaryKey(),
 	slug: text("slug").notNull().unique(),
@@ -14,6 +22,9 @@ export const jpa = sqliteTable("jpa", {
 	websiteUrl: text("website_url"),
 	scrapeUrl: text("scrape_url"),
 	scrapeSelector: text("scrape_selector"),
+	scrapeMode: text("scrape_mode", { enum: SCRAPE_MODES })
+		.notNull()
+		.default("standing"),
 	notificationsDisabled: integer("notifications_disabled", {
 		mode: "boolean",
 	})

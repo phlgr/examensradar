@@ -1,0 +1,1 @@
+ALTER TABLE `jpa` ADD `scrape_mode` text DEFAULT 'standing' NOT NULL;

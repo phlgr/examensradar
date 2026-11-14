@@ -134,3 +134,77 @@ test("errors accumulate until a success resets them", async () => {
 	expect(state.errorCount).toBe(0);
 	expect(state.lastError).toBeNull();
 });
+
+const releaseJpa = () =>
+	createJpa({
+		name: "Test-JPA",
+		slug: `scraper-test-${crypto.randomUUID()}`,
+		scrapeUrl: "https://example.org/ergebnisse",
+		scrapeSelector: "article#main",
+		scrapeMode: "release",
+	});
+
+const nothingPublished = "<html><body><main>noch nichts</main></body></html>";
+
+test("release mode treats an absent selector as nothing published, not an error", async () => {
+	const jpa = await releaseJpa();
+	const kick = mock(() => {});
+
+	serveHtml(nothingPublished);
+	expect((await checkJpa(jpa, kick)).result).toBe("baseline");
+	expect((await checkJpa(jpa, kick)).result).toBe("unchanged");
+	expect((await checkJpa(jpa, kick)).result).toBe("unchanged");
+
+	expect(kick).not.toHaveBeenCalled();
+	const state = await ensureScrapeState(jpa.id);
+	expect(state.errorCount).toBe(0);
+	expect(state.lastError).toBeNull();
+});
+
+test("release mode notifies once when content appears after absence", async () => {
+	const jpa = await releaseJpa();
+	const kick = mock(() => {});
+
+	serveHtml(nothingPublished);
+	await checkJpa(jpa, kick);
+
+	serveHtml(page("Ergebnisse Mai 2026"));
+	expect((await checkJpa(jpa, kick)).result).toBe("notified");
+	expect((await checkJpa(jpa, kick)).result).toBe("unchanged");
+
+	expect(kick).toHaveBeenCalledTimes(1);
+});
+
+test("release mode notifies again for different content after the old release vanished", async () => {
+	const jpa = await releaseJpa();
+	const kick = mock(() => {});
+
+	serveHtml(nothingPublished);
+	await checkJpa(jpa, kick);
+	serveHtml(page("Ergebnisse Mai 2026"));
+	await checkJpa(jpa, kick);
+
+	serveHtml(nothingPublished);
+	expect((await checkJpa(jpa, kick)).result).toBe("unchanged");
+
+	serveHtml(page("Ergebnisse November 2026"));
+	expect((await checkJpa(jpa, kick)).result).toBe("notified");
+
+	expect(kick).toHaveBeenCalledTimes(2);
+});
+
+test("release mode does not notify when identical content reappears", async () => {
+	const jpa = await releaseJpa();
+	const kick = mock(() => {});
+
+	serveHtml(page("Ergebnisse Mai 2026"));
+	await checkJpa(jpa, kick);
+
+	serveHtml(nothingPublished);
+	await checkJpa(jpa, kick);
+
+	serveHtml(page("Ergebnisse Mai 2026"));
+	expect((await checkJpa(jpa, kick)).result).toBe("unchanged");
+
+	expect(kick).not.toHaveBeenCalled();
+});
