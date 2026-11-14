@@ -35,6 +35,14 @@ export const getPublicData = createServerFn({ method: "GET" }).handler(
 	},
 );
 
+// Offices for the site-wide footer, loaded once by the root route.
+export const getFooterOffices = createServerFn({ method: "GET" }).handler(
+	async () => {
+		const jpas = await getJpas();
+		return jpas.map(({ slug, name, land }) => ({ slug, name, land }));
+	},
+);
+
 export const getOfficeData = createServerFn({ method: "GET" })
 	.validator((param: string) => param)
 	.handler(async ({ data: param }) => {

@@ -8,7 +8,6 @@ import {
 } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { FaqList } from "@/components/FaqList";
-import { Footer } from "@/components/Footer";
 import { SignupForm } from "@/components/SignupForm";
 import { trackEvent } from "@/lib/analytics";
 import {
@@ -700,7 +699,6 @@ function JpaPage() {
 					)}
 				</div>
 			</div>
-			<Footer jpas={jpas} />
 		</>
 	);
 }

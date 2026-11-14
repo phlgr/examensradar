@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ChevronRight } from "lucide-react";
 import { FaqList } from "@/components/FaqList";
-import { Footer } from "@/components/Footer";
 import { Card } from "@/components/ui/card";
 import { PredictionNote } from "@/components/ui/date-chip";
 import { SectionIntro } from "@/components/ui/heading";
@@ -130,7 +129,6 @@ function ResultsIndexPage() {
 					</section>
 				</div>
 			</div>
-			<Footer jpas={jpas} />
 		</>
 	);
 }
