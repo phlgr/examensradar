@@ -11,7 +11,6 @@ import {
 	getSubscriptionCountsByJpa,
 	updateJpa,
 } from "@/db";
-import { SCRAPE_MODES } from "@/db/schema";
 import { LAENDER } from "@/lib/laender";
 import { publicSummary, summarizeReleases } from "@/lib/release-summary";
 import { checkJpa } from "../scraper";
@@ -41,7 +40,6 @@ export const jpaRouter = router({
 				websiteUrl: z.string().url().nullable().optional(),
 				scrapeUrl: z.string().url().nullable().optional(),
 				scrapeSelector: z.string().min(1).nullable().optional(),
-				scrapeMode: z.enum(SCRAPE_MODES).optional(),
 				land: z.enum(LAENDER).nullable().optional(),
 			}),
 		)
@@ -60,7 +58,6 @@ export const jpaRouter = router({
 				websiteUrl: z.string().url().nullable().optional(),
 				scrapeUrl: z.string().url().nullable().optional(),
 				scrapeSelector: z.string().min(1).nullable().optional(),
-				scrapeMode: z.enum(SCRAPE_MODES).optional(),
 				land: z.enum(LAENDER).nullable().optional(),
 				notificationsDisabled: z.boolean().optional(),
 			}),
@@ -78,9 +75,7 @@ export const jpaRouter = router({
 				(data.scrapeUrl !== undefined &&
 					data.scrapeUrl !== existing.scrapeUrl) ||
 				(data.scrapeSelector !== undefined &&
-					data.scrapeSelector !== existing.scrapeSelector) ||
-				(data.scrapeMode !== undefined &&
-					data.scrapeMode !== existing.scrapeMode);
+					data.scrapeSelector !== existing.scrapeSelector);
 
 			if (updated && scrapeConfigChanged) {
 				await dropScrapeBaseline(id);

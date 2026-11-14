@@ -9,7 +9,7 @@ The admin logs in at `/admin/login` and sees every JPA with its subscriber count
 - `scrape-notify`: after a content change, it shows `Änderung erkannt — N Mails in Zustellung.` and N mails go out, one per confirmed subscriber.
 - `scrape-once`: a second "Jetzt prüfen" on the same changed content shows `Keine Änderung.` with no new mail.
 - `scrape-paused`: with notifications paused for the JPA (the bell icon button on its card), it shows `Änderung erkannt, aber Benachrichtigungen sind pausiert.` and no mail.
-- `scrape-error`: a selector that matches nothing shows `Fehler: selector matched nothing: …`.
+- `scrape-missing`: a selector that matches nothing is "nothing published": no error, no mail, and the card shows when the element was last found.
 
 ## How to get to it (user POV)
 
@@ -30,12 +30,11 @@ Preconditions: at least one confirmed `example.test` subscriber on `JPA Verifika
 - **Log out.** Click `Abmelden`. The URL becomes `/admin/login`, the cookie is cleared, and visiting `/admin` redirects back to login.
 - **Proof.** Run `bun $V/journeys/admin-scraper.ts <run>` after `subscribe-confirm`. It covers everything above, sets unique fixture content, and works on a reused instance. Its output is `evidence/admin-scraper/01..06*.png` + `result.json`.
 - **Pause.** On the test JPA card, click the icon button named `Benachrichtigungen pausieren` (its `title`; it has no text). The card shows the badge `Pausiert` and the button becomes `Benachrichtigungen aktivieren`. Publish new fixture content and click `Jetzt prüfen`. It shows `Änderung erkannt, aber Benachrichtigungen sind pausiert.`, no mail is captured and `notification_log` gains no row. Click `Benachrichtigungen aktivieren` to undo it; the pause persists in the run DB otherwise. The paused change is consumed: the next `Jetzt prüfen` on the same content shows `Keine Änderung.` and still sends no mail (driven on 2026-11-05).
-- **Selector error.** Click the card's `Bearbeiten` icon button, set `CSS-Selektor (optional)` to `#does-not-exist` and click `Speichern`. Click `Jetzt prüfen`. It shows `Fehler: selector matched nothing: #does-not-exist`. To restore, edit the selector back to `article#results` and save. Saving a changed scrape URL or selector drops the baseline and re-checks at once, so the next `Jetzt prüfen` shows `Keine Änderung.` and only content changed after that notifies.
-- **Release mode.** For offices whose element only exists on results day. Click `Bearbeiten`, set `CSS-Selektor (optional)` to a selector the fixture lacks, check `Selektor erscheint nur bei neuen Ergebnissen` and click `Speichern`. The card shows `Selektor erscheint nur bei neuen Ergebnissen.`, `scrape_state.content_hash` is `absent` and `error_count` stays 0. `Jetzt prüfen` shows `Keine Änderung.` while the element is missing, mails once when it appears, and neither errors nor mails when it vanishes or identical content comes back. Run `bun $V/journeys/release-mode.ts <run>` after `subscribe-confirm` (driven on 2026-11-14). It leaves the test JPA in release mode, so run it last or on a fresh instance.
+- **Missing element.** A selector that matches nothing means "nothing published", for every office. Click `Bearbeiten`, set `CSS-Selektor (optional)` to a selector the fixture lacks and click `Speichern`. Saving a changed scrape URL or selector drops the baseline and re-checks at once, so `scrape_state.content_hash` becomes `absent`, `error_count` stays 0 and the card shows `Element noch nie gefunden.` `Jetzt prüfen` shows `Keine Änderung.` while the element is missing, mails once when it appears (the card then shows `Element zuletzt gefunden: … (heute)`), and neither errors nor mails when it vanishes or identical content comes back. A broken selector therefore shows up only as an old `Element zuletzt gefunden` date. Run `bun $V/journeys/missing-element.ts <run>` after `subscribe-confirm`. It leaves the test JPA on the missing-element selector, so run it last or on a fresh instance. To restore by hand, edit the selector back to `article#results` and save.
 
 ## Gotchas
 
-- Pause and selector error were driven on 2026-10-19 but are not in the journey.
+- Pause was driven on 2026-10-19 but is not in the journey.
 - Use `getByText("Pausiert", { exact: true })`. Without `exact`, it also matches the paused outcome text.
 - Never point a seeded (real) JPA at the fixture or re-enable its scrape URL. `doctor` fails if any JPA other than the test JPA has a scrape URL.
 - A fixture change is reported only once per content hash. To notify again, set different content.
