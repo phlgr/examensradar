@@ -10,7 +10,7 @@ import {
 	type PublicReleaseSummary,
 	type TimelineEntry,
 } from "@/lib/release-summary";
-import { type Faq, formatLongDate } from "@/lib/seo";
+import { type Faq, formatLongDate, officeLongName } from "@/lib/seo";
 
 function listNames(names: string[]): string {
 	if (names.length <= 1) return names.join("");
@@ -129,6 +129,8 @@ export function jpaFaqs(
 ) {
 	const faqs: Faq[] = [];
 	const prediction = summary?.prediction;
+	const longName = officeLongName(name);
+	const fullName = longName === name ? name : `${longName} (${name})`;
 
 	if (summary) {
 		const pattern = prediction
@@ -136,7 +138,7 @@ export function jpaFaqs(
 			: `zuletzt am ${formatLongDate(summary.lastRelease)}`;
 		faqs.push({
 			question: `Wann kommen die Examensergebnisse beim ${name}?`,
-			answer: `Das ${name} veröffentlicht die Ergebnisse im ersten Examen ${pattern}. ${nextReleaseSentence(summary)}${prediction ? ` Die Prognose ist ${CONFIDENCE_LABEL[prediction.confidence]}.` : ""}`,
+			answer: `Das ${fullName} veröffentlicht die Ergebnisse im ersten Examen ${pattern}. ${nextReleaseSentence(summary)}${prediction ? ` Die Prognose ist ${CONFIDENCE_LABEL[prediction.confidence]}.` : ""}`,
 		});
 		faqs.push({
 			question: `Wann hat das ${name} zuletzt Ergebnisse veröffentlicht?`,
@@ -145,7 +147,7 @@ export function jpaFaqs(
 	} else {
 		faqs.push({
 			question: `Wann kommen die Examensergebnisse beim ${name}?`,
-			answer: `Für das ${name} haben wir noch keine Veröffentlichung erfasst. Sobald dort neue Ergebnisse erscheinen, bekommen alle Angemeldeten eine E-Mail.`,
+			answer: `Für das ${fullName} haben wir noch keine Veröffentlichung erfasst. Sobald dort neue Ergebnisse erscheinen, bekommen alle Angemeldeten eine E-Mail.`,
 		});
 	}
 

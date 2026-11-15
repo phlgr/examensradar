@@ -35,7 +35,15 @@ import {
 	relativeLabel,
 	type TimelineEntry,
 } from "@/lib/release-summary";
-import { faqJsonLd, jpaParam, jpaPath, jsonLd, SITE_URL, seo } from "@/lib/seo";
+import {
+	faqJsonLd,
+	jpaParam,
+	jpaPath,
+	jsonLd,
+	officeLongName,
+	SITE_URL,
+	seo,
+} from "@/lib/seo";
 import { cn } from "@/lib/utils";
 import { getOfficeData } from "@/server/public-data";
 
@@ -59,6 +67,23 @@ export const Route = createFileRoute("/ergebnisse/$jpa")({
 			...page,
 			scripts: [
 				faqJsonLd(jpaFaqs(jpa.name, summary, timeline?.entries)),
+				jsonLd({
+					"@type": "WebPage",
+					url: `${SITE_URL}${path}`,
+					name: meta.title,
+					description: meta.description,
+					inLanguage: "de-DE",
+					isPartOf: { "@id": `${SITE_URL}/#website` },
+					about: {
+						"@type": "GovernmentOrganization",
+						name: officeLongName(jpa.name),
+						alternateName: jpa.name,
+						...(jpa.websiteUrl && { url: jpa.websiteUrl }),
+						...(jpa.land && {
+							areaServed: { "@type": "State", name: jpa.land },
+						}),
+					},
+				}),
 				jsonLd({
 					"@type": "BreadcrumbList",
 					itemListElement: [
