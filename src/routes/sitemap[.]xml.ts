@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { getJpas, getNotificationHistory } from "@/db";
 import { examCalendarFor } from "@/lib/exam-calendar";
 import { summarizeReleases } from "@/lib/release-summary";
-import { jpaPath, officeLastmod, SITE_URL } from "@/lib/seo";
+import { jpaPath, latestDate, officeLastmod, SITE_URL } from "@/lib/seo";
 
 export const Route = createFileRoute("/sitemap.xml")({
 	server: {
@@ -15,21 +15,23 @@ export const Route = createFileRoute("/sitemap.xml")({
 				const summaries = summarizeReleases(history, new Date());
 				const lastmodOf = (date: Date | undefined) =>
 					date ? `<lastmod>${date.toISOString().slice(0, 10)}</lastmod>` : "";
-				const latest = summaries
-					.map((s) => s.lastRelease)
-					.sort((a, b) => b.getTime() - a.getTime())[0];
+				const offices = jpas.map((jpa) => ({
+					path: jpaPath(jpa.slug),
+					lastmod: officeLastmod(
+						summaries.find((s) => s.slug === jpa.slug)?.lastRelease,
+						examCalendarFor(jpa.slug)?.stand,
+						jpa.createdAt,
+					),
+				}));
+				// The landing and overview pages list every office.
+				const latest = lastmodOf(latestDate(offices.map((o) => o.lastmod)));
 
 				const urls = [
-					{ path: "/", lastmod: lastmodOf(latest) },
-					{ path: "/ergebnisse", lastmod: lastmodOf(latest) },
-					...jpas.map((jpa) => ({
-						path: jpaPath(jpa.slug),
-						lastmod: lastmodOf(
-							officeLastmod(
-								summaries.find((s) => s.slug === jpa.slug)?.lastRelease,
-								examCalendarFor(jpa.slug)?.stand,
-							),
-						),
+					{ path: "/", lastmod: latest },
+					{ path: "/ergebnisse", lastmod: latest },
+					...offices.map((o) => ({
+						path: o.path,
+						lastmod: lastmodOf(o.lastmod),
 					})),
 				];
 

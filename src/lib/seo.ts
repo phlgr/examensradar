@@ -21,15 +21,37 @@ export const formatLongDate = (date: Date) =>
 		year: "numeric",
 	});
 
+/** An office page changes when the office is listed, publishes, or its exam calendar is updated. */
 export function officeLastmod(
 	lastRelease: Date | undefined,
 	stand: string | null | undefined,
+	listedAt?: Date,
 ): Date | undefined {
 	const standDate = stand
 		? new Date(stand.length === 7 ? `${stand}-01` : stand)
 		: undefined;
-	if (!standDate || !lastRelease) return standDate ?? lastRelease;
-	return standDate > lastRelease ? standDate : lastRelease;
+	return latestDate([lastRelease, standDate, listedAt]);
+}
+
+export function latestDate(dates: (Date | undefined)[]): Date | undefined {
+	return dates.reduce<Date | undefined>(
+		(latest, date) => (date && (!latest || date > latest) ? date : latest),
+		undefined,
+	);
+}
+
+const OFFICE_PREFIX: Record<string, string> = {
+	OLG: "Justizprüfungsamt beim Oberlandesgericht",
+	GJPA: "Gemeinsames Juristisches Prüfungsamt",
+	LJPA: "Landesjustizprüfungsamt",
+	JPA: "Justizprüfungsamt",
+};
+
+/** "LJPA Bayern" → "Landesjustizprüfungsamt Bayern", the name people search for. */
+export function officeLongName(name: string): string {
+	const [prefix, ...rest] = name.split(" ");
+	const long = OFFICE_PREFIX[prefix];
+	return long && rest.length > 0 ? `${long} ${rest.join(" ")}` : name;
 }
 
 interface SeoOptions {

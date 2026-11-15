@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { jpaFaqs, officePageMeta } from "./faq.ts";
 import { examTimeline, summarizeReleases } from "./release-summary.ts";
-import { officeLastmod } from "./seo.ts";
+import { officeLastmod, officeLongName } from "./seo.ts";
 
 const NOW = new Date("2026-11-05T12:00:00");
 const hammDates = [
@@ -88,5 +88,34 @@ describe("officeLastmod", () => {
 			officeLastmod(release, "2026-11-10")?.toISOString().slice(0, 10),
 		).toBe("2026-11-10");
 		expect(officeLastmod(release, null)).toBe(release);
+	});
+
+	test("an office without releases or calendar dates is dated by its listing", () => {
+		const listed = new Date("2026-11-14T20:00:00Z");
+		expect(officeLastmod(undefined, null, listed)).toBe(listed);
+		expect(officeLastmod(release, null, listed)).toBe(listed);
+		expect(officeLastmod(undefined, null)).toBeUndefined();
+	});
+});
+
+describe("officeLongName", () => {
+	test("spells out the office abbreviation", () => {
+		expect(officeLongName("LJPA Bayern")).toBe(
+			"Landesjustizprüfungsamt Bayern",
+		);
+		expect(officeLongName("GJPA Berlin-Brandenburg")).toBe(
+			"Gemeinsames Juristisches Prüfungsamt Berlin-Brandenburg",
+		);
+		expect(officeLongName("JPA Thüringen")).toBe("Justizprüfungsamt Thüringen");
+		expect(officeLongName("OLG Hamm")).toBe(
+			"Justizprüfungsamt beim Oberlandesgericht Hamm",
+		);
+		expect(officeLongName("Testamt")).toBe("Testamt");
+	});
+
+	test("the office FAQ names the office in full once", () => {
+		expect(jpaFaqs("LJPA Bayern", undefined)[0].answer).toContain(
+			"Landesjustizprüfungsamt Bayern (LJPA Bayern)",
+		);
 	});
 });
